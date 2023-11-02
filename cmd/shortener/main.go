@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
@@ -8,6 +10,15 @@ import (
 
 	"github.com/go-chi/chi/v5"
 )
+
+type ConfigShear struct {
+	//flag -a
+	startAddress string
+	//flag -b
+	resultAddress string
+}
+
+var configShear ConfigShear
 
 var Urldb = map[string]string{}
 
@@ -43,6 +54,8 @@ func getUrl(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusTemporaryRedirect)
 
 	//set status code 307
+	fmt.Println("Redirect to: ", longUrl)
+
 	if exist {
 		http.Redirect(res, req, longUrl, http.StatusTemporaryRedirect)
 	}
@@ -79,11 +92,19 @@ func setUrl(res http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+
+	//read command line argue
+	startAddress := flag.String("a", "localhost:8080", "start address and port")
+	resultAddress := flag.String("b", "localhost:8080", "result address and port")
+	flag.Parse()
+
+	configShear := ConfigShear{startAddress: *startAddress, resultAddress: *resultAddress}
+
 	r := chi.NewRouter()
 	r.Get("/{id}", getUrl)
 	r.Post("/", setUrl)
 
-	err := http.ListenAndServe(":8080", r)
+	err := http.ListenAndServe(configShear.startAddress, r)
 	if err != nil {
 		panic(err)
 	}
