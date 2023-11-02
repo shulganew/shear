@@ -40,7 +40,7 @@ func getUrl(res http.ResponseWriter, req *http.Request) {
 	res.Header().Add("Content-Type", "text/plain")
 
 	//set status code 307
-	//res.WriteHeader(http.StatusTemporaryRedirect)
+	res.WriteHeader(http.StatusTemporaryRedirect)
 
 	//set status code 307
 	if exist {

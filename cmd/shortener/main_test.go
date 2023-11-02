@@ -36,7 +36,7 @@ func Test_main(t *testing.T) {
 	}{
 		{
 			name:        "base test POTS",
-			request:     "http://localhost:8080/",
+			request:     "http://localhost:8080",
 			body:        "http://yandex.ru/",
 			method:      http.MethodPost,
 			contentType: "text/plain",
@@ -45,7 +45,7 @@ func Test_main(t *testing.T) {
 
 		{
 			name:        "base test GET",
-			request:     "http://localhost:8080/",
+			request:     "http://localhost:8080",
 			body:        "http://yandex.ru/",
 			method:      http.MethodGet,
 			contentType: "text/plain",
@@ -63,7 +63,7 @@ func Test_main(t *testing.T) {
 				//create status recorder
 				resRecord := httptest.NewRecorder()
 
-				getUrl(resRecord, request)
+				setUrl(resRecord, request)
 
 				//get result
 				res := resRecord.Result()
