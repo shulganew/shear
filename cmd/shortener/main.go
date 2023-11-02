@@ -6,6 +6,7 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
@@ -70,8 +71,8 @@ func setUrl(res http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 
-	//from addres
-	answer := "http://" + req.Host + "/"
+	//from addres: from OS ENV
+	answer := "http://" + configShear.resultAddress + "/"
 
 	longUrl := string(readBody)
 	shortUrl := generateShorLink()
@@ -95,10 +96,16 @@ func main() {
 
 	//read command line argue
 	startAddress := flag.String("a", "localhost:8080", "start address and port")
-	resultAddress := flag.String("b", "localhost:8080", "result address and port")
 	flag.Parse()
+	resultAddress, exist := os.LookupEnv(("SERVER_ADDRESS"))
 
-	configShear := ConfigShear{startAddress: *startAddress, resultAddress: *resultAddress}
+	//if not exist - set def value
+	if !exist {
+
+		resultAddress = "localhost:8080"
+	}
+
+	configShear := ConfigShear{startAddress: *startAddress, resultAddress: resultAddress}
 
 	r := chi.NewRouter()
 	r.Get("/{id}", getUrl)
@@ -112,3 +119,5 @@ func main() {
 
 //curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/ -d "{"https://yandex.ru"}"
 //curl -v -H "Content-Type: text/plain" http://localhost:8080/hjnFtibr
+//set SERVER_ADDRESS=localhost:8080
+//echo %SERVER_ADDRESS%
