@@ -37,7 +37,7 @@ func Test_main(t *testing.T) {
 		{
 			name:        "base test POTS",
 			request:     "http://localhost:8080/",
-			body:        "http://yandex.ru",
+			body:        "http://yandex.ru/",
 			method:      http.MethodPost,
 			contentType: "text/plain",
 			statusCode:  201,
@@ -45,8 +45,8 @@ func Test_main(t *testing.T) {
 
 		{
 			name:        "base test GET",
-			request:     "http://localhost:8080",
-			body:        "http://yandex.ru",
+			request:     "http://localhost:8080/",
+			body:        "http://yandex.ru/",
 			method:      http.MethodGet,
 			contentType: "text/plain",
 			statusCode:  307,
@@ -56,6 +56,9 @@ func Test_main(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			if tt.method == http.MethodPost {
+				t.Log("=============POTS===============")
+				t.Log("tt.request=", tt.request)
+				t.Log("strings.NewReader(tt.body)=", tt.body)
 				request := httptest.NewRequest(http.MethodPost, tt.request, strings.NewReader(tt.body))
 				//create status recorder
 				resRecord := httptest.NewRecorder()
