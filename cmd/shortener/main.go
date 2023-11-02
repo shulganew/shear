@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"math/rand"
 	"net/http"
@@ -33,6 +34,13 @@ func getUrl(res http.ResponseWriter, req *http.Request) {
 
 		shortUrl := strings.TrimLeft(req.URL.String(), "/")
 		longUrl, exist := Urldb[shortUrl]
+
+		//set content type
+		res.Header().Add("Content-Type", "text/plain")
+
+		//set status code 307
+		res.WriteHeader(http.StatusTemporaryRedirect)
+
 		if exist {
 			http.Redirect(res, req, longUrl, http.StatusTemporaryRedirect)
 		}
@@ -55,11 +63,14 @@ func getUrl(res http.ResponseWriter, req *http.Request) {
 		Urldb[shortUrl] = longUrl
 		answer += shortUrl
 
-		//set status code 200
+		//set content type
+		res.Header().Add("Content-Type", "text/plain")
+
+		//set status code 201
 		res.WriteHeader(http.StatusCreated)
 
 		//remove after tests
-		//fmt.Println(Urldb)
+		fmt.Println(Urldb)
 
 		res.Write([]byte(answer))
 	}
