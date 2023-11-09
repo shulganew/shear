@@ -116,13 +116,17 @@ func Test_main(t *testing.T) {
 				requestUrl := tt.request + "/" + shortUrl
 				t.Log("requestUrl: ", requestUrl)
 
-				request := httptest.NewRequest(http.MethodGet, requestUrl, nil)
+				ts := httptest.NewServer(Router())
+				defer ts.Close()
+
+				request := httptest.NewRequest(http.MethodGet, ts.URL+requestUrl, nil)
 				//create status recorder
 				resRecord := httptest.NewRecorder()
 				webhandl.GetUrl(resRecord, request)
 
 				//get result
 				res := resRecord.Result()
+
 				//check answer code
 				t.Log("StatusCode test: ", tt.statusCode, " server: ", res.StatusCode)
 				assert.Equal(t, tt.statusCode, res.StatusCode)

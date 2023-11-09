@@ -25,15 +25,13 @@ func GetUrl(res http.ResponseWriter, req *http.Request) {
 	res.Header().Add("Content-Type", "text/plain")
 
 	//set status code 307
-	//res.WriteHeader(http.StatusTemporaryRedirect)
-
-	//set status code 307
 	log.Println("Redirect to: ", longUrl)
 
 	if exist {
-		//res.Header().Add("Location", "example.com")
-		http.Redirect(res, req, longUrl, http.StatusTemporaryRedirect)
+		res.Header().Set("Location", longUrl)
 	}
+	//set status code 307
+	res.WriteHeader(http.StatusTemporaryRedirect)
 }
 
 // POTS and set generate short Url

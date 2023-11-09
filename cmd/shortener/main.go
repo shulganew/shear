@@ -11,6 +11,14 @@ import (
 	webhandl "github.com/shulganew/shear.git/internal/handlers"
 )
 
+func Router() chi.Router {
+	r := chi.NewRouter()
+	r.Get("/{id}", webhandl.GetUrl)
+	r.Post("/", webhandl.SetUrl)
+
+	return r
+}
+
 func main() {
 
 	//read command line argue
@@ -34,11 +42,8 @@ func main() {
 	config.ResultAddress = resultAddress
 
 	log.Println("Config main: ", config.StartAddress)
-	r := chi.NewRouter()
-	r.Get("/{id}", webhandl.GetUrl)
-	r.Post("/", webhandl.SetUrl)
 
-	err := http.ListenAndServe(config.StartAddress, r)
+	err := http.ListenAndServe(config.StartAddress, Router())
 	if err != nil {
 		panic(err)
 	}
