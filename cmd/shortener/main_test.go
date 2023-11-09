@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	webhandl "github.com/shulganew/shear.git/internal/handlers"
+	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -63,7 +65,7 @@ func Test_main(t *testing.T) {
 				//create status recorder
 				resRecord := httptest.NewRecorder()
 
-				setUrl(resRecord, request)
+				webhandl.SetUrl(resRecord, request)
 
 				//get result
 				res := resRecord.Result()
@@ -90,9 +92,9 @@ func Test_main(t *testing.T) {
 				t.Log("full url: ", fullUrl.Path)
 				shortUrl := strings.TrimLeft(fullUrl.Path, "/")
 
-				urldb := &Urldb
+				urldb := storage.GetUrldb()
 
-				t.Log("Urldb: ", &Urldb)
+				t.Log("Urldb: ", urldb)
 				t.Log("request url: ", (*urldb)[shortUrl]+"/"+shortUrl)
 				t.Log("body url the same: ", tt.body+shortUrl)
 
@@ -104,7 +106,7 @@ func Test_main(t *testing.T) {
 			} else if tt.method == http.MethodGet {
 				t.Log("=============GET===============")
 				//get value of short URL from dburl:
-				urldb := &Urldb
+				urldb := storage.GetUrldb()
 				shortUrl, error := getShortUrl((*urldb), tt.body)
 
 				t.Log("shortUrl: ", shortUrl)
@@ -117,7 +119,7 @@ func Test_main(t *testing.T) {
 				request := httptest.NewRequest(http.MethodGet, requestUrl, nil)
 				//create status recorder
 				resRecord := httptest.NewRecorder()
-				getUrl(resRecord, request)
+				webhandl.GetUrl(resRecord, request)
 
 				//get result
 				res := resRecord.Result()

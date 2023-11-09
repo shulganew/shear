@@ -1,3 +1,20 @@
+# cmd commands for test purposes
+//curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/ -d "https://yandex.ru"
+//curl -v -H "Content-Type: text/plain" http://localhost:8080/hjnFtibr
+//set SERVER_ADDRESS=localhost:8080
+//echo %SERVER_ADDRESS%
+
+# my links to useful sites
+
+
+https://github.com/golang/go/wiki/CodeReviewComments#receiver-type
+
+status code during the test issue:
+https://github.com/gin-gonic/gin/issues/1120
+
+
+
+
 # go-musthave-shortener-tpl
 
 Шаблон репозитория для трека «Сервис сокращения URL».

@@ -1,13 +1,17 @@
 package config
 
-type Config struct {
+const DefaultHost string = "localhost:8080"
+
+type ConfigShear struct {
 	//flag -a
-	startAddress string
-	//flag -b
-	resultAddress string
+	StartAddress string
+	//env var
+	ResultAddress string
 }
 
-func NewConfig(startAddress string, resultAddress string) *Config {
+var configapp ConfigShear
 
-	return &Config{startAddress: startAddress, resultAddress: resultAddress}
+func GetConfig() *ConfigShear {
+
+	return &configapp
 }
