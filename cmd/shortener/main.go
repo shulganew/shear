@@ -19,8 +19,8 @@ func Router() chi.Router {
 	return r
 }
 
-func main() {
-
+// Init app parameters from cmd and env
+func initApp() *config.ConfigShear {
 	//read command line argue
 	startAddress := flag.String("a", "localhost:8080", "start address and port")
 	flag.Parse()
@@ -42,7 +42,12 @@ func main() {
 	configApp.ResultAddress = resultAddress
 
 	log.Println("Config main: ", configApp.StartAddress)
+	return configApp
+}
 
+func main() {
+
+	configApp := initApp()
 	err := http.ListenAndServe(configApp.StartAddress, Router())
 	if err != nil {
 		panic(err)

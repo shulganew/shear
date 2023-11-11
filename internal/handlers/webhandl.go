@@ -26,12 +26,14 @@ func GetUrl(res http.ResponseWriter, req *http.Request) {
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
-
 	log.Println("Redirect to: ", longUrl)
 
 	if exist {
 		res.Header().Set("Location", longUrl.String())
+	} else {
+		res.WriteHeader(http.StatusNotFound)
 	}
+
 	//set status code 307
 	res.WriteHeader(http.StatusTemporaryRedirect)
 }
