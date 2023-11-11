@@ -21,25 +21,27 @@ func RouteShear() *chi.Mux {
 
 // Init app parameters from cmd and env
 func initApp() *config.ConfigShear {
+	configApp := config.GetConfig()
+	//init config
 	//read command line argue
-	startAddress := flag.String("a", "localhost:8080", "start address and port")
-	flag.Parse()
 
+	startAddress := flag.String("a", "localhost:8080", "start address and port")
+	resultAddress := flag.String("b", "localhost:8080", "start address and port")
+
+	flag.Parse()
+	configApp.StartAddress = *startAddress
+	log.Println("Server address: ", configApp.StartAddress)
 	//read OS ENV
-	resultAddress, exist := os.LookupEnv(("SERVER_ADDRESS"))
+	envAddress, exist := os.LookupEnv(("SERVER_ADDRESS"))
 
 	//if env var does not exist - set def value
 	if exist {
 		log.Println("Set result address from evn SERVER_ADDRESS: ", resultAddress)
+		configApp.ResultAddress = envAddress
 	} else {
-		resultAddress = config.DefaultHost
-		log.Println("Env var SERVER_ADDRESS not found, use default.")
+		log.Println("Env var SERVER_ADDRESS not found, use default localhost:8080.")
+		configApp.ResultAddress = config.DefaultHost
 	}
-
-	configApp := config.GetConfig()
-	//init config
-	configApp.StartAddress = *startAddress
-	configApp.ResultAddress = resultAddress
 
 	log.Println("Config main: ", configApp.StartAddress)
 	return configApp
