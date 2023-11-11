@@ -2,6 +2,7 @@ package utils
 
 import (
 	"math/rand"
+	"net/url"
 	"strings"
 )
 
@@ -19,4 +20,16 @@ func GenerateShorLink() string {
 		sb.WriteByte(charset[rand.Intn(len(charset))])
 	}
 	return sb.String()
+}
+
+// get shortUrl from BDUrl
+func GetShortUrl(m *map[string]url.URL, longUrl string) (shortUrl string, ok bool) {
+	for k, v := range *m {
+		if v.String() == longUrl {
+			shortUrl = k
+			ok = true
+			return
+		}
+	}
+	return
 }

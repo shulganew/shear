@@ -8,23 +8,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/shulganew/shear.git/internal/app/config"
+	utils "github.com/shulganew/shear.git/internal/core"
 	webhandl "github.com/shulganew/shear.git/internal/handlers"
 	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// get shortUrl from BDUrl
-func getShortUrl(m map[string]string, longUrl string) (shortUrl string, ok bool) {
-	for k, v := range m {
-		if v == longUrl {
-			shortUrl = k
-			ok = true
-			return
-		}
-	}
-	return
-}
 
 func Test_main(t *testing.T) {
 	tests := []struct {
@@ -54,6 +44,12 @@ func Test_main(t *testing.T) {
 			statusCode:  307,
 		},
 	}
+	// init configApp
+	configApp := config.GetConfig()
+	// init config
+	configApp.StartAddress = config.DefaultHost
+	configApp.ResultAddress = config.DefaultHost
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
@@ -85,29 +81,35 @@ func Test_main(t *testing.T) {
 				body := string(resBody)
 				t.Log("Body: ", body)
 
-				fullUrl, err := url.Parse(body)
-				if err != nil {
-					panic(err)
-				}
-				t.Log("full url: ", fullUrl.Path)
-				shortUrl := strings.TrimLeft(fullUrl.Path, "/")
+				//responseUrl = hostname+shortUrl
+				responseUrl, err := url.Parse(body)
+				require.NoError(t, err)
 
-				urldb := storage.GetUrldb()
+				t.Log("full url: ", responseUrl.Path)
+
+				shortUrl := strings.TrimLeft(responseUrl.Path, "/")
+				urldb := *storage.GetUrldb()
+				longUrlDb := urldb[shortUrl]
+				t.Log("shortUrl url: ", shortUrl)
+				responseUrlDb, err := url.JoinPath(longUrlDb.String(), shortUrl)
+				require.NoError(t, err)
 
 				t.Log("Urldb: ", urldb)
-				t.Log("request url: ", (*urldb)[shortUrl]+"/"+shortUrl)
-				t.Log("body url the same: ", tt.body+shortUrl)
+				t.Log("ressponseUrl from db: ", responseUrlDb)
+				bodyUrl, _ := url.JoinPath(tt.body, shortUrl)
+				t.Log("body url the same: ", bodyUrl)
 
 				//check request url and body url the same
-				assert.Equal(t, (*urldb)[shortUrl]+"/"+shortUrl, tt.body+"/"+shortUrl)
+				assert.Equal(t, responseUrlDb, bodyUrl)
 
 				//go test -v ./...
 
 			} else if tt.method == http.MethodGet {
 				t.Log("=============GET===============")
-				//get value of short URL from dburl:
+				//get value of short URL from urldb:
 				urldb := storage.GetUrldb()
-				shortUrl, error := getShortUrl((*urldb), tt.body)
+				//re
+				shortUrl, error := utils.GetShortUrl(urldb, tt.body)
 
 				t.Log("shortUrl: ", shortUrl)
 				require.NotNil(t, error)

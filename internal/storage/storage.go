@@ -1,20 +1,10 @@
 package storage
 
-var urldb map[string]string = make(map[string]string)
+import "net/url"
 
-func GetUrldb() *map[string]string {
+var urldb map[string]url.URL = make(map[string]url.URL)
+
+func GetUrldb() *map[string]url.URL {
 
 	return &urldb
 }
-
-// func SetUrldb(shortUrl, longUrl string) {
-// 	urldb[shortUrl] = longUrl
-// }
-
-// func (sd *DataStorage) GetUrldb() map[string]string {
-
-// 	// if sd.getUrldb() == nil {
-// 	// 	sd.Urldb = map[string]string{}
-// 	// }
-// 	return sd.Urldb
-// }

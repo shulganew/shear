@@ -36,14 +36,14 @@ func main() {
 		log.Println("Env var SERVER_ADDRESS not found, use default.")
 	}
 
-	config := config.GetConfig()
+	configApp := config.GetConfig()
 	//init config
-	config.StartAddress = *startAddress
-	config.ResultAddress = resultAddress
+	configApp.StartAddress = *startAddress
+	configApp.ResultAddress = resultAddress
 
-	log.Println("Config main: ", config.StartAddress)
+	log.Println("Config main: ", configApp.StartAddress)
 
-	err := http.ListenAndServe(config.StartAddress, Router())
+	err := http.ListenAndServe(configApp.StartAddress, Router())
 	if err != nil {
 		panic(err)
 	}
