@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/app/config"
 	webhandl "github.com/shulganew/shear.git/internal/handlers"
 )
 
-func Router() chi.Router {
+func RouteShear() *chi.Mux {
 	r := chi.NewRouter()
 	r.Get("/{id}", webhandl.GetUrl)
 	r.Post("/", webhandl.SetUrl)
@@ -48,7 +48,7 @@ func initApp() *config.ConfigShear {
 func main() {
 
 	configApp := initApp()
-	err := http.ListenAndServe(configApp.StartAddress, Router())
+	err := http.ListenAndServe(configApp.StartAddress, RouteShear())
 	if err != nil {
 		panic(err)
 	}

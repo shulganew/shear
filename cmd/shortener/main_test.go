@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -8,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/app/config"
 	utils "github.com/shulganew/shear.git/internal/core"
 	webhandl "github.com/shulganew/shear.git/internal/handlers"
@@ -108,20 +110,23 @@ func Test_main(t *testing.T) {
 				t.Log("=============GET===============")
 				//get value of short URL from urldb:
 				urldb := storage.GetUrldb()
-				//re
+
 				shortUrl, error := utils.GetShortUrl(urldb, tt.body)
 
 				t.Log("shortUrl: ", shortUrl)
 				require.NotNil(t, error)
 
 				//
-				requestUrl := tt.request + "/" + shortUrl
+				requestUrl, _ := url.JoinPath(tt.request, shortUrl)
 				t.Log("requestUrl: ", requestUrl)
 
-				ts := httptest.NewServer(Router())
-				defer ts.Close()
+				rctx := chi.NewRouteContext()
+				rctx.URLParams.Add("id", shortUrl)
 
-				request := httptest.NewRequest(http.MethodGet, ts.URL+requestUrl, nil)
+				//use context for chi router - add id
+				request := httptest.NewRequest(http.MethodGet, requestUrl, nil)
+				request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
+
 				//create status recorder
 				resRecord := httptest.NewRecorder()
 				webhandl.GetUrl(resRecord, request)

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/app/config"
 	utils "github.com/shulganew/shear.git/internal/core"
 	"github.com/shulganew/shear.git/internal/storage"
@@ -18,7 +18,6 @@ import (
 func GetUrl(res http.ResponseWriter, req *http.Request) {
 	//fmt.Println("GET")
 	shortUrl := chi.URLParam(req, "id")
-	log.Println("short URL: ", shortUrl)
 
 	urldb := storage.GetUrldb()
 	//get long Url from storage
@@ -30,12 +29,12 @@ func GetUrl(res http.ResponseWriter, req *http.Request) {
 
 	if exist {
 		res.Header().Set("Location", longUrl.String())
+		//set status code 307
+		res.WriteHeader(http.StatusTemporaryRedirect)
 	} else {
 		res.WriteHeader(http.StatusNotFound)
 	}
 
-	//set status code 307
-	res.WriteHeader(http.StatusTemporaryRedirect)
 }
 
 // POTS and set generate short Url
