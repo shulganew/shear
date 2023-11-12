@@ -41,7 +41,7 @@ func CheckAddress(address string) (host string, port string) {
 	log.Println("Parse address: ", address)
 	link, err := url.Parse(strings.TrimSpace(address))
 	if err != nil {
-		log.Printf("Error parsing url: ", err, " return def localhost:8080")
+		log.Println("Error parsing url: ", err, " return def localhost:8080")
 		return "localhost", "8080"
 	}
 
@@ -53,14 +53,14 @@ func CheckAddress(address string) (host string, port string) {
 
 	link, err = url.Parse(strings.TrimSpace(address))
 	if err != nil {
-		log.Printf("Error parsing url whis shema: ", err, " return def localhost:8080")
+		log.Println("Error parsing url whis shema: ", err, " return def localhost:8080")
 		return "localhost", "8080"
 	}
 
 	log.Println("Split address: ", link)
 	host, port, err2 := net.SplitHostPort(strings.TrimSpace(link.Host))
 	if err2 != nil {
-		log.Printf("Error split port: ", err, " return def localhost:8080 Host:", link.Host)
+		log.Println("Error split port: ", err, " return def localhost:8080 Host:", link.Host)
 		return "", ""
 	}
 	return host, port
