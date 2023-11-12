@@ -30,6 +30,7 @@ func initApp() *config.ConfigShear {
 
 	flag.Parse()
 	configApp.StartAddress = *startAddress
+	configApp.ResultAddress = *resultAddress
 	log.Println("Server address: ", configApp.StartAddress)
 	//read OS ENV
 	envAddress, exist := os.LookupEnv(("SERVER_ADDRESS"))
@@ -39,11 +40,10 @@ func initApp() *config.ConfigShear {
 		log.Println("Set result address from evn SERVER_ADDRESS: ", resultAddress)
 		configApp.ResultAddress = envAddress
 	} else {
-		log.Println("Env var SERVER_ADDRESS not found, use default localhost:8080.")
-		configApp.ResultAddress = config.DefaultHost
+		log.Println("Env var SERVER_ADDRESS not found, use default", resultAddress)
 	}
 
-	log.Println("Config main: ", configApp.StartAddress)
+	log.Println("Config main: ", configApp)
 	return configApp
 }
 
