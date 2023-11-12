@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/app/config"
+	utils "github.com/shulganew/shear.git/internal/core"
 	webhandl "github.com/shulganew/shear.git/internal/handlers"
 )
 
@@ -25,22 +26,28 @@ func initApp() *config.ConfigShear {
 	//init config
 	//read command line argue
 
-	startAddress := flag.String("a", "localhost:8080", "start address and port")
-	resultAddress := flag.String("b", "localhost:8080", "start address and port")
+	startAddress := flag.String("a", "localhost:8080", "start server address and port")
+	resultAddress := flag.String("b", "localhost:8080", "answer address and port")
 
 	flag.Parse()
-	configApp.StartAddress = *startAddress
-	configApp.ResultAddress = *resultAddress
+	//check and parse URL
+	startaddr, startport := utils.CheckAddress(*startAddress)
+	answaddr, answport := utils.CheckAddress(*resultAddress)
+
+	//save config
+	configApp.StartAddress = startaddr + ":" + startport
+	configApp.ResultAddress = answaddr + ":" + answport
 	log.Println("Server address: ", configApp.StartAddress)
 	//read OS ENV
 	envAddress, exist := os.LookupEnv(("SERVER_ADDRESS"))
 
 	//if env var does not exist - set def value
 	if exist {
-		log.Println("Set result address from evn SERVER_ADDRESS: ", resultAddress)
 		configApp.ResultAddress = envAddress
+		log.Println("Set result address from evn SERVER_ADDRESS: ", configApp.ResultAddress)
+
 	} else {
-		log.Println("Env var SERVER_ADDRESS not found, use default", resultAddress)
+		log.Println("Env var SERVER_ADDRESS not found, use default", configApp.ResultAddress)
 	}
 
 	log.Println("Config main: ", configApp)
