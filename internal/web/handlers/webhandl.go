@@ -29,10 +29,10 @@ func (u *URLHandler) GetStorage() storage.URLSetGet {
 // GET and redirect by shortUrl
 func (u *URLHandler) GetURL(res http.ResponseWriter, req *http.Request) {
 
-	shortUrl := chi.URLParam(req, "id")
+	shortURL := chi.URLParam(req, "id")
 
 	//get long Url from storage
-	longURL, exist := u.storage.GetLongURL(shortUrl)
+	longURL, exist := u.storage.GetLongURL(shortURL)
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
@@ -49,7 +49,7 @@ func (u *URLHandler) GetURL(res http.ResponseWriter, req *http.Request) {
 }
 
 // POTS and set generate short Url
-func (u *URLHandler) SetUrl(res http.ResponseWriter, req *http.Request) {
+func (u *URLHandler) SetURL(res http.ResponseWriter, req *http.Request) {
 
 	readBody, err := io.ReadAll(req.Body)
 	if err != nil {

@@ -68,7 +68,7 @@ func Test_main(t *testing.T) {
 				//create status recorder
 				resRecord := httptest.NewRecorder()
 
-				handler.SetUrl(resRecord, request)
+				handler.SetURL(resRecord, request)
 
 				//get result
 				res := resRecord.Result()
@@ -124,14 +124,14 @@ func Test_main(t *testing.T) {
 				require.NotNil(t, error)
 
 				//
-				requestUrl, _ := url.JoinPath(tt.request, shortURL)
-				t.Log("requestUrl: ", requestUrl)
+				requestURL, _ := url.JoinPath(tt.request, shortURL)
+				t.Log("requestUrl: ", requestURL)
 
 				rctx := chi.NewRouteContext()
 				rctx.URLParams.Add("id", shortURL)
 
 				//use context for chi router - add id
-				request := httptest.NewRequest(http.MethodGet, requestUrl, nil)
+				request := httptest.NewRequest(http.MethodGet, requestURL, nil)
 				request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 
 				//create status recorder
@@ -140,7 +140,7 @@ func Test_main(t *testing.T) {
 
 				//get result
 				res := resRecord.Result()
-
+				defer res.Body.Close()
 				//check answer code
 				t.Log("StatusCode test: ", tt.statusCode, " server: ", res.StatusCode)
 				assert.Equal(t, tt.statusCode, res.StatusCode)

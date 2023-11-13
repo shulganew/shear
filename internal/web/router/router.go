@@ -9,7 +9,7 @@ import (
 func RouteShear(hadler webhandl.URLHandler) *chi.Mux {
 	r := chi.NewRouter()
 	r.Get("/{id}", hadler.GetURL)
-	r.Post("/", hadler.SetUrl)
+	r.Post("/", hadler.SetURL)
 
 	return r
 }
