@@ -56,7 +56,7 @@ func (u *URLHandler) SetURL(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Body not found", http.StatusInternalServerError)
 	}
 
-	redirectUrl, err := url.Parse(string(readBody))
+	redirectURL, err := url.Parse(string(readBody))
 	if err != nil {
 		http.Error(res, "Wrong URL in body, parse error", http.StatusInternalServerError)
 	}
@@ -64,7 +64,7 @@ func (u *URLHandler) SetURL(res http.ResponseWriter, req *http.Request) {
 	config := config.GetConfig()
 
 	//main URL = Shema + hostname + port
-	mainURL := redirectUrl.Scheme + "://" + config.ResultAddress
+	mainURL := redirectURL.Scheme + "://" + config.ResultAddress
 
 	shortURL := utils.GenerateShorLink()
 
@@ -75,7 +75,7 @@ func (u *URLHandler) SetURL(res http.ResponseWriter, req *http.Request) {
 	log.Println("Save long url: ", longURL)
 
 	//save map to storage
-	u.storage.SetURL(shortURL, *redirectUrl)
+	u.storage.SetURL(shortURL, *redirectURL)
 
 	log.Println("Server ansver with short URL: ", longURL)
 
