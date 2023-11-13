@@ -14,15 +14,25 @@ import (
 
 // hadler for  GET and POST  hor and log urls
 
+type URLHandler struct {
+	storage storage.URLSetGet
+}
+
+func (u *URLHandler) SetMapStorage(storage storage.URLSetGet) {
+	u.storage = storage
+}
+
+func (u *URLHandler) GetStorage() storage.URLSetGet {
+	return u.storage
+}
+
 // GET and redirect by shortUrl
-func GetURL(res http.ResponseWriter, req *http.Request) {
+func (u *URLHandler) GetURL(res http.ResponseWriter, req *http.Request) {
 
 	shortUrl := chi.URLParam(req, "id")
 
-	urldb := storage.GetURLdb()
-
 	//get long Url from storage
-	longURL, exist := (*urldb)[shortUrl]
+	longURL, exist := u.storage.GetLongURL(shortUrl)
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
@@ -39,7 +49,7 @@ func GetURL(res http.ResponseWriter, req *http.Request) {
 }
 
 // POTS and set generate short Url
-func SetUrl(res http.ResponseWriter, req *http.Request) {
+func (u *URLHandler) SetUrl(res http.ResponseWriter, req *http.Request) {
 
 	readBody, err := io.ReadAll(req.Body)
 	if err != nil {
@@ -65,8 +75,7 @@ func SetUrl(res http.ResponseWriter, req *http.Request) {
 	log.Println("Save long url: ", longURL)
 
 	//save map to storage
-	urldb := storage.GetURLdb()
-	(*urldb)[shortURL] = *redirectUrl
+	u.storage.SetURL(shortURL, *redirectUrl)
 
 	log.Println("Server ansver with short URL: ", longURL)
 

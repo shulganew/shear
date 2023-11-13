@@ -7,12 +7,16 @@
 # my links to useful sites
 
 
+//
+
+
 https://github.com/golang/go/wiki/CodeReviewComments#receiver-type
 
 status code during the test issue:
 https://github.com/gin-gonic/gin/issues/1120
 
-
+hadle func with interface
+https://ru.hexlet.io/courses/go-web-development/lessons/local-persistence/theory_unit
 
 
 # go-musthave-shortener-tpl

@@ -24,18 +24,6 @@ func GenerateShorLink() string {
 	return sb.String()
 }
 
-// get shortUrl from BDUrl
-func GetShortURL(m *map[string]url.URL, longURL string) (shortURL string, ok bool) {
-	for k, v := range *m {
-		if v.String() == longURL {
-			shortURL = k
-			ok = true
-			return
-		}
-	}
-	return
-}
-
 // Parse server and url address
 func CheckAddress(address string) (host string, port string) {
 	log.Println("Parse address: ", address)

@@ -11,7 +11,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/app/config"
-	utils "github.com/shulganew/shear.git/internal/core"
 	webhandl "github.com/shulganew/shear.git/internal/web/handlers"
 
 	"github.com/shulganew/shear.git/internal/storage"
@@ -53,6 +52,11 @@ func Test_main(t *testing.T) {
 	configApp.StartAddress = config.DefaultHost
 	configApp.ResultAddress = config.DefaultHost
 
+	//init storage
+	handler := webhandl.URLHandler{}
+	handler.SetMapStorage(&storage.MapStorage{})
+	storage := handler.GetStorage()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
@@ -64,7 +68,7 @@ func Test_main(t *testing.T) {
 				//create status recorder
 				resRecord := httptest.NewRecorder()
 
-				webhandl.SetUrl(resRecord, request)
+				handler.SetUrl(resRecord, request)
 
 				//get result
 				res := resRecord.Result()
@@ -92,13 +96,15 @@ func Test_main(t *testing.T) {
 				t.Log("full url: ", responseURL.Path)
 
 				shortURL := strings.TrimLeft(responseURL.Path, "/")
-				urldb := *storage.GetURLdb()
-				longURLDb := urldb[shortURL]
+				// urldb := *storage.GetURLdb()
+				// longURLDb := urldb[shortURL]
+				longURLDb, exist := storage.GetLongURL(shortURL)
+				require.True(t, exist)
+
 				t.Log("shortUrl url: ", shortURL)
 				responseURLDb, err := url.JoinPath(longURLDb.String(), shortURL)
 				require.NoError(t, err)
 
-				t.Log("Urldb: ", urldb)
 				t.Log("ressponseUrl from db: ", responseURLDb)
 				bodyURL, _ := url.JoinPath(tt.body, shortURL)
 				t.Log("body url the same: ", bodyURL)
@@ -110,10 +116,8 @@ func Test_main(t *testing.T) {
 
 			} else if tt.method == http.MethodGet {
 				t.Log("=============GET===============")
-				//get value of short URL from urldb:
-				urldb := storage.GetURLdb()
 
-				shortUrl, error := utils.GetShortURL(urldb, tt.body)
+				shortUrl, error := storage.GetShortURL(tt.body)
 
 				t.Log("shortUrl: ", shortUrl)
 				require.NotNil(t, error)
@@ -131,7 +135,7 @@ func Test_main(t *testing.T) {
 
 				//create status recorder
 				resRecord := httptest.NewRecorder()
-				webhandl.GetURL(resRecord, request)
+				handler.GetURL(resRecord, request)
 
 				//get result
 				res := resRecord.Result()
