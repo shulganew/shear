@@ -117,17 +117,18 @@ func Test_main(t *testing.T) {
 			} else if tt.method == http.MethodGet {
 				t.Log("=============GET===============")
 
-				shortUrl, error := storage.GetShortURL(tt.body)
+				//get shortURL from storage
+				shortURL, error := storage.GetShortURL(tt.body)
 
-				t.Log("shortUrl: ", shortUrl)
+				t.Log("shortUrl: ", shortURL)
 				require.NotNil(t, error)
 
 				//
-				requestUrl, _ := url.JoinPath(tt.request, shortUrl)
+				requestUrl, _ := url.JoinPath(tt.request, shortURL)
 				t.Log("requestUrl: ", requestUrl)
 
 				rctx := chi.NewRouteContext()
-				rctx.URLParams.Add("id", shortUrl)
+				rctx.URLParams.Add("id", shortURL)
 
 				//use context for chi router - add id
 				request := httptest.NewRequest(http.MethodGet, requestUrl, nil)
