@@ -25,10 +25,10 @@ func GenerateShorLink() string {
 }
 
 // get shortUrl from BDUrl
-func GetShortUrl(m *map[string]url.URL, longUrl string) (shortUrl string, ok bool) {
+func GetShortURL(m *map[string]url.URL, longURL string) (shortURL string, ok bool) {
 	for k, v := range *m {
-		if v.String() == longUrl {
-			shortUrl = k
+		if v.String() == longURL {
+			shortURL = k
 			ok = true
 			return
 		}

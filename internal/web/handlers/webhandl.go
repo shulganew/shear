@@ -14,21 +14,22 @@ import (
 
 // hadler for  GET and POST  hor and log urls
 
-// GET and redirect by shorUrl
-func GetUrl(res http.ResponseWriter, req *http.Request) {
-	//fmt.Println("GET")
+// GET and redirect by shortUrl
+func GetURL(res http.ResponseWriter, req *http.Request) {
+
 	shortUrl := chi.URLParam(req, "id")
 
-	urldb := storage.GetUrldb()
+	urldb := storage.GetURLdb()
+
 	//get long Url from storage
-	longUrl, exist := (*urldb)[shortUrl]
+	longURL, exist := (*urldb)[shortUrl]
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
-	log.Println("Redirect to: ", longUrl)
+	log.Println("Redirect to: ", longURL)
 
 	if exist {
-		res.Header().Set("Location", longUrl.String())
+		res.Header().Set("Location", longURL.String())
 		//set status code 307
 		res.WriteHeader(http.StatusTemporaryRedirect)
 	} else {
@@ -39,8 +40,7 @@ func GetUrl(res http.ResponseWriter, req *http.Request) {
 
 // POTS and set generate short Url
 func SetUrl(res http.ResponseWriter, req *http.Request) {
-	//fmt.Println("POTS")
-	//answer := fmt.Sprintf("Method: %s\r\n", req.Method)
+
 	readBody, err := io.ReadAll(req.Body)
 	if err != nil {
 		http.Error(res, "Body not found", http.StatusInternalServerError)
@@ -52,27 +52,28 @@ func SetUrl(res http.ResponseWriter, req *http.Request) {
 	}
 	//from addres: from OS ENV
 	config := config.GetConfig()
-	//main URL = Shema + hostname + port
-	mainUrl := redirectUrl.Scheme + "://" + config.ResultAddress
 
-	shortUrl := utils.GenerateShorLink()
+	//main URL = Shema + hostname + port
+	mainURL := redirectUrl.Scheme + "://" + config.ResultAddress
+
+	shortURL := utils.GenerateShorLink()
 
 	//join full long URL
-	longStrUrl, _ := url.JoinPath(mainUrl, shortUrl)
-	longUrl, _ := url.Parse(longStrUrl)
+	longStrURL, _ := url.JoinPath(mainURL, shortURL)
+	longURL, _ := url.Parse(longStrURL)
 
-	log.Println("Save long url: ", longUrl)
+	log.Println("Save long url: ", longURL)
 
 	//save map to storage
-	urldb := storage.GetUrldb()
-	(*urldb)[shortUrl] = *redirectUrl
+	urldb := storage.GetURLdb()
+	(*urldb)[shortURL] = *redirectUrl
 
-	log.Println("Server ansver with short URL: ", longUrl)
-	//log.Println("Config POTS: ", configShear)
+	log.Println("Server ansver with short URL: ", longURL)
+
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
 
 	//set status code 201
 	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(longUrl.String()))
+	res.Write([]byte(longURL.String()))
 }
