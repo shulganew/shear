@@ -1,4 +1,4 @@
-package webhandl
+package handlers
 
 import (
 	"io"
