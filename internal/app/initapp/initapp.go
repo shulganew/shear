@@ -1,4 +1,4 @@
-package initapp
+package app
 
 import (
 	"flag"
