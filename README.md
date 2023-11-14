@@ -7,7 +7,6 @@
 # my links to useful sites
 
 
-//
 
 
 https://github.com/golang/go/wiki/CodeReviewComments#receiver-type
@@ -19,6 +18,9 @@ hadle func with interface
 https://ru.hexlet.io/courses/go-web-development/lessons/local-persistence/theory_unit
 
 
+################Lint instal##########################
+go install golang.org/x/tools/gopls@latest
+//========================================
 # go-musthave-shortener-tpl
 
 Шаблон репозитория для трека «Сервис сокращения URL».
