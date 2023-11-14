@@ -42,9 +42,12 @@ func (u *URLHandler) GetURL(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Location", longURL.String())
 		//set status code 307
 		res.WriteHeader(http.StatusTemporaryRedirect)
-	} else {
-		res.WriteHeader(http.StatusNotFound)
-	}
+		
+		return
+	} 
+	
+	res.WriteHeader(http.StatusNotFound)
+	
 
 }
 
