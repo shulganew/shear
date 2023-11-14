@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/shulganew/shear.git/internal/app/config"
+	"github.com/shulganew/shear.git/internal/config"
 	webhandl "github.com/shulganew/shear.git/internal/web/handlers"
 
 	"github.com/shulganew/shear.git/internal/storage"
@@ -47,14 +47,16 @@ func Test_main(t *testing.T) {
 		},
 	}
 	// init configApp
-	configApp := config.GetConfig()
-	// init config
+	configApp := config.InitConfig()
+	// init config with difauls values
 	configApp.StartAddress = config.DefaultHost
 	configApp.ResultAddress = config.DefaultHost
 
 	//init storage
 	handler := webhandl.URLHandler{}
-	handler.SetMapStorage(&storage.MapStorage{})
+	handler.SetMapStorage(storage.NewMapStorage())
+	handler.SetConfig(configApp)
+
 	storage := handler.GetStorage()
 
 	for _, tt := range tests {

@@ -1,4 +1,4 @@
-package webhandl
+package handlers
 
 import (
 	"io"
@@ -7,8 +7,8 @@ import (
 	"net/url"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/shulganew/shear.git/internal/app/config"
-	utils "github.com/shulganew/shear.git/internal/core"
+	"github.com/shulganew/shear.git/internal/config"
+	"github.com/shulganew/shear.git/internal/shortener"
 	"github.com/shulganew/shear.git/internal/storage"
 )
 
@@ -16,6 +16,7 @@ import (
 
 type URLHandler struct {
 	storage storage.URLSetGet
+	conf    *config.ConfigShear
 }
 
 func (u *URLHandler) SetMapStorage(storage storage.URLSetGet) {
@@ -24,6 +25,14 @@ func (u *URLHandler) SetMapStorage(storage storage.URLSetGet) {
 
 func (u *URLHandler) GetStorage() storage.URLSetGet {
 	return u.storage
+}
+
+func (u *URLHandler) SetConfig(config *config.ConfigShear) {
+	u.conf = config
+}
+
+func (u *URLHandler) GetConfig() *config.ConfigShear {
+	return u.conf
 }
 
 // GET and redirect by shortUrl
@@ -42,9 +51,11 @@ func (u *URLHandler) GetURL(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Location", longURL.String())
 		//set status code 307
 		res.WriteHeader(http.StatusTemporaryRedirect)
-	} else {
-		res.WriteHeader(http.StatusNotFound)
+
+		return
 	}
+
+	res.WriteHeader(http.StatusNotFound)
 
 }
 
@@ -60,13 +71,11 @@ func (u *URLHandler) SetURL(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		http.Error(res, "Wrong URL in body, parse error", http.StatusInternalServerError)
 	}
-	//from addres: from OS ENV
-	config := config.GetConfig()
 
-	//main URL = Shema + hostname + port
-	mainURL := redirectURL.Scheme + "://" + config.ResultAddress
+	//main URL = Shema + hostname + port (from result add -flag cmd -b)
+	mainURL := redirectURL.Scheme + "://" + u.conf.ResultAddress
 
-	shortURL := utils.GenerateShorLink()
+	shortURL := shortener.GenerateShorLink()
 
 	//join full long URL
 	longStrURL, _ := url.JoinPath(mainURL, shortURL)
