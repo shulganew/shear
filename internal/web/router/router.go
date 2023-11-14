@@ -6,10 +6,9 @@ import (
 )
 
 // Chi Router for application
-func RouteShear(hadler handlers.URLHandler) *chi.Mux {
-	r := chi.NewRouter()
+func RouteShear(hadler handlers.URLHandler) (r *chi.Mux) {
+	r = chi.NewRouter()
 	r.Get("/{id}", hadler.GetURL)
 	r.Post("/", hadler.SetURL)
-
-	return r
+	return
 }
