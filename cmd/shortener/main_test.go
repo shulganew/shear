@@ -51,14 +51,13 @@ func Test_main(t *testing.T) {
 	// init config with difauls values
 	configApp.StartAddress = config.DefaultHost
 	configApp.ResultAddress = config.DefaultHost
+	configApp.Storage = &storage.MapStorage{StoreURLs: make(map[string]url.URL)}
 
 	//init storage
 	handler := webhandl.URLHandler{}
-	handler.SetMapStorage(storage.NewMapStorage())
 	handler.SetConfig(configApp)
-
-	storage := handler.GetStorage()
-
+	handler.SetStorage(configApp.Storage)
+	serviceURL := handler.GetServiceURL()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
@@ -98,9 +97,8 @@ func Test_main(t *testing.T) {
 				t.Log("full url: ", responseURL.Path)
 
 				shortURL := strings.TrimLeft(responseURL.Path, "/")
-				// urldb := *storage.GetURLdb()
-				// longURLDb := urldb[shortURL]
-				longURLDb, exist := storage.GetLongURL(shortURL)
+
+				longURLDb, exist := serviceURL.GetLongURL(shortURL)
 				require.True(t, exist)
 
 				t.Log("shortUrl url: ", shortURL)
@@ -120,7 +118,7 @@ func Test_main(t *testing.T) {
 				t.Log("=============GET===============")
 
 				//get shortURL from storage
-				shortURL, error := storage.GetShortURL(tt.body)
+				shortURL, error := serviceURL.GetShortURL(tt.body)
 
 				t.Log("shortUrl: ", shortURL)
 				require.NotNil(t, error)

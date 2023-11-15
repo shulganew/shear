@@ -8,23 +8,23 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/config"
-	"github.com/shulganew/shear.git/internal/shortener"
+	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/storage"
 )
 
 // hadler for  GET and POST  hor and log urls
 
 type URLHandler struct {
-	storage storage.URLSetGet
-	conf    *config.ConfigShear
+	serviceURL *service.ServiceURL
+	conf       *config.ConfigShear
 }
 
-func (u *URLHandler) SetMapStorage(storage storage.URLSetGet) {
-	u.storage = storage
+func (u *URLHandler) SetStorage(s storage.StorageURL) {
+	u.serviceURL = service.NewService(s)
 }
 
-func (u *URLHandler) GetStorage() storage.URLSetGet {
-	return u.storage
+func (u *URLHandler) GetServiceURL() service.ServiceURL {
+	return *u.serviceURL
 }
 
 func (u *URLHandler) SetConfig(config *config.ConfigShear) {
@@ -41,7 +41,7 @@ func (u *URLHandler) GetURL(res http.ResponseWriter, req *http.Request) {
 	shortURL := chi.URLParam(req, "id")
 
 	//get long Url from storage
-	longURL, exist := u.storage.GetLongURL(shortURL)
+	longURL, exist := u.serviceURL.GetLongURL(shortURL)
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
@@ -72,26 +72,17 @@ func (u *URLHandler) SetURL(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Wrong URL in body, parse error", http.StatusInternalServerError)
 	}
 
-	//main URL = Shema + hostname + port (from result add -flag cmd -b)
-	mainURL := redirectURL.Scheme + "://" + u.conf.ResultAddress
-
-	shortURL := shortener.GenerateShorLink()
-
-	//join full long URL
-	longStrURL, _ := url.JoinPath(mainURL, shortURL)
-	longURL, _ := url.Parse(longStrURL)
-
-	log.Println("Save long url: ", longURL)
+	shortURL, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.ResultAddress)
 
 	//save map to storage
-	u.storage.SetURL(shortURL, *redirectURL)
+	u.serviceURL.SetURL(shortURL, *redirectURL)
 
-	log.Println("Server ansver with short URL: ", longURL)
+	log.Println("Server ansver with short URL: ", answerURL)
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
 
 	//set status code 201
 	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(longURL.String()))
+	res.Write([]byte(answerURL.String()))
 }

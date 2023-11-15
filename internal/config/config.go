@@ -3,8 +3,10 @@ package config
 import (
 	"flag"
 	"log"
+	"net/url"
 	"os"
 
+	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/shulganew/shear.git/internal/web/netaddr"
 )
 
@@ -15,6 +17,8 @@ type ConfigShear struct {
 	StartAddress string
 	//env var, or flag -b if env not exist
 	ResultAddress string
+
+	Storage storage.StorageURL
 }
 
 func InitConfig() *ConfigShear {
@@ -46,6 +50,9 @@ func InitConfig() *ConfigShear {
 	} else {
 		log.Println("Env var SERVER_ADDRESS not found, use default", config.ResultAddress)
 	}
+
+	//set Map storage
+	config.Storage = &storage.MapStorage{StoreURLs: make(map[string]url.URL)}
 
 	return &config
 }
