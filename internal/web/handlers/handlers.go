@@ -9,7 +9,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
-	"github.com/shulganew/shear.git/internal/storage"
 )
 
 // hadler for  GET and POST  hor and log urls
@@ -19,20 +18,8 @@ type URLHandler struct {
 	conf       *config.ConfigShear
 }
 
-func (u *URLHandler) SetStorage(s storage.StorageURL) {
-	u.serviceURL = service.NewService(s)
-}
-
 func (u *URLHandler) GetServiceURL() service.ServiceURL {
 	return *u.serviceURL
-}
-
-func (u *URLHandler) SetConfig(config *config.ConfigShear) {
-	u.conf = config
-}
-
-func (u *URLHandler) GetConfig() *config.ConfigShear {
-	return u.conf
 }
 
 // GET and redirect by shortUrl
@@ -85,4 +72,9 @@ func (u *URLHandler) SetURL(res http.ResponseWriter, req *http.Request) {
 	//set status code 201
 	res.WriteHeader(http.StatusCreated)
 	res.Write([]byte(answerURL.String()))
+}
+
+func NewHandler(configApp *config.ConfigShear) *URLHandler {
+
+	return &URLHandler{serviceURL: service.NewService(configApp.Storage), conf: configApp}
 }
