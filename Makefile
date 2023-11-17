@@ -8,7 +8,7 @@ _golangci-lint-reports-mkdir:
 	mkdir -p ./golangci-lint
 
 .PHONY: _golangci-lint-run
-_golangci-lint-run: _golangci-lint-reports-mkdir
+_golangci-c-docker: _golangci-lint-reports-mkdir
 	-docker run --rm \
     -v $(shell pwd):/app \
     -v $(GOLANGCI_LINT_CACHE):/root/.cache \
@@ -16,7 +16,6 @@ _golangci-lint-run: _golangci-lint-reports-mkdir
     golangci/golangci-lint:v1.55.2 \
         golangci-lint run \
             -c .golangci.yml \
-	> ./golangci-lint/report-unformatted.json
 
 .PHONY: _golangci-lint-format-report
 _golangci-lint-format-report: _golangci-lint-run
