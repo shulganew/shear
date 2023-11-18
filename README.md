@@ -3,7 +3,14 @@
 //curl -v -H "Content-Type: text/plain" http://localhost:8080/hjnFtibr
 //set SERVER_ADDRESS=localhost:8080
 //echo %SERVER_ADDRESS%
+
+# Git
+
 //git push -u origin iter5
+
+# Run
+go vet -v -vettool=$(which statictest) ./...
+go test  ./...
 # my links to useful sites
 
 

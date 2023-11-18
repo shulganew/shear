@@ -2,8 +2,6 @@ package storage
 
 import (
 	"net/url"
-
-	"github.com/shulganew/shear.git/internal/config"
 )
 
 type StorageURL interface {
@@ -18,8 +16,6 @@ type MapStorage struct {
 
 func (m *MapStorage) SetURL(sortURL string, longURL url.URL) {
 	//init storage
-	logz := config.InitLog()
-	logz.Infoln("Store. Save URL [%s]=%s", sortURL, &longURL)
 	m.StoreURLs[sortURL] = longURL
 }
 
