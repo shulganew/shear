@@ -2,20 +2,21 @@ package handlers
 
 import (
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
+	"go.uber.org/zap"
 )
 
 // hadler for  GET and POST  hor and log urls
 
 type URLHandler struct {
 	serviceURL *service.ServiceURL
-	conf       *config.ConfigShear
+	conf       *config.Shear
+	logz       zap.SugaredLogger
 }
 
 func (u *URLHandler) GetServiceURL() service.ServiceURL {
@@ -32,7 +33,7 @@ func (u *URLHandler) GetURL(res http.ResponseWriter, req *http.Request) {
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
-	log.Println("Redirect to: ", longURL)
+	u.logz.Infoln("Redirect to: ", longURL)
 
 	if exist {
 		res.Header().Set("Location", longURL.String())
@@ -64,7 +65,7 @@ func (u *URLHandler) SetURL(res http.ResponseWriter, req *http.Request) {
 	//save map to storage
 	u.serviceURL.SetURL(shortURL, *redirectURL)
 
-	log.Println("Server ansver with short URL: ", answerURL)
+	u.logz.Infoln("Server ansver with short URL: ", answerURL)
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
@@ -74,7 +75,7 @@ func (u *URLHandler) SetURL(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte(answerURL.String()))
 }
 
-func NewHandler(configApp *config.ConfigShear) *URLHandler {
+func NewHandler(configApp *config.Shear) *URLHandler {
 
-	return &URLHandler{serviceURL: service.NewService(configApp.Storage), conf: configApp}
+	return &URLHandler{serviceURL: service.NewService(configApp.Storage), conf: configApp, logz: configApp.Applog}
 }

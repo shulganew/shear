@@ -1,14 +1,18 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/web/handlers"
+	"go.uber.org/zap"
 )
 
 // Chi Router for application
-func RouteShear(hadler handlers.URLHandler) (r *chi.Mux) {
+func RouteShear(handler handlers.URLHandler, appLogger zap.SugaredLogger) (r *chi.Mux) {
 	r = chi.NewRouter()
-	r.Get("/{id}", hadler.GetURL)
-	r.Post("/", hadler.SetURL)
+	r.Get("/{id}", handlers.MidlewLog(http.HandlerFunc(handler.GetURL), appLogger))
+	r.Post("/", handlers.MidlewLog(http.HandlerFunc(handler.SetURL), appLogger))
+
 	return
 }

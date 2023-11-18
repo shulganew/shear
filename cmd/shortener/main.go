@@ -11,7 +11,7 @@ import (
 func main() {
 
 	configApp := config.InitConfig()
-	err := http.ListenAndServe(configApp.StartAddress, router.RouteShear(*webhandl.NewHandler(configApp)))
+	err := http.ListenAndServe(configApp.StartAddress, router.RouteShear(*webhandl.NewHandler(configApp), configApp.Applog))
 	if err != nil {
 		panic(err)
 	}

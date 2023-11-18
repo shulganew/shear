@@ -2,28 +2,35 @@ package config
 
 import (
 	"flag"
-	"log"
 	"net/url"
 	"os"
 
 	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/shulganew/shear.git/internal/web/netaddr"
+	"go.uber.org/zap"
 )
 
 const DefaultHost string = "localhost:8080"
 
-type ConfigShear struct {
+type Shear struct {
 	//flag -a
 	StartAddress string
 	//env var, or flag -b if env not exist
 	ResultAddress string
 
 	Storage storage.StorageURL
+
+	Applog zap.SugaredLogger
 }
 
-func InitConfig() *ConfigShear {
+func InitConfig() *Shear {
 
-	config := ConfigShear{}
+	config := Shear{}
+
+	//set logger
+	logz := InitLog()
+	config.Applog = logz
+
 	//read command line argue
 
 	startAddress := flag.String("a", "localhost:8080", "start server address and port")
@@ -31,13 +38,13 @@ func InitConfig() *ConfigShear {
 	flag.Parse()
 	//check and parse URL
 
-	startaddr, startport := netaddr.CheckAddress(*startAddress)
-	answaddr, answport := netaddr.CheckAddress(*resultAddress)
+	startaddr, startport := netaddr.CheckAddress(*startAddress, logz)
+	answaddr, answport := netaddr.CheckAddress(*resultAddress, logz)
 
 	//save config
 	config.StartAddress = startaddr + ":" + startport
 	config.ResultAddress = answaddr + ":" + answport
-	log.Println("Server address: ", config.StartAddress)
+	logz.Infoln("Server address: ", config.StartAddress)
 
 	//read OS ENV
 	envAddress, exist := os.LookupEnv(("SERVER_ADDRESS"))
@@ -45,10 +52,10 @@ func InitConfig() *ConfigShear {
 	//if env var does not exist - set def value
 	if exist {
 		config.ResultAddress = envAddress
-		log.Println("Set result address from evn SERVER_ADDRESS: ", config.ResultAddress)
+		logz.Infoln("Set result address from evn SERVER_ADDRESS: ", config.ResultAddress)
 
 	} else {
-		log.Println("Env var SERVER_ADDRESS not found, use default", config.ResultAddress)
+		logz.Infoln("Env var SERVER_ADDRESS not found, use default", config.ResultAddress)
 	}
 
 	//set Map storage
@@ -57,15 +64,29 @@ func InitConfig() *ConfigShear {
 	return &config
 }
 
-func (c *ConfigShear) SetConfig(startAddress, resultAddress string) {
+func (c *Shear) SetConfig(startAddress, resultAddress string) {
 	c.StartAddress = startAddress
 	c.ResultAddress = resultAddress
 }
 
-func (c *ConfigShear) GetStartAddr() string {
+func (c *Shear) GetStartAddr() string {
 	return c.StartAddress
 }
 
-func (c *ConfigShear) GetResultAddr() string {
+func (c *Shear) GetResultAddr() string {
 	return c.ResultAddress
+}
+
+func InitLog() zap.SugaredLogger {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+
+		panic(err)
+	}
+	defer logger.Sync()
+
+	sugar := *logger.Sugar()
+
+	defer sugar.Sync()
+	return sugar
 }
