@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/shulganew/shear.git/internal/storage"
-	"github.com/shulganew/shear.git/internal/web/netaddr"
+	"github.com/shulganew/shear.git/internal/web/validators"
 	"go.uber.org/zap"
 )
 
@@ -38,8 +38,8 @@ func InitConfig() *Shear {
 	flag.Parse()
 	//check and parse URL
 
-	startaddr, startport := netaddr.CheckAddress(*startAddress, logz)
-	answaddr, answport := netaddr.CheckAddress(*resultAddress, logz)
+	startaddr, startport := validators.CheckURL(*startAddress, logz)
+	answaddr, answport := validators.CheckURL(*resultAddress, logz)
 
 	//save config
 	config.StartAddress = startaddr + ":" + startport

@@ -11,25 +11,25 @@ import (
 // generate sort URL
 // save short URL
 // get logn URL
-type ServiceURL struct {
+type Shortener struct {
 	StoreURLs storage.StorageURL
 }
 
-func (s *ServiceURL) SetURL(sortURL string, longURL url.URL) {
+func (s *Shortener) SetURL(sortURL string, longURL url.URL) {
 	log.Printf("Store. Save URL [%s]=%s", sortURL, &longURL)
 	s.StoreURLs.SetURL(sortURL, longURL)
 }
 
-func (s *ServiceURL) GetLongURL(sortURL string) (longURL url.URL, exist bool) {
+func (s *Shortener) GetLongURL(sortURL string) (longURL url.URL, exist bool) {
 	return s.StoreURLs.GetLongURL(sortURL)
 }
 
-func (s *ServiceURL) GetShortURL(longURL string) (shortURL string, exist bool) {
+func (s *Shortener) GetShortURL(longURL string) (shortURL string, exist bool) {
 	return s.StoreURLs.GetShortURL(longURL)
 }
 
 // return anwwer url: "shema + respose server addres from config + shortURL"
-func (s *ServiceURL) GetAnsURL(shema, resultaddr string) (shortURL string, answerURL *url.URL) {
+func (s *Shortener) GetAnsURL(shema, resultaddr string) (shortURL string, answerURL *url.URL) {
 	//main URL = Shema + hostname + port (from result add -flag cmd -b)
 	mainURL := shema + "://" + resultaddr
 
@@ -44,6 +44,6 @@ func (s *ServiceURL) GetAnsURL(shema, resultaddr string) (shortURL string, answe
 }
 
 // return service
-func NewService(storage storage.StorageURL) *ServiceURL {
-	return &ServiceURL{StoreURLs: storage}
+func NewService(storage storage.StorageURL) *Shortener {
+	return &Shortener{StoreURLs: storage}
 }

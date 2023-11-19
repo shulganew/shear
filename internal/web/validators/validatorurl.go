@@ -1,4 +1,4 @@
-package netaddr
+package validators
 
 import (
 	"net"
@@ -9,7 +9,7 @@ import (
 )
 
 // Parse server and url address
-func CheckAddress(address string, appLog zap.SugaredLogger) (host string, port string) {
+func CheckURL(address string, appLog zap.SugaredLogger) (host string, port string) {
 
 	appLog.Infoln("Parse address: ", address)
 	link, err := url.Parse(strings.TrimSpace(address))

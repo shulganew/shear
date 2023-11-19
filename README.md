@@ -27,6 +27,9 @@ https://github.com/gin-gonic/gin/issues/1120
 hadle func with interface
 https://ru.hexlet.io/courses/go-web-development/lessons/local-persistence/theory_unit
 
+Go Interface in detail:
+https://research.swtch.com/interfaces
+
 
 ################Lint instal##########################
 go install golang.org/x/tools/gopls@latest

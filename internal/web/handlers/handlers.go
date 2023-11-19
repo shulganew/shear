@@ -14,12 +14,12 @@ import (
 // hadler for  GET and POST  hor and log urls
 
 type URLHandler struct {
-	serviceURL *service.ServiceURL
+	serviceURL *service.Shortener
 	conf       *config.Shear
 	logz       zap.SugaredLogger
 }
 
-func (u *URLHandler) GetServiceURL() service.ServiceURL {
+func (u *URLHandler) GetServiceURL() service.Shortener {
 	return *u.serviceURL
 }
 
