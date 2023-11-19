@@ -8,13 +8,16 @@
 
 //git push -u origin iter5
 
-# Run
-go vet -v -vettool=$(which statictest) ./...
-go test  ./...
+# Run static test localy
+
+go vet -v -vettool=/home/iogr/Desktop/code/autotests/go-autotests-0.10.1/bin/statictest ./...
 # my links to useful sites
 
+# Use autotest local 
+https://github.com/nektos/act
 
 
+# My links
 
 https://github.com/golang/go/wiki/CodeReviewComments#receiver-type
 
