@@ -1,12 +1,20 @@
 # cmd commands for test purposes
-//curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/ -d "https://yandex.ru"
-//curl -v -H "Content-Type: text/plain" http://localhost:8080/hjnFtibr
-//set SERVER_ADDRESS=localhost:8080
-//echo %SERVER_ADDRESS%
+```
+curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/ -d "https://yandex.ru"
+curl -v -H "Content-Type: text/plain" http://localhost:8080/hjnFtibr
 
+curl -v -H "Content-Type: application/json" -X POST http://localhost:8080/api/shorten -d '{"url":"https://practicum1.yandex1.ru"}'
+
+
+
+
+set SERVER_ADDRESS=localhost:8080
+echo %SERVER_ADDRESS%
+```
 # Git
 
 //git push -u origin iter5
+//git checkout -b iter1
 
 # Run static test localy
 

@@ -13,18 +13,18 @@ import (
 
 // hadler for  GET and POST  hor and log urls
 
-type URLHandler struct {
+type HandlerURL struct {
 	serviceURL *service.Shortener
 	conf       *config.Shear
 	logz       zap.SugaredLogger
 }
 
-func (u *URLHandler) GetServiceURL() service.Shortener {
+func (u *HandlerURL) GetServiceURL() service.Shortener {
 	return *u.serviceURL
 }
 
 // GET and redirect by shortUrl
-func (u *URLHandler) GetURL(res http.ResponseWriter, req *http.Request) {
+func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 
 	shortURL := chi.URLParam(req, "id")
 
@@ -48,7 +48,7 @@ func (u *URLHandler) GetURL(res http.ResponseWriter, req *http.Request) {
 }
 
 // POTS and set generate short Url
-func (u *URLHandler) SetURL(res http.ResponseWriter, req *http.Request) {
+func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 
 	readBody, err := io.ReadAll(req.Body)
 	if err != nil {
@@ -75,7 +75,7 @@ func (u *URLHandler) SetURL(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte(answerURL.String()))
 }
 
-func NewHandler(configApp *config.Shear) *URLHandler {
+func NewHandler(configApp *config.Shear) *HandlerURL {
 
-	return &URLHandler{serviceURL: service.NewService(configApp.Storage), conf: configApp, logz: configApp.Applog}
+	return &HandlerURL{serviceURL: service.NewService(configApp.Storage), conf: configApp, logz: configApp.Applog}
 }
