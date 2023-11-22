@@ -28,7 +28,7 @@ func InitConfig() *Shear {
 	config := Shear{}
 
 	//set logger
-	logz := initLog()
+	logz := InitLog()
 	config.Applog = logz
 
 	//read command line argue
@@ -77,7 +77,7 @@ func (c *Shear) GetResultAddr() string {
 	return c.ResultAddress
 }
 
-func initLog() zap.SugaredLogger {
+func InitLog() zap.SugaredLogger {
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 

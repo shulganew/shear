@@ -5,7 +5,12 @@ curl -v -H "Content-Type: text/plain" http://localhost:8080/hjnFtibr
 
 curl -v -H "Content-Type: application/json" -X POST http://localhost:8080/api/shorten -d '{"url":"https://practicum1.yandex1.ru"}'
 
+//add --compressed key, this include accept encoding header
+curl --compressed -v -H "Content-Type: application/json" -X POST http://localhost:8080/api/shorten -d '{"url":"https://practicum1.yandex1.ru"}'
 
+//send gzip body to server
+echo '{"url":"https://practicum1.yandex1.ru"}' | gzip > body.gz
+curl --compressed -v -X POST http://localhost:8080/api/shorten -H'Content-Encoding: gzip' --data-binary @body.gz
 
 
 set SERVER_ADDRESS=localhost:8080

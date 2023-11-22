@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"go.uber.org/zap"
+	"github.com/shulganew/shear.git/internal/config"
 )
 
 type (
@@ -36,8 +36,8 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 // Method
 // Delay
 // User Info for logging
-func MidlewLog(h http.Handler, sugar zap.SugaredLogger) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func MidlewLog(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		start := time.Now()
 
@@ -56,14 +56,14 @@ func MidlewLog(h http.Handler, sugar zap.SugaredLogger) func(http.ResponseWriter
 
 		//delay
 		duration := time.Since(start)
-
-		sugar.Infoln(
+		logz := config.InitLog()
+		logz.Infoln(
 			"URI: ", uri,
 			"Method: ", method,
 			"Status: ", responseData.status,
 			"Duration: ", duration,
 			"Size: ", responseData.size,
 		)
-	}
+	})
 
 }
