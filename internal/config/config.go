@@ -19,8 +19,6 @@ type Shear struct {
 	ResultAddress string
 
 	Storage storage.StorageURL
-
-	Applog zap.SugaredLogger
 }
 
 func InitConfig() *Shear {
@@ -28,8 +26,7 @@ func InitConfig() *Shear {
 	config := Shear{}
 
 	//set logger
-	logz := InitLog()
-	config.Applog = logz
+	InitLog()
 
 	//read command line argue
 
@@ -38,13 +35,13 @@ func InitConfig() *Shear {
 	flag.Parse()
 	//check and parse URL
 
-	startaddr, startport := validators.CheckURL(*startAddress, logz)
-	answaddr, answport := validators.CheckURL(*resultAddress, logz)
+	startaddr, startport := validators.CheckURL(*startAddress)
+	answaddr, answport := validators.CheckURL(*resultAddress)
 
 	//save config
 	config.StartAddress = startaddr + ":" + startport
 	config.ResultAddress = answaddr + ":" + answport
-	logz.Infoln("Server address: ", config.StartAddress)
+	zap.S().Infoln("Server address: ", config.StartAddress)
 
 	//read OS ENV
 	envAddress, exist := os.LookupEnv(("SERVER_ADDRESS"))
@@ -52,10 +49,10 @@ func InitConfig() *Shear {
 	//if env var does not exist - set def value
 	if exist {
 		config.ResultAddress = envAddress
-		logz.Infoln("Set result address from evn SERVER_ADDRESS: ", config.ResultAddress)
+		zap.S().Infoln("Set result address from evn SERVER_ADDRESS: ", config.ResultAddress)
 
 	} else {
-		logz.Infoln("Env var SERVER_ADDRESS not found, use default", config.ResultAddress)
+		zap.S().Infoln("Env var SERVER_ADDRESS not found, use default", config.ResultAddress)
 	}
 
 	//set Map storage
@@ -83,6 +80,7 @@ func InitLog() zap.SugaredLogger {
 
 		panic(err)
 	}
+	zap.ReplaceGlobals(logger)
 	defer logger.Sync()
 
 	sugar := *logger.Sugar()

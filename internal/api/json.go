@@ -23,7 +23,6 @@ type ResonseJSON struct {
 type HandlerAPI struct {
 	serviceURL *service.Shortener
 	conf       *config.Shear
-	logz       zap.SugaredLogger
 }
 
 func (u *HandlerAPI) GetService() service.Shortener {
@@ -39,7 +38,7 @@ func (u *HandlerAPI) SetAPI(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	u.logz.Infoln("Request long URL from JSON: ", request.LongURL)
+	zap.S().Infoln("Request long URL from JSON: ", request.LongURL)
 	longURL, err := url.Parse(string(request.LongURL))
 	if err != nil {
 		http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
@@ -56,7 +55,7 @@ func (u *HandlerAPI) SetAPI(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
 	}
-	u.logz.Infoln("Server ansver with short URL in JSON: ", string(jsonURL))
+	zap.S().Infoln("Server ansver with short URL in JSON: ", string(jsonURL))
 
 	//set content type
 	res.Header().Add("Content-Type", CONTENT_TYPE_JSON)
@@ -70,5 +69,5 @@ func (u *HandlerAPI) SetAPI(res http.ResponseWriter, req *http.Request) {
 
 func NewHandler(configApp *config.Shear) *HandlerAPI {
 
-	return &HandlerAPI{serviceURL: service.NewService(configApp.Storage), conf: configApp, logz: configApp.Applog}
+	return &HandlerAPI{serviceURL: service.NewService(configApp.Storage), conf: configApp}
 }

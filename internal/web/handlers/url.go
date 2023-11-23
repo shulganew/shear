@@ -16,7 +16,6 @@ import (
 type HandlerURL struct {
 	serviceURL *service.Shortener
 	conf       *config.Shear
-	logz       zap.SugaredLogger
 }
 
 func (u *HandlerURL) GetServiceURL() service.Shortener {
@@ -33,7 +32,7 @@ func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
-	u.logz.Infoln("Redirect to: ", longURL)
+	zap.S().Infoln("Redirect to: ", longURL)
 
 	if exist {
 		res.Header().Set("Location", longURL.String())
@@ -65,7 +64,7 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 	//save map to storage
 	u.serviceURL.SetURL(shortURL, *redirectURL)
 
-	u.logz.Infoln("Server ansver with short URL: ", answerURL)
+	zap.S().Infoln("Server ansver with short URL: ", answerURL)
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
@@ -77,5 +76,5 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 
 func NewHandler(configApp *config.Shear) *HandlerURL {
 
-	return &HandlerURL{serviceURL: service.NewService(configApp.Storage), conf: configApp, logz: configApp.Applog}
+	return &HandlerURL{serviceURL: service.NewService(configApp.Storage), conf: configApp}
 }
