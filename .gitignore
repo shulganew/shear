@@ -23,5 +23,7 @@ vendor/
 .vscode
 #linker
 golangci-lint
+
 #my autotest
 autotests.sh
+
