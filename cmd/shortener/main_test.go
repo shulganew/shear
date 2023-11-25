@@ -49,9 +49,9 @@ func Test_main(t *testing.T) {
 	// init configApp
 	configApp := config.InitConfig()
 	// init config with difauls values
-	configApp.StartAddress = config.DefaultHost
-	configApp.ResultAddress = config.DefaultHost
-	configApp.Storage = &storage.MapStorage{StoreURLs: make(map[string]url.URL)}
+	configApp.Address = config.DefaultHost
+	configApp.Response = config.DefaultHost
+	configApp.Storage = &storage.MemoryStorage{StoreURLs: []storage.Short{}}
 
 	//init storage
 	handler := webhandl.NewHandler(configApp)
@@ -100,7 +100,7 @@ func Test_main(t *testing.T) {
 				require.True(t, exist)
 
 				t.Log("shortUrl url: ", shortURL)
-				responseURLDb, err := url.JoinPath(longURLDb.String(), shortURL)
+				responseURLDb, err := url.JoinPath(longURLDb, shortURL)
 				require.NoError(t, err)
 
 				t.Log("ressponseUrl from db: ", responseURLDb)

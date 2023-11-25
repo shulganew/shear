@@ -2,9 +2,9 @@ package config
 
 import (
 	"flag"
-	"net/url"
 	"os"
 
+	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/shulganew/shear.git/internal/web/validators"
 	"go.uber.org/zap"
@@ -14,9 +14,11 @@ const DefaultHost string = "localhost:8080"
 
 type Shear struct {
 	//flag -a
-	StartAddress string
+	Address string
 	//env var, or flag -b if env not exist
-	ResultAddress string
+	Response string
+
+	Backup service.Backup
 
 	Storage storage.StorageURL
 }
@@ -32,6 +34,7 @@ func InitConfig() *Shear {
 
 	startAddress := flag.String("a", "localhost:8080", "start server address and port")
 	resultAddress := flag.String("b", "localhost:8080", "answer address and port")
+	tempf := flag.String("f", "", "Location of dump file")
 	flag.Parse()
 	//check and parse URL
 
@@ -39,39 +42,64 @@ func InitConfig() *Shear {
 	answaddr, answport := validators.CheckURL(*resultAddress)
 
 	//save config
-	config.StartAddress = startaddr + ":" + startport
-	config.ResultAddress = answaddr + ":" + answport
-	zap.S().Infoln("Server address: ", config.StartAddress)
+	config.Address = startaddr + ":" + startport
+	config.Response = answaddr + ":" + answport
+	zap.S().Infoln("Server address: ", config.Address)
 
 	//read OS ENV
-	envAddress, exist := os.LookupEnv(("SERVER_ADDRESS"))
+	env, exist := os.LookupEnv(("SERVER_ADDRESS"))
 
 	//if env var does not exist - set def value
 	if exist {
-		config.ResultAddress = envAddress
-		zap.S().Infoln("Set result address from evn SERVER_ADDRESS: ", config.ResultAddress)
+		config.Response = env
+		zap.S().Infoln("Set result address from evn SERVER_ADDRESS: ", config.Response)
 
 	} else {
-		zap.S().Infoln("Env var SERVER_ADDRESS not found, use default", config.ResultAddress)
+		zap.S().Infoln("Env var SERVER_ADDRESS not found, use default", config.Response)
 	}
 
-	//set Map storage
-	config.Storage = &storage.MapStorage{StoreURLs: make(map[string]url.URL)}
+	//define backup file
+	config.Backup = service.Backup{}
 
+	temp, exist := os.LookupEnv(("FILE_STORAGE_PATH"))
+	if exist {
+		config.Backup = *service.New(temp, true)
+		zap.S().Infoln("Found backup's evn, use file: ", config.Backup.File)
+	} else if *tempf != "" {
+		config.Backup = *service.New(*tempf, true)
+	} else {
+		config.Backup = *service.New(*tempf, false)
+	}
+
+	zap.S().Infoln("Backup isActive: ", config.Backup.IsActive)
+
+	//set MemoryStorage storage
+	config.Storage = &storage.MemoryStorage{StoreURLs: []storage.Short{}}
+
+	//load all dump links
+	shorts, err := config.Backup.Load()
+	if err != nil {
+		zap.S().Error("Error load backup!", err)
+	}
+
+	//set MemoryStorage storage
+	config.Storage = &storage.MemoryStorage{StoreURLs: shorts}
+
+	zap.S().Infoln("Configuration complite")
 	return &config
 }
 
 func (c *Shear) SetConfig(startAddress, resultAddress string) {
-	c.StartAddress = startAddress
-	c.ResultAddress = resultAddress
+	c.Address = startAddress
+	c.Response = resultAddress
 }
 
 func (c *Shear) GetStartAddr() string {
-	return c.StartAddress
+	return c.Address
 }
 
 func (c *Shear) GetResultAddr() string {
-	return c.ResultAddress
+	return c.Response
 }
 
 func InitLog() zap.SugaredLogger {

@@ -5,12 +5,11 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/shulganew/shear.git/internal/appconsts"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
 	"go.uber.org/zap"
 )
-
-const CONTENT_TYPE_JSON = "application/json"
 
 type RequestJSON struct {
 	LongURL string `json:"url"`
@@ -44,10 +43,10 @@ func (u *HandlerAPI) SetAPI(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 	}
 
-	shortURL, answerURL := u.serviceURL.GetAnsURL(longURL.Scheme, u.conf.ResultAddress)
+	shortURL, answerURL := u.serviceURL.GetAnsURL(longURL.Scheme, u.conf.Response)
 
 	//save map to storage
-	u.serviceURL.SetURL(shortURL, *longURL)
+	u.serviceURL.SetURL(shortURL, (*longURL).String())
 
 	response := ResonseJSON{answerURL.String()}
 
@@ -58,7 +57,7 @@ func (u *HandlerAPI) SetAPI(res http.ResponseWriter, req *http.Request) {
 	zap.S().Infoln("Server ansver with short URL in JSON: ", string(jsonURL))
 
 	//set content type
-	res.Header().Add("Content-Type", CONTENT_TYPE_JSON)
+	res.Header().Add("Content-Type", appconsts.ContentTypeJSON)
 
 	//set status code 201
 	res.WriteHeader(http.StatusCreated)
@@ -69,5 +68,5 @@ func (u *HandlerAPI) SetAPI(res http.ResponseWriter, req *http.Request) {
 
 func NewHandler(configApp *config.Shear) *HandlerAPI {
 
-	return &HandlerAPI{serviceURL: service.NewService(configApp.Storage), conf: configApp}
+	return &HandlerAPI{serviceURL: service.NewService(configApp.Storage, configApp.Backup), conf: configApp}
 }

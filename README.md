@@ -21,9 +21,18 @@ echo %SERVER_ADDRESS%
 //git push -u origin iter5
 //git checkout -b iter1
 
+
+# Tests
+
 # Run static test localy
 
-go vet -v -vettool=/home/iogr/Desktop/code/autotests/go-autotests-0.10.1/bin/statictest ./...
+go vet -vettool=$(which statictest) ./...
+
+shortenertestbeta -test.v -test.run=^TestIteration7$ -binary-path=cmd/shortener/shortener -source-path=.
+
+# Iterantion tests
+go build -o ./cmd/shortener/shortener ./cmd/shortener/main.go
+
 # my links to useful sites
 
 # Use autotest local 
@@ -31,7 +40,7 @@ https://github.com/nektos/act
 
 
 # My links
-
+```
 https://github.com/golang/go/wiki/CodeReviewComments#receiver-type
 
 status code during the test issue:
@@ -43,8 +52,11 @@ https://ru.hexlet.io/courses/go-web-development/lessons/local-persistence/theory
 Go Interface in detail:
 https://research.swtch.com/interfaces
 
+file lseek
+https://www.opennet.ru/docs/RUS/zlp/005.html
+```
 
-################Lint instal##########################
+# ###############Lint instal##########################
 go install golang.org/x/tools/gopls@latest
 //========================================
 # go-musthave-shortener-tpl

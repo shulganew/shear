@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/shulganew/shear.git/internal/appconsts"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/stretchr/testify/assert"
@@ -44,9 +45,9 @@ func Test_api(t *testing.T) {
 	// init configApp
 	configApp := config.InitConfig()
 	// init config with difauls values
-	configApp.StartAddress = config.DefaultHost
-	configApp.ResultAddress = config.DefaultHost
-	configApp.Storage = &storage.MapStorage{StoreURLs: make(map[string]url.URL)}
+	configApp.Address = config.DefaultHost
+	configApp.Response = config.DefaultHost
+	configApp.Storage = &storage.MemoryStorage{StoreURLs: []storage.Short{}}
 
 	//init storage
 	apiHand := NewHandler(configApp)
@@ -62,7 +63,7 @@ func Test_api(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodPost, tt.requestURL, strings.NewReader(tt.body))
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
-			req.Header.Add("Content-Type", CONTENT_TYPE_JSON)
+			req.Header.Add("Content-Type", appconsts.ContentTypeJSON)
 			//create status recorder
 			resRecord := httptest.NewRecorder()
 
@@ -70,7 +71,7 @@ func Test_api(t *testing.T) {
 
 			//get result
 			res := resRecord.Result()
-
+			defer res.Body.Close()
 			//check answer code
 			t.Log("StatusCode test: ", tt.statusCode, " server: ", res.StatusCode)
 			assert.Equal(t, tt.statusCode, res.StatusCode)
@@ -92,7 +93,7 @@ func Test_api(t *testing.T) {
 
 			t.Log("shortUrl url: ", longURLDb)
 
-			assert.Equal(t, longURLDb.String(), tt.link)
+			assert.Equal(t, longURLDb, tt.link)
 
 		})
 	}

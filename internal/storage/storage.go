@@ -1,48 +1,56 @@
 package storage
 
-import (
-	"net/url"
-)
+// base stract for working with storage
+type Short struct {
+	ID       int    `json:"uuid"`
+	ShortURL string `json:"short_url"`
+	LongURL  string `json:"original_url"`
+}
 
 type StorageURL interface {
-	SetURL(sortURL string, longURL url.URL)
-	GetLongURL(sortURL string) (url.URL, bool)
+	SetURL(sortURL, longURL string) Short
+	GetLongURL(sortURL string) (string, bool)
 	GetShortURL(longURL string) (string, bool)
 }
 
-type MapStorage struct {
-	StoreURLs map[string]url.URL
+type MemoryStorage struct {
+	StoreURLs []Short
 }
 
-func (m *MapStorage) SetURL(sortURL string, longURL url.URL) {
+func (m *MemoryStorage) SetURL(sortURL, longURL string) (short Short) {
 	//init storage
-	m.StoreURLs[sortURL] = longURL
+	short = Short{ID: len(m.StoreURLs), ShortURL: sortURL, LongURL: longURL}
+	m.StoreURLs = append(m.StoreURLs, short)
+	return
 }
 
-func (m *MapStorage) GetLongURL(sortURL string) (longURL url.URL, exist bool) {
-	longURL, exist = m.StoreURLs[sortURL]
-	return longURL, exist
+func (m *MemoryStorage) GetLongURL(shortURL string) (longURL string, ok bool) {
+	for _, short := range m.StoreURLs {
+		if short.ShortURL == shortURL {
+			return short.LongURL, true
+		}
+	}
+
+	return
 }
 
-func (m *MapStorage) GetShortURL(longURL string) (shortURL string, exist bool) {
-	for k, v := range m.StoreURLs {
-		if v.String() == longURL {
-			shortURL = k
-			exist = true
-			return
+func (m *MemoryStorage) GetShortURL(longURL string) (shortURL string, ok bool) {
+	for _, short := range m.StoreURLs {
+		if short.LongURL == longURL {
+			return short.ShortURL, true
 		}
 	}
 	return
 }
 
 // get shortUrl from BDUrl
-func GetShortURL(m *map[string]url.URL, longURL string) (shortURL string, ok bool) {
-	for k, v := range *m {
-		if v.String() == longURL {
-			shortURL = k
-			ok = true
-			return
-		}
-	}
-	return
-}
+// func GetShortURL(m *map[string]url.URL, longURL string) (shortURL string, ok bool) {
+// 	for k, v := range *m {
+// 		if v.String() == longURL {
+// 			shortURL = k
+// 			ok = true
+// 			return
+// 		}
+// 	}
+// 	return
+// }

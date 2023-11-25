@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// hadler for  GET and POST  hor and log urls
+// hadler for  GET and POST  short and long urls
 
 type HandlerURL struct {
 	serviceURL *service.Shortener
@@ -35,7 +35,7 @@ func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 	zap.S().Infoln("Redirect to: ", longURL)
 
 	if exist {
-		res.Header().Set("Location", longURL.String())
+		res.Header().Set("Location", longURL)
 		//set status code 307
 		res.WriteHeader(http.StatusTemporaryRedirect)
 
@@ -59,10 +59,10 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Wrong URL in body, parse error", http.StatusInternalServerError)
 	}
 
-	shortURL, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.ResultAddress)
+	shortURL, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.Response)
 
 	//save map to storage
-	u.serviceURL.SetURL(shortURL, *redirectURL)
+	u.serviceURL.SetURL(shortURL, (*redirectURL).String())
 
 	zap.S().Infoln("Server ansver with short URL: ", answerURL)
 
@@ -76,5 +76,5 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 
 func NewHandler(configApp *config.Shear) *HandlerURL {
 
-	return &HandlerURL{serviceURL: service.NewService(configApp.Storage), conf: configApp}
+	return &HandlerURL{serviceURL: service.NewService(configApp.Storage, configApp.Backup), conf: configApp}
 }
