@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/shulganew/shear.git/internal/appconsts"
-	"github.com/shulganew/shear.git/internal/config"
+	"go.uber.org/zap"
 )
 
 type gzipRequest struct {
@@ -31,32 +31,35 @@ func (w gzipWriter) Write(b []byte) (int, error) {
 
 func MidlewZip(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logz := config.InitLog()
+
 		start := time.Now()
 
 		uri := r.RequestURI
 		method := r.Method
 
-		//check if client send gzip json
+		if !strings.Contains(r.Header.Get(appconsts.AcceptEncoding), "gzip") {
+			zap.S().Infoln("Clinent does not support gzip format!")
+			h.ServeHTTP(w, r)
+			return
+		}
 
+		//check if client send compressed content in the body (gzip only)
 		if strings.Contains(r.Header.Get(appconsts.ContentEncoding), "gzip") {
-			logz.Infoln("Client send a file in gzip format!")
-			var reader io.Reader
+			zap.S().Infoln("Client send a file in gzip format!")
 
-			if r.Header.Get(appconsts.ContentEncoding) == "gzip" {
-				gz, err := gzip.NewReader(r.Body)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-				reader = gz
-				defer gz.Close()
-			} else {
-				reader = r.Body
+			var reader io.Reader
+			gz, err := gzip.NewReader(r.Body)
+			if err != nil {
+				zap.S().Errorln("Error unzip reques body")
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
+			reader = gz
+			defer gz.Close()
 
 			body, err := io.ReadAll(reader)
 			if err != nil {
+				zap.S().Errorln("Error read data from unzipped reques body")
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -64,24 +67,19 @@ func MidlewZip(h http.Handler) http.Handler {
 			//update body with unzipped file
 			read := bytes.NewReader(body)
 			readCloser := io.NopCloser(read)
+
+			//send to ServeHTTP without encoding
 			r.Header.Del(appconsts.ContentEncoding)
-			r.Header.Set(appconsts.ContentEncoding, appconsts.ContentTypeJSON)
 			r.Body = readCloser
-
 		}
 
-		//if browser doesnt support gzip exit
-		r.Header.Set(appconsts.ContentEncoding, appconsts.ContentTypeJSON)
-		r.Header.Set(appconsts.ContentEncoding, appconsts.ContentTypeJSON)
-		if !strings.Contains(r.Header.Get(appconsts.AcceptEncoding), "gzip") {
-			logz.Infoln("Clinent does not support gzip format!")
-			h.ServeHTTP(w, r)
-			return
-		}
+		//r.Header.Set("Content-Type", appconsts.ContentTypeJSON)
+		//r.Header.Set(appconsts.ContentEncoding, appconsts.ContentTypeJSON)
 
-		gz, err := gzip.NewWriterLevel(w, gzip.BestCompression)
+		//Send compressed with gzip unsver
+		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
 		if err != nil {
-			logz.Errorln("error during gzip compression")
+			zap.S().Errorln("error during gzip compression")
 			io.WriteString(w, err.Error())
 			return
 		}
@@ -92,7 +90,7 @@ func MidlewZip(h http.Handler) http.Handler {
 
 		duration := time.Since(start)
 
-		logz.Infoln(
+		zap.S().Infoln(
 			"URI: ", uri,
 			"Method: ", method,
 			"Duration zip json: ", duration,

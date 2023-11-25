@@ -24,7 +24,7 @@ func (u *HandlerURL) GetServiceURL() service.Shortener {
 
 // GET and redirect by shortUrl
 func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
-
+	zap.S().Infoln("Get request: ", req.URL.Path)
 	shortURL := chi.URLParam(req, "id")
 
 	//get long Url from storage

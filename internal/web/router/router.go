@@ -15,17 +15,19 @@ func RouteShear(conf *config.Shear) (r *chi.Mux) {
 	webHand := handlers.NewHandler(conf)
 	r = chi.NewRouter()
 	r.Use(handlers.MidlewLog)
+	r.Use(handlers.MidlewZip)
 	r.Post("/", http.HandlerFunc(webHand.SetURL))
 	r.Get("/{id}", http.HandlerFunc(webHand.GetURL))
 
 	//api
 	apiHand := api.NewHandler(conf)
-	r.Route("/api/shorten", func(r chi.Router) {
-		r.Use(handlers.MidlewLog)
-		r.Use(handlers.MidlewZip)
-		r.Post("/", http.HandlerFunc(apiHand.SetAPI))
+	r.Post("/api/shorten", http.HandlerFunc(apiHand.SetAPI))
+	// r.Route("/api/shorten", func(r chi.Router) {
+	// 	r.Use(handlers.MidlewLog)
+	// 	r.Use(handlers.MidlewZip)
+	// 	r.Post("/", http.HandlerFunc(apiHand.SetAPI))
 
-	})
+	// })
 
 	return
 }

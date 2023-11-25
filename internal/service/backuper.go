@@ -39,7 +39,13 @@ func (b Backup) Load() ([]storage.Short, error) {
 	//read
 	//var
 	file, err := os.OpenFile(b.File, os.O_RDONLY, 0666)
+
 	if err != nil {
+		if os.IsNotExist(err) {
+			zap.S().Infoln("Backup file not exist")
+			return []storage.Short{}, nil
+		}
+
 		zap.S().Errorln("Error reading backup file")
 		return nil, err
 	}
