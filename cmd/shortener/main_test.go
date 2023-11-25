@@ -20,7 +20,7 @@ import (
 
 func Test_main(t *testing.T) {
 	tests := []struct {
-		name        stringcd ..
+		name        string
 		request     string
 		body        string
 		method      string
