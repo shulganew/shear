@@ -42,7 +42,7 @@ func (b Backup) Load() ([]storage.Short, error) {
 
 	if err != nil {
 		if os.IsNotExist(err) {
-			zap.S().Infoln("Backup file not exist", file.Name())
+			zap.S().Infoln("Backup file not exist")
 			return []storage.Short{}, nil
 		}
 
