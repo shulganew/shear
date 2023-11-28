@@ -24,6 +24,6 @@ vendor/
 #linker
 golangci-lint
 
-#my autotest
+#my autotest // removed
 autotests.sh
 
