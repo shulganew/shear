@@ -1,4 +1,4 @@
-package api
+package handlers
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/shulganew/shear.git/internal/appconsts"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/stretchr/testify/assert"
@@ -50,7 +49,7 @@ func Test_api(t *testing.T) {
 	configApp.Storage = &storage.MemoryStorage{StoreURLs: []storage.Short{}}
 
 	//init storage
-	apiHand := NewHandler(configApp)
+	apiHand := NewHandlerAPI(configApp)
 	serviceURL := apiHand.GetService()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -63,11 +62,11 @@ func Test_api(t *testing.T) {
 
 			req := httptest.NewRequest(http.MethodPost, tt.requestURL, strings.NewReader(tt.body))
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
-			req.Header.Add("Content-Type", appconsts.ContentTypeJSON)
+			req.Header.Add("Content-Type", "application/json")
 			//create status recorder
 			resRecord := httptest.NewRecorder()
 
-			apiHand.SetAPI(resRecord, req)
+			apiHand.GetShortURL(resRecord, req)
 
 			//get result
 			res := resRecord.Result()

@@ -54,7 +54,7 @@ func Test_main(t *testing.T) {
 	configApp.Storage = &storage.MemoryStorage{StoreURLs: []storage.Short{}}
 
 	//init storage
-	handler := webhandl.NewHandler(configApp)
+	handler := webhandl.NewHandlerWeb(configApp)
 	serviceURL := handler.GetServiceURL()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

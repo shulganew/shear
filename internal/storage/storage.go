@@ -1,5 +1,7 @@
 package storage
 
+import "slices"
+
 // base stract for working with storage
 type Short struct {
 	ID       int    `json:"uuid"`
@@ -25,32 +27,20 @@ func (m *MemoryStorage) SetURL(sortURL, longURL string) (short Short) {
 }
 
 func (m *MemoryStorage) GetLongURL(shortURL string) (longURL string, ok bool) {
-	for _, short := range m.StoreURLs {
-		if short.ShortURL == shortURL {
-			return short.LongURL, true
-		}
+	id := slices.IndexFunc(m.StoreURLs, func(s Short) bool { return s.ShortURL == shortURL })
+	if id != -1 {
+		longURL = m.StoreURLs[id].LongURL
+		ok = true
 	}
-
 	return
 }
 
 func (m *MemoryStorage) GetShortURL(longURL string) (shortURL string, ok bool) {
-	for _, short := range m.StoreURLs {
-		if short.LongURL == longURL {
-			return short.ShortURL, true
-		}
+	id := slices.IndexFunc(m.StoreURLs, func(s Short) bool { return s.LongURL == longURL })
+	if id != -1 {
+		shortURL = m.StoreURLs[id].ShortURL
+		ok = true
 	}
 	return
-}
 
-// get shortUrl from BDUrl
-// func GetShortURL(m *map[string]url.URL, longURL string) (shortURL string, ok bool) {
-// 	for k, v := range *m {
-// 		if v.String() == longURL {
-// 			shortURL = k
-// 			ok = true
-// 			return
-// 		}
-// 	}
-// 	return
-// }
+}

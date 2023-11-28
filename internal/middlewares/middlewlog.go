@@ -1,16 +1,18 @@
-package handlers
+package middlewares
 
 import (
 	"net/http"
 	"time"
 
-	"github.com/shulganew/shear.git/internal/config"
+	"go.uber.org/zap"
 )
 
 type (
 	responseData struct {
-		status int
-		size   int
+		status   int
+		size     int
+		answer   string
+		redirect string
 	}
 
 	loggingResponseWriter struct {
@@ -22,12 +24,16 @@ type (
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	size, err := r.ResponseWriter.Write(b)
 	r.responseData.size += size
+	r.responseData.answer = string(b)
 	return size, err
 }
 
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.ResponseWriter.WriteHeader(statusCode)
 	r.responseData.status = statusCode
+	if statusCode == http.StatusTemporaryRedirect {
+		r.responseData.redirect = r.Header().Get("Location")
+	}
 }
 
 // middleware for logging web server
@@ -45,8 +51,10 @@ func MidlewLog(h http.Handler) http.Handler {
 		method := r.Method
 
 		responseData := &responseData{
-			status: 0,
-			size:   0,
+			status:   0,
+			size:     0,
+			answer:   "",
+			redirect: "",
 		}
 		lw := loggingResponseWriter{
 			ResponseWriter: w,
@@ -56,14 +64,18 @@ func MidlewLog(h http.Handler) http.Handler {
 
 		//delay
 		duration := time.Since(start)
-		logz := config.InitLog()
-		logz.Infoln(
-			"URI: ", uri,
+
+		zap.S().Infoln(
+			"Request URL from: ", uri,
 			"Method: ", method,
 			"Status: ", responseData.status,
 			"Duration: ", duration,
+			"Server answer: ", responseData.answer,
 			"Size: ", responseData.size,
 		)
+		if responseData.status == http.StatusTemporaryRedirect {
+			zap.S().Infoln("Redirect to: ", responseData.redirect)
+		}
 	})
 
 }

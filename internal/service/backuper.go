@@ -18,7 +18,7 @@ type Backup struct {
 func (b Backup) Save(short storage.Short) error {
 
 	data, err := json.Marshal(short)
-	zap.S().Infoln("Backup URL: ", string(data))
+	//Backup URL:
 	if err != nil {
 		zap.S().Error("Error Marshal Backup: ", err)
 	}
@@ -42,7 +42,7 @@ func (b Backup) Load() ([]storage.Short, error) {
 
 	if err != nil {
 		if os.IsNotExist(err) {
-			zap.S().Infoln("Backup file not exist")
+			zap.S().Infoln("Backup file not exist", file.Name())
 			return []storage.Short{}, nil
 		}
 
@@ -55,7 +55,7 @@ func (b Backup) Load() ([]storage.Short, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		data := scanner.Bytes()
-		zap.S().Infoln("Scan bytes", string(data))
+		//Scan bytes
 		var short storage.Short
 
 		if err := json.Unmarshal(data, &short); err != nil {
@@ -66,7 +66,7 @@ func (b Backup) Load() ([]storage.Short, error) {
 
 	}
 
-	zap.S().Infoln("Load data from file", shorts)
+	zap.S().Infoln("Load dump from file done. Restore # of elements: ", len(shorts))
 	return shorts, nil
 }
 

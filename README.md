@@ -1,6 +1,6 @@
 # cmd commands for test purposes
 ```
-curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/ -d "https://yandex.ru"
+curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/ -d "https://yandex1.ru"
 curl -v -H "Content-Type: text/plain" http://localhost:8080/hjnFtibr
 
 curl -v -H "Content-Type: application/json" -X POST http://localhost:8080/api/shorten -d '{"url":"https://practicum1.yandex1.ru"}'

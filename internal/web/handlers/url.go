@@ -8,7 +8,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
-	"go.uber.org/zap"
 )
 
 // hadler for  GET and POST  short and long urls
@@ -24,7 +23,6 @@ func (u *HandlerURL) GetServiceURL() service.Shortener {
 
 // GET and redirect by shortUrl
 func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
-	zap.S().Infoln("Get request: ", req.URL.Path)
 	shortURL := chi.URLParam(req, "id")
 
 	//get long Url from storage
@@ -32,7 +30,6 @@ func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
-	zap.S().Infoln("Redirect to: ", longURL)
 
 	if exist {
 		res.Header().Set("Location", longURL)
@@ -64,8 +61,6 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 	//save map to storage
 	u.serviceURL.SetURL(shortURL, (*redirectURL).String())
 
-	zap.S().Infoln("Server ansver with short URL: ", answerURL)
-
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
 
@@ -74,7 +69,7 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte(answerURL.String()))
 }
 
-func NewHandler(configApp *config.Shear) *HandlerURL {
+func NewHandlerWeb(configApp *config.Shear) *HandlerURL {
 
 	return &HandlerURL{serviceURL: service.NewService(configApp.Storage, configApp.Backup), conf: configApp}
 }

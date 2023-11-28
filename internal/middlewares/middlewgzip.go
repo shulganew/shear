@@ -1,4 +1,4 @@
-package handlers
+package middlewares
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shulganew/shear.git/internal/appconsts"
 	"go.uber.org/zap"
 )
 
@@ -37,15 +36,8 @@ func MidlewZip(h http.Handler) http.Handler {
 		uri := r.RequestURI
 		method := r.Method
 
-		if !strings.Contains(r.Header.Get(appconsts.AcceptEncoding), "gzip") {
-			zap.S().Infoln("Clinent does not support gzip format!")
-			h.ServeHTTP(w, r)
-			return
-		}
-
 		//check if client send compressed content in the body (gzip only)
-		if strings.Contains(r.Header.Get(appconsts.ContentEncoding), "gzip") {
-			zap.S().Infoln("Client send a file in gzip format!")
+		if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
 
 			var reader io.Reader
 			gz, err := gzip.NewReader(r.Body)
@@ -69,12 +61,15 @@ func MidlewZip(h http.Handler) http.Handler {
 			readCloser := io.NopCloser(read)
 
 			//send to ServeHTTP without encoding
-			r.Header.Del(appconsts.ContentEncoding)
+			r.Header.Del("Content-Encoding")
 			r.Body = readCloser
 		}
 
-		//r.Header.Set("Content-Type", appconsts.ContentTypeJSON)
-		//r.Header.Set(appconsts.ContentEncoding, appconsts.ContentTypeJSON)
+		//check if client support gzip
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			h.ServeHTTP(w, r)
+			return
+		}
 
 		//Send compressed with gzip unsver
 		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
@@ -85,7 +80,7 @@ func MidlewZip(h http.Handler) http.Handler {
 		}
 		defer gz.Close()
 
-		w.Header().Set(appconsts.ContentEncoding, "gzip")
+		w.Header().Set("Content-Encoding", "gzip")
 		h.ServeHTTP(gzipWriter{ResponseWriter: w, Writer: gz}, r)
 
 		duration := time.Since(start)
