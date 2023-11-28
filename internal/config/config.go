@@ -49,7 +49,7 @@ func InitConfig() *Shear {
 	//read OS ENV
 	env, exist := os.LookupEnv(("SERVER_ADDRESS"))
 
-	//if env var does not exist - set def value
+	//if env var does not exist  - set def value
 	if exist {
 		config.Response = env
 		zap.S().Infoln("Set result address from evn SERVER_ADDRESS: ", config.Response)
