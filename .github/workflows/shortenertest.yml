@@ -448,7 +448,7 @@ jobs:
           github.head_ref == 'iter24'
         run: |
           shortenertestbeta -test.v -test.run=^TestIteration16$ \
-              -source-path=. \
+              -source-path=. 
 
       - name: "Code increment #17"
         if: |
@@ -463,7 +463,7 @@ jobs:
           github.head_ref == 'iter24'
         run: |
           shortenertestbeta -test.v -test.run=^TestIteration17$ \
-              -source-path=. \
+              -source-path=. 
 
       - name: "Code increment #18"
         if: |
@@ -477,4 +477,4 @@ jobs:
           github.head_ref == 'iter24'
         run: |
           shortenertestbeta -test.v -test.run=^TestIteration18$ \
-              -source-path=. \
+              -source-path=. 
