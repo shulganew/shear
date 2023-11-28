@@ -60,8 +60,19 @@ https://www.opennet.ru/docs/RUS/zlp/005.html
 ```
 
 # ###############Lint instal##########################
+```
 go install golang.org/x/tools/gopls@latest
 //========================================
+run ci lint
+
+sudo snap install golangci-lint
+golangci-lint run
+golangci-lint --help
+golangci-lint run -v
+golangci-lint run
+
+```
+
 # go-musthave-shortener-tpl
 
 Шаблон репозитория для трека «Сервис сокращения URL».
