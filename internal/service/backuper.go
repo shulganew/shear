@@ -13,7 +13,7 @@ import (
 )
 
 // make backup every 10 seconds
-const Time_Backup = 10
+const Timer = 10
 
 type Backup struct {
 	File     string
@@ -113,7 +113,7 @@ func Shutdown(storage storage.StorageURL, b Backup) {
 
 func TimeBackup(storage storage.StorageURL, b Backup) {
 
-	backup := time.NewTicker(Time_Backup * time.Second)
+	backup := time.NewTicker(Timer * time.Second)
 	go func() {
 		for {
 			<-backup.C
