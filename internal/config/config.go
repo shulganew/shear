@@ -30,6 +30,9 @@ func InitConfig() *Shear {
 	//set logger
 	InitLog()
 
+	//set MemoryStorage storage
+	config.Storage = &storage.MemoryStorage{StoreURLs: []storage.Short{}}
+
 	//read command line argue
 
 	startAddress := flag.String("a", "localhost:8080", "start server address and port")
@@ -63,18 +66,15 @@ func InitConfig() *Shear {
 
 	temp, exist := os.LookupEnv(("FILE_STORAGE_PATH"))
 	if exist {
-		config.Backup = *service.New(temp, true)
+		config.Backup = *service.New(temp, true, config.Storage)
 		zap.S().Infoln("Found backup's evn, use file: ", config.Backup.File)
 	} else if *tempf != "" {
-		config.Backup = *service.New(*tempf, true)
+		config.Backup = *service.New(*tempf, true, config.Storage)
 	} else {
-		config.Backup = *service.New(*tempf, false)
+		config.Backup = *service.New(*tempf, false, config.Storage)
 	}
 
 	zap.S().Infoln("Backup isActive: ", config.Backup.IsActive)
-
-	//set MemoryStorage storage
-	config.Storage = &storage.MemoryStorage{StoreURLs: []storage.Short{}}
 
 	//load all dump links
 	shorts, err := config.Backup.Load()
@@ -84,6 +84,14 @@ func InitConfig() *Shear {
 
 	//set MemoryStorage storage
 	config.Storage = &storage.MemoryStorage{StoreURLs: shorts}
+
+	//activate backup
+	if config.Backup.IsActive {
+		//Time mashine
+		service.TimeBackup(config.Storage, config.Backup)
+		//backup on graceful
+		service.Shutdown(config.Storage, config.Backup)
+	}
 
 	zap.S().Infoln("Configuration complite")
 	return &config

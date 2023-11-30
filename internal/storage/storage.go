@@ -13,6 +13,7 @@ type StorageURL interface {
 	SetURL(sortURL, longURL string) Short
 	GetLongURL(sortURL string) (string, bool)
 	GetShortURL(longURL string) (string, bool)
+	GetAll() []Short
 }
 
 type MemoryStorage struct {
@@ -42,5 +43,10 @@ func (m *MemoryStorage) GetShortURL(longURL string) (shortURL string, ok bool) {
 		ok = true
 	}
 	return
+
+}
+
+func (m *MemoryStorage) GetAll() []Short {
+	return m.StoreURLs
 
 }

@@ -21,13 +21,7 @@ type Shortener struct {
 
 func (s *Shortener) SetURL(sortURL, longURL string) {
 	zap.S().Infof("Store. Save URL [%s]=%s", sortURL, longURL)
-
-	short := s.storeURLs.SetURL(sortURL, longURL)
-	//save Short if backup is enable
-	if s.backup.IsActive {
-		s.backup.Save(short)
-	}
-
+	s.storeURLs.SetURL(sortURL, longURL)
 }
 
 func (s *Shortener) GetLongURL(sortURL string) (longURL string, exist bool) {

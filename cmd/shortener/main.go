@@ -10,6 +10,7 @@ import (
 func main() {
 
 	configApp := config.InitConfig()
+
 	err := http.ListenAndServe(configApp.Address, router.RouteShear(configApp))
 	if err != nil {
 		panic(err)

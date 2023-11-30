@@ -4,17 +4,22 @@ import (
 	"bufio"
 	"encoding/json"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"
 )
+
+// make backup every 10 seconds
+const Time_Backup = 10
 
 type Backup struct {
 	File     string
 	IsActive bool
 }
 
-// {"uuid":"1","short_url":"4rSPg8ap","original_url":"http://yandex.ru"}
 func (b Backup) Save(short storage.Short) error {
 
 	data, err := json.Marshal(short)
@@ -35,9 +40,35 @@ func (b Backup) Save(short storage.Short) error {
 	return nil
 }
 
+func (b Backup) SaveAll(storage storage.StorageURL) error {
+
+	//save data fo file
+	file, error := os.OpenFile(b.File, os.O_WRONLY|os.O_CREATE, 0666)
+	if error != nil {
+		return error
+	}
+	defer file.Close()
+	shorts := storage.GetAll()
+
+	var data []byte
+	for _, short := range shorts {
+
+		shortj, err := json.Marshal(short)
+		//Backup URL:
+		if err != nil {
+			zap.S().Error("Error Marshal Backup: ", err)
+		}
+
+		//append next line characte
+		shortj = append(shortj, []byte("\n")...)
+		data = append(data, shortj...)
+	}
+	file.Write(data)
+	return nil
+}
+
 func (b Backup) Load() ([]storage.Short, error) {
-	//read
-	//var
+
 	file, err := os.OpenFile(b.File, os.O_RDONLY, 0666)
 
 	if err != nil {
@@ -70,6 +101,29 @@ func (b Backup) Load() ([]storage.Short, error) {
 	return shorts, nil
 }
 
-func New(file string, isActive bool) *Backup {
+func Shutdown(storage storage.StorageURL, b Backup) {
+	exit := make(chan os.Signal, 1)
+	signal.Notify(exit, syscall.SIGTERM, syscall.SIGQUIT, os.Interrupt)
+	go func() {
+		<-exit
+		b.SaveAll(storage)
+		os.Exit(1)
+	}()
+}
+
+func TimeBackup(storage storage.StorageURL, b Backup) {
+
+	backup := time.NewTicker(Time_Backup * time.Second)
+	go func() {
+		for {
+			<-backup.C
+			b.SaveAll(storage)
+
+		}
+	}()
+
+}
+
+func New(file string, isActive bool, storage storage.StorageURL) *Backup {
 	return &Backup{File: file, IsActive: isActive}
 }
