@@ -99,6 +99,7 @@ func (b Backup) Load() ([]storage.Short, error) {
 
 func Shutdown(ctx context.Context, storage storage.StorageURL, b Backup) {
 	go func() {
+
 		<-ctx.Done()
 		b.SaveAll(storage)
 		os.Exit(1)
