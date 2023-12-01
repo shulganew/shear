@@ -41,8 +41,10 @@ func Test_api(t *testing.T) {
 			statusCode: http.StatusCreated,
 		},
 	}
+	//init context
+	ctx := config.InitContext()
 	// init configApp
-	configApp := config.InitConfig()
+	configApp := config.InitConfig(ctx)
 	// init config with difauls values
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost
@@ -76,13 +78,13 @@ func Test_api(t *testing.T) {
 			assert.Equal(t, tt.statusCode, res.StatusCode)
 
 			//Unmarshal body
-			var response ResonseJSON
+			var response Resonse
 
 			err := json.NewDecoder(res.Body).Decode(&response)
 			require.NoError(t, err)
 
 			//responseURL = hostname+shortUrl
-			responseURL, err := url.Parse(response.ShortURL)
+			responseURL, err := url.Parse(response.Brief)
 			require.NoError(t, err)
 			t.Log(responseURL)
 			shortURL := strings.TrimLeft(responseURL.Path, "/")

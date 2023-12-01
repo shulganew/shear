@@ -14,8 +14,8 @@ type Request struct {
 	URL string `json:"url"`
 }
 
-type ResonseJSON struct {
-	ShortURL string `json:"result"`
+type Resonse struct {
+	Brief string `json:"result"`
 }
 
 type HandlerAPI struct {
@@ -29,14 +29,14 @@ func (u *HandlerAPI) GetService() service.Shortener {
 
 func (u *HandlerAPI) GetShortURL(res http.ResponseWriter, req *http.Request) {
 
-	var request RequestJSON
+	var request Request
 
 	if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	longURL, err := url.Parse(string(request.LongURL))
+	longURL, err := url.Parse(string(request.URL))
 	if err != nil {
 		http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 	}
@@ -46,7 +46,7 @@ func (u *HandlerAPI) GetShortURL(res http.ResponseWriter, req *http.Request) {
 	//save map to storage
 	u.serviceURL.SetURL(shortURL, (*longURL).String())
 
-	response := ResonseJSON{answerURL.String()}
+	response := Resonse{answerURL.String()}
 
 	jsonURL, err := json.Marshal(response)
 	if err != nil {

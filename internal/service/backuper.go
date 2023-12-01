@@ -1,11 +1,10 @@
 package service
 
 import (
-	"bufio"
+	"context"
 	"encoding/json"
+	"io"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/shulganew/shear.git/internal/storage"
@@ -81,31 +80,26 @@ func (b Backup) Load() ([]storage.Short, error) {
 		return nil, err
 	}
 	defer file.Close()
+
 	shorts := []storage.Short{}
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		data := scanner.Bytes()
-		//Scan bytes
+	dec := json.NewDecoder(file)
+	for {
 		var short storage.Short
-
-		if err := json.Unmarshal(data, &short); err != nil {
-			zap.S().Errorln("Error unmarshal data")
-			return nil, err
+		if err := dec.Decode(&short); err == io.EOF {
+			break
+		} else if err != nil {
+			zap.S().Errorln("Error unmarshal data", err)
 		}
 		shorts = append(shorts, short)
-
 	}
-
 	zap.S().Infoln("Load dump from file done. Restore # of elements: ", len(shorts))
+
 	return shorts, nil
 }
 
-func Shutdown(storage storage.StorageURL, b Backup) {
-	exit := make(chan os.Signal, 1)
-	signal.Notify(exit, syscall.SIGTERM, syscall.SIGQUIT, os.Interrupt)
+func Shutdown(ctx context.Context, storage storage.StorageURL, b Backup) {
 	go func() {
-		<-exit
+		<-ctx.Done()
 		b.SaveAll(storage)
 		os.Exit(1)
 	}()

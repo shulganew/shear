@@ -60,7 +60,7 @@ func GenerateShorLink() string {
 	//nuber of short chars in url string
 
 	sb := strings.Builder{}
-	sb.Grow(7)
+	sb.Grow(ShortLength)
 	for i := 0; i < ShortLength; i++ {
 		sb.WriteByte(charset[rand.Intn(len(charset))])
 	}
