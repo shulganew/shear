@@ -41,10 +41,9 @@ func Test_api(t *testing.T) {
 			statusCode: http.StatusCreated,
 		},
 	}
-	//init context
-	ctx := config.InitContext()
+
 	// init configApp
-	configApp := config.InitConfig(ctx)
+	configApp := config.InitConfig()
 	// init config with difauls values
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost

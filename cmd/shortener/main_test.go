@@ -46,11 +46,9 @@ func Test_main(t *testing.T) {
 			statusCode:  307,
 		},
 	}
-	//init context
-	ctx := config.InitContext()
 
 	// init configApp
-	configApp := config.InitConfig(ctx)
+	configApp := config.InitConfig()
 	// init config with difauls values
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost
