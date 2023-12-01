@@ -10,8 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
-type RequestJSON struct {
-	LongURL string `json:"url"`
+type Request struct {
+	URL string `json:"url"`
 }
 
 type ResonseJSON struct {
