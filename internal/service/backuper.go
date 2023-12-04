@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"os"
 	"time"
@@ -101,7 +100,6 @@ func (b Backup) Load() ([]storage.Short, error) {
 func Shutdown(ctx context.Context, storage storage.StorageURL, b Backup) {
 	go func() {
 		<-ctx.Done()
-		fmt.Println("Shutdown")
 		b.SaveAll(storage)
 		os.Exit(1)
 	}()

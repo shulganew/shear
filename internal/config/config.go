@@ -3,7 +3,6 @@ package config
 import (
 	"context"
 	"flag"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -130,7 +129,6 @@ func InitContext() (ctx context.Context, cancel context.CancelFunc) {
 		<-exit
 		cancel()
 	}()
-	fmt.Println("End Init")
 	return
 }
 
