@@ -9,9 +9,14 @@ import (
 
 func main() {
 
-	ctx, cancel := config.InitContext()
-	configApp := config.InitConfig(ctx)
-	defer cancel()
+	configApp := config.InitConfig()
+	//activate backup
+	if configApp.Backup.IsActive {
+		ctx, cancel := config.InitContext()
+		config.InitBackup(ctx, configApp)
+		defer cancel()
+
+	}
 
 	err := http.ListenAndServe(configApp.Address, router.RouteShear(configApp))
 	if err != nil {

@@ -27,7 +27,7 @@ type Shear struct {
 	Storage storage.StorageURL
 }
 
-func InitConfig(ctx context.Context) *Shear {
+func InitConfig() *Shear {
 
 	config := Shear{}
 
@@ -89,15 +89,6 @@ func InitConfig(ctx context.Context) *Shear {
 	//set MemoryStorage storage
 	config.Storage = &storage.MemoryStorage{StoreURLs: shorts}
 
-	//activate backup
-	if config.Backup.IsActive {
-
-		//Time machine
-		service.TimeBackup(config.Storage, config.Backup)
-		//backup on graceful
-		service.Shutdown(ctx, config.Storage, config.Backup)
-	}
-
 	zap.S().Infoln("Configuration complite")
 	return &config
 }
@@ -141,4 +132,12 @@ func InitContext() (ctx context.Context, cancel context.CancelFunc) {
 	}()
 	fmt.Println("End Init")
 	return
+}
+
+// Activate backup
+func InitBackup(ctx context.Context, config *Shear) {
+	//Time machine
+	service.TimeBackup(config.Storage, config.Backup)
+	//backup on graceful
+	service.Shutdown(ctx, config.Storage, config.Backup)
 }
