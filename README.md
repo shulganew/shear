@@ -1,14 +1,49 @@
 # cmd commands for test purposes
-//curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/ -d "https://yandex.ru"
-//curl -v -H "Content-Type: text/plain" http://localhost:8080/hjnFtibr
-//set SERVER_ADDRESS=localhost:8080
-//echo %SERVER_ADDRESS%
+```
+curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/ -d "https://yandex1.ru"
+curl -v -H "Content-Type: text/plain" http://localhost:8080/hjnFtibr
+
+curl -v -H "Content-Type: application/json" -X POST http://localhost:8080/api/shorten -d '{"url":"https://practicum1.yandex1.ru"}'
+curl -v -H "Content-Type: application/json" -X POST http://localhost:8080/api/shorten -d '{"url":"http://liceih591s.com/rmqtluduv3fe8t/qtefpaham0"}'
+
+
+//gzip
+//add --compressed key, this include accept encoding header
+curl --compressed -v -H "Content-Type: application/json" -X POST http://localhost:8080/api/shorten -d '{"url":"https://practicum1.yandex1.ru"}' | gunzip
+
+//send gzip body to server
+echo '{"url":"https://practicum1.yandex1.ru"}' | gzip > body.gz
+curl --compressed -v -X POST http://localhost:8080/api/shorten -H'Content-Encoding: gzip' --data-binary @body.gz | gunzip
+
+
+set SERVER_ADDRESS=localhost:8080
+echo %SERVER_ADDRESS%
+```
+# Git
+
 //git push -u origin iter5
+//git checkout -b iter1
+
+
+# Tests
+
+# Run static test localy
+
+go vet -vettool=$(which statictest) ./...
+
+shortenertestbeta -test.v -test.run=^TestIteration7$ -binary-path=cmd/shortener/shortener -source-path=.
+
+# Iterantion tests
+go build -o ./cmd/shortener/shortener ./cmd/shortener/main.go
+
 # my links to useful sites
 
+# Use autotest local 
+https://github.com/nektos/act
 
 
-
+# My links
+```
 https://github.com/golang/go/wiki/CodeReviewComments#receiver-type
 
 status code during the test issue:
@@ -17,10 +52,27 @@ https://github.com/gin-gonic/gin/issues/1120
 hadle func with interface
 https://ru.hexlet.io/courses/go-web-development/lessons/local-persistence/theory_unit
 
+Go Interface in detail:
+https://research.swtch.com/interfaces
 
-################Lint instal##########################
+file lseek
+https://www.opennet.ru/docs/RUS/zlp/005.html
+```
+
+# ###############Lint instal##########################
+```
 go install golang.org/x/tools/gopls@latest
 //========================================
+run ci lint
+
+sudo snap install golangci-lint
+golangci-lint run
+golangci-lint --help
+golangci-lint run -v
+golangci-lint run
+
+```
+
 # go-musthave-shortener-tpl
 
 Шаблон репозитория для трека «Сервис сокращения URL».

@@ -14,7 +14,7 @@
 # Binaries
 cmd/shortener/main
 cmd/shortener/shortener
-
+bin
 # Dependency directories (remove the comment below to include it)
 vendor/
 
@@ -23,3 +23,7 @@ vendor/
 .vscode
 #linker
 golangci-lint
+
+#my autotest // removed
+autotests.sh
+

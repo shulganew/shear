@@ -4,14 +4,21 @@ import (
 	"net/http"
 
 	"github.com/shulganew/shear.git/internal/config"
-	webhandl "github.com/shulganew/shear.git/internal/web/handlers"
 	"github.com/shulganew/shear.git/internal/web/router"
 )
 
 func main() {
 
 	configApp := config.InitConfig()
-	err := http.ListenAndServe(configApp.StartAddress, router.RouteShear(*webhandl.NewHandler(configApp)))
+	//activate backup
+	if configApp.Backup.IsActive {
+		ctx, cancel := config.InitContext()
+		config.InitBackup(ctx, configApp)
+		defer cancel()
+
+	}
+
+	err := http.ListenAndServe(configApp.Address, router.RouteShear(configApp))
 	if err != nil {
 		panic(err)
 	}

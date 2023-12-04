@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 
@@ -11,20 +10,19 @@ import (
 	"github.com/shulganew/shear.git/internal/service"
 )
 
-// hadler for  GET and POST  hor and log urls
+// hadler for  GET and POST  short and long urls
 
-type URLHandler struct {
-	serviceURL *service.ServiceURL
-	conf       *config.ConfigShear
+type HandlerURL struct {
+	serviceURL *service.Shortener
+	conf       *config.Shear
 }
 
-func (u *URLHandler) GetServiceURL() service.ServiceURL {
+func (u *HandlerURL) GetServiceURL() service.Shortener {
 	return *u.serviceURL
 }
 
 // GET and redirect by shortUrl
-func (u *URLHandler) GetURL(res http.ResponseWriter, req *http.Request) {
-
+func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 	shortURL := chi.URLParam(req, "id")
 
 	//get long Url from storage
@@ -32,10 +30,9 @@ func (u *URLHandler) GetURL(res http.ResponseWriter, req *http.Request) {
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
-	log.Println("Redirect to: ", longURL)
 
 	if exist {
-		res.Header().Set("Location", longURL.String())
+		res.Header().Set("Location", longURL)
 		//set status code 307
 		res.WriteHeader(http.StatusTemporaryRedirect)
 
@@ -47,7 +44,7 @@ func (u *URLHandler) GetURL(res http.ResponseWriter, req *http.Request) {
 }
 
 // POTS and set generate short Url
-func (u *URLHandler) SetURL(res http.ResponseWriter, req *http.Request) {
+func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 
 	readBody, err := io.ReadAll(req.Body)
 	if err != nil {
@@ -59,12 +56,10 @@ func (u *URLHandler) SetURL(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Wrong URL in body, parse error", http.StatusInternalServerError)
 	}
 
-	shortURL, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.ResultAddress)
+	shortURL, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.Response)
 
 	//save map to storage
-	u.serviceURL.SetURL(shortURL, *redirectURL)
-
-	log.Println("Server ansver with short URL: ", answerURL)
+	u.serviceURL.SetURL(shortURL, (*redirectURL).String())
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
@@ -74,7 +69,7 @@ func (u *URLHandler) SetURL(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte(answerURL.String()))
 }
 
-func NewHandler(configApp *config.ConfigShear) *URLHandler {
+func NewHandlerWeb(configApp *config.Shear) *HandlerURL {
 
-	return &URLHandler{serviceURL: service.NewService(configApp.Storage), conf: configApp}
+	return &HandlerURL{serviceURL: service.NewService(configApp.Storage, configApp.Backup), conf: configApp}
 }

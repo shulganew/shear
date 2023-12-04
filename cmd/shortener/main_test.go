@@ -46,15 +46,22 @@ func Test_main(t *testing.T) {
 			statusCode:  307,
 		},
 	}
+
 	// init configApp
 	configApp := config.InitConfig()
+	if configApp.Backup.IsActive {
+		ctx, cancel := config.InitContext()
+		config.InitBackup(ctx, configApp)
+		defer cancel()
+
+	}
 	// init config with difauls values
-	configApp.StartAddress = config.DefaultHost
-	configApp.ResultAddress = config.DefaultHost
-	configApp.Storage = &storage.MapStorage{StoreURLs: make(map[string]url.URL)}
+	configApp.Address = config.DefaultHost
+	configApp.Response = config.DefaultHost
+	configApp.Storage = &storage.MemoryStorage{StoreURLs: []storage.Short{}}
 
 	//init storage
-	handler := webhandl.NewHandler(configApp)
+	handler := webhandl.NewHandlerWeb(configApp)
 	serviceURL := handler.GetServiceURL()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -100,7 +107,7 @@ func Test_main(t *testing.T) {
 				require.True(t, exist)
 
 				t.Log("shortUrl url: ", shortURL)
-				responseURLDb, err := url.JoinPath(longURLDb.String(), shortURL)
+				responseURLDb, err := url.JoinPath(longURLDb, shortURL)
 				require.NoError(t, err)
 
 				t.Log("ressponseUrl from db: ", responseURLDb)

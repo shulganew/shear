@@ -1,50 +1,52 @@
 package storage
 
-import (
-	"log"
-	"net/url"
-)
+import "slices"
+
+// base stract for working with storage
+type Short struct {
+	ID       int    `json:"uuid"`
+	ShortURL string `json:"short_url"`
+	LongURL  string `json:"original_url"`
+}
 
 type StorageURL interface {
-	SetURL(sortURL string, longURL url.URL)
-	GetLongURL(sortURL string) (url.URL, bool)
+	SetURL(sortURL, longURL string) Short
+	GetLongURL(sortURL string) (string, bool)
 	GetShortURL(longURL string) (string, bool)
+	GetAll() []Short
 }
 
-type MapStorage struct {
-	StoreURLs map[string]url.URL
+type MemoryStorage struct {
+	StoreURLs []Short
 }
 
-func (m *MapStorage) SetURL(sortURL string, longURL url.URL) {
+func (m *MemoryStorage) SetURL(sortURL, longURL string) (short Short) {
 	//init storage
-	log.Printf("Store. Save URL [%s]=%s", sortURL, &longURL)
-	m.StoreURLs[sortURL] = longURL
+	short = Short{ID: len(m.StoreURLs), ShortURL: sortURL, LongURL: longURL}
+	m.StoreURLs = append(m.StoreURLs, short)
+	return
 }
 
-func (m *MapStorage) GetLongURL(sortURL string) (longURL url.URL, exist bool) {
-	longURL, exist = m.StoreURLs[sortURL]
-	return longURL, exist
-}
-
-func (m *MapStorage) GetShortURL(longURL string) (shortURL string, exist bool) {
-	for k, v := range m.StoreURLs {
-		if v.String() == longURL {
-			shortURL = k
-			exist = true
-			return
-		}
+func (m *MemoryStorage) GetLongURL(shortURL string) (longURL string, ok bool) {
+	id := slices.IndexFunc(m.StoreURLs, func(s Short) bool { return s.ShortURL == shortURL })
+	if id != -1 {
+		longURL = m.StoreURLs[id].LongURL
+		ok = true
 	}
 	return
 }
 
-// get shortUrl from BDUrl
-func GetShortURL(m *map[string]url.URL, longURL string) (shortURL string, ok bool) {
-	for k, v := range *m {
-		if v.String() == longURL {
-			shortURL = k
-			ok = true
-			return
-		}
+func (m *MemoryStorage) GetShortURL(longURL string) (shortURL string, ok bool) {
+	id := slices.IndexFunc(m.StoreURLs, func(s Short) bool { return s.LongURL == longURL })
+	if id != -1 {
+		shortURL = m.StoreURLs[id].ShortURL
+		ok = true
 	}
 	return
+
+}
+
+func (m *MemoryStorage) GetAll() []Short {
+	return m.StoreURLs
+
 }

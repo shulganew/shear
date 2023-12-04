@@ -1,14 +1,27 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
+	"github.com/shulganew/shear.git/internal/config"
+	"github.com/shulganew/shear.git/internal/middlewares"
 	"github.com/shulganew/shear.git/internal/web/handlers"
 )
 
 // Chi Router for application
-func RouteShear(hadler handlers.URLHandler) (r *chi.Mux) {
+func RouteShear(conf *config.Shear) (r *chi.Mux) {
+
+	webHand := handlers.NewHandlerWeb(conf)
 	r = chi.NewRouter()
-	r.Get("/{id}", hadler.GetURL)
-	r.Post("/", hadler.SetURL)
+	r.Use(middlewares.MidlewLog)
+	r.Use(middlewares.MidlewZip)
+	r.Post("/", http.HandlerFunc(webHand.SetURL))
+	r.Get("/{id}", http.HandlerFunc(webHand.GetURL))
+
+	//api
+	apiHand := handlers.NewHandlerAPI(conf)
+	r.Post("/api/shorten", http.HandlerFunc(apiHand.GetShortURL))
+
 	return
 }
