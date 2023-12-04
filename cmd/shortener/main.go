@@ -9,7 +9,9 @@ import (
 
 func main() {
 
-	configApp := config.InitConfig()
+	ctx, cancel := config.InitContext()
+	configApp := config.InitConfig(ctx)
+	defer cancel()
 
 	err := http.ListenAndServe(configApp.Address, router.RouteShear(configApp))
 	if err != nil {

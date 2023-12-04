@@ -48,7 +48,9 @@ func Test_main(t *testing.T) {
 	}
 
 	// init configApp
-	configApp := config.InitConfig()
+	ctx, cancel := config.InitContext()
+	configApp := config.InitConfig(ctx)
+	defer cancel()
 	// init config with difauls values
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost

@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -26,7 +27,7 @@ type Shear struct {
 	Storage storage.StorageURL
 }
 
-func InitConfig() *Shear {
+func InitConfig(ctx context.Context) *Shear {
 
 	config := Shear{}
 
@@ -90,7 +91,7 @@ func InitConfig() *Shear {
 
 	//activate backup
 	if config.Backup.IsActive {
-		ctx := InitContext()
+
 		//Time machine
 		service.TimeBackup(config.Storage, config.Backup)
 		//backup on graceful
@@ -130,14 +131,14 @@ func InitLog() zap.SugaredLogger {
 }
 
 // Init context from graceful shutdown. Send to all function for return by syscall.SIGINT, syscall.SIGTERM
-func InitContext() context.Context {
+func InitContext() (ctx context.Context, cancel context.CancelFunc) {
 	exit := make(chan os.Signal, 1)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx, cancel = context.WithCancel(context.Background())
 	signal.Notify(exit, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-exit
 		cancel()
 	}()
-	return ctx
+	fmt.Println("End Init")
+	return
 }
