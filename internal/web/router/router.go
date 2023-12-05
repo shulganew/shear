@@ -23,5 +23,9 @@ func RouteShear(conf *config.Shear) (r *chi.Mux) {
 	apiHand := handlers.NewHandlerAPI(conf)
 	r.Post("/api/shorten", http.HandlerFunc(apiHand.GetShortURL))
 
+	//DB Postgres
+	dbHand := handlers.NewDB(conf)
+	r.Get("/ping", http.HandlerFunc(dbHand.Ping))
+
 	return
 }

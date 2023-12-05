@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"os"
 	"os/signal"
@@ -24,9 +25,11 @@ type Shear struct {
 	Backup service.Backup
 
 	Storage storage.StorageURL
+
+	DB *sql.DB
 }
 
-func InitConfig() *Shear {
+func InitConfig() (*Shear, context.CancelFunc, *sql.DB) {
 
 	config := Shear{}
 
@@ -41,6 +44,7 @@ func InitConfig() *Shear {
 	startAddress := flag.String("a", "localhost:8080", "start server address and port")
 	resultAddress := flag.String("b", "localhost:8080", "answer address and port")
 	tempf := flag.String("f", "", "Location of dump file")
+	dsnf := flag.String("d", "postgresql://short:1@localhost/short", "Data Source Name for DataBase connection")
 	flag.Parse()
 	//check and parse URL
 
@@ -88,8 +92,29 @@ func InitConfig() *Shear {
 	//set MemoryStorage storage
 	config.Storage = &storage.MemoryStorage{StoreURLs: shorts}
 
+	//activate backup
+	var cancel context.CancelFunc
+	if config.Backup.IsActive {
+		ctx, c := InitContext()
+		cancel = c
+		InitBackup(ctx, &config)
+
+	}
+
+	//init database
+
+	dsn, exist := os.LookupEnv(("DATABASE_DSN"))
+	if exist {
+		zap.S().Infoln("Found DataBase location evn, use: ", dsn)
+	} else {
+		dsn = *dsnf
+	}
+
+	db := InitDB(dsn)
+	config.DB = db
+
 	zap.S().Infoln("Configuration complite")
-	return &config
+	return &config, cancel, db
 }
 
 func (c *Shear) SetConfig(startAddress, resultAddress string) {
@@ -138,4 +163,14 @@ func InitBackup(ctx context.Context, config *Shear) {
 	service.TimeBackup(config.Storage, config.Backup)
 	//backup on graceful
 	service.Shutdown(ctx, config.Storage, config.Backup)
+}
+
+// Init Database
+func InitDB(dsn string) (db *sql.DB) {
+
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
+		panic(err)
+	}
+	return
 }

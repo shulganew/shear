@@ -25,6 +25,15 @@ echo %SERVER_ADDRESS%
 //git checkout -b iter1
 
 
+# PostGreSQL
+
+```
+Connection string:
+postgresql://[user[:password]@][netloc][:port][/dbname][?param1=value1&...]
+postgresql://short:1@localhost/short
+export DATABASE_DSN=postgresql://short:1@localhost/short
+```
+
 # Tests
 
 # Run static test localy

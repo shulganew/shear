@@ -13,6 +13,7 @@ import (
 	"github.com/shulganew/shear.git/internal/config"
 	webhandl "github.com/shulganew/shear.git/internal/web/handlers"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -48,13 +49,8 @@ func Test_main(t *testing.T) {
 	}
 
 	// init configApp
-	configApp := config.InitConfig()
-	if configApp.Backup.IsActive {
-		ctx, cancel := config.InitContext()
-		config.InitBackup(ctx, configApp)
-		defer cancel()
+	configApp, _, _ := config.InitConfig()
 
-	}
 	// init config with difauls values
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost
