@@ -1,5 +1,6 @@
 #!/bin/bash
 export PATH="/home/igor/Desktop/code/go-autotests-0.10.2/bin:$PATH"
+unset DATABASE_DSN
 function check(){
 	res=""
 	if [ $2 -ne 0 ]; then res=$(echo "$1: {$res} Error! $2"); echo "ERROR!  Iter:" $res;exit 1; else res=$(echo "$1: ${res} PASS "); fi
@@ -41,14 +42,18 @@ check 8 $?
 shortenertestbeta -test.v -test.run=^TestIteration9$  -binary-path=cmd/shortener/shortener -source-path=. -file-storage-path=/tmp/short-url-db.json > /dev/null
 check 9 $?
 #10
-shortenertestbeta -test.v -test.run=^TestIteration10$ -binary-path=cmd/shortener/shortener -source-path=. \
-	#-database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
-	-d postgresql://short:1@localhost/short
+export DATABASE_DSN=postgresql://short:1@localhost/short
+
+          shortenertestbeta -test.v -test.run=^TestIteration10$ \
+              -binary-path=cmd/shortener/shortener \
+              -source-path=. \
+              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' > /dev/null
 check 10 $?
 #11
-#          shortenertestbeta -test.v -test.run=^TestIteration11$ \
-#              -binary-path=cmd/shortener/shortener \
-#              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
+          shortenertestbeta -test.v -test.run=^TestIteration11$ \
+              -binary-path=cmd/shortener/shortener \
+              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
+check 11 $?
 #12
 #          shortenertestbeta -test.v -test.run=^TestIteration12$ \
 #              -binary-path=cmd/shortener/shortener \

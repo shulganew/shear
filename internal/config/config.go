@@ -73,7 +73,7 @@ func InitConfig() (*App, context.CancelFunc, *sql.DB) {
 	dsn, exist := os.LookupEnv(("DATABASE_DSN"))
 	//init shotrage DB from env
 	if exist {
-		zap.S().Infoln("Use DataBase Storge. Found location evn, use: ", dsn)
+		zap.S().Infoln("Use DataBase Storge. Found location DATABASE_DSN, use: ", dsn)
 		//init shotrage DB from env
 		db := InitDB(ctx, dsn)
 		if err := db.Ping(); err != nil {
@@ -202,14 +202,19 @@ func InitDB(ctx context.Context, dsn string) (db *sql.DB) {
 	}
 
 	//create table short if not exist
-	_, table_check := db.QueryContext(ctx, "select * from short")
-	if table_check != nil {
+	rows, check := db.QueryContext(ctx, "select * from short")
+	if check != nil {
 		_, err := db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS short (id SERIAL , short_url TEXT NOT NULL, original_url TEXT NOT NULL UNIQUE)")
 		if err != nil {
 			panic(err)
 		}
 
 	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
 	return
 }
 

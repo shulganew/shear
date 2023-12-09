@@ -13,13 +13,13 @@ type DB struct {
 }
 
 func (base *DB) Set(ctx context.Context, brief, origin string) Short {
-	var lastInsertId int
-	err := base.DB.QueryRowContext(ctx, "INSERT INTO short (brief, origin) VALUES ($1, $2) RETURNING id", brief, origin).Scan(&lastInsertId)
+	var lastInsertID int
+	err := base.DB.QueryRowContext(ctx, "INSERT INTO short (brief, origin) VALUES ($1, $2) RETURNING id", brief, origin).Scan(&lastInsertID)
 	if err != nil {
 		zap.S().Errorln("Error inserting new short in database.")
 		panic(err)
 	}
-	return Short{ID: lastInsertId, Brief: brief, Origin: origin}
+	return Short{ID: lastInsertID, Brief: brief, Origin: origin}
 }
 
 func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, ok bool) {
@@ -76,7 +76,7 @@ func (base *DB) GetAll(ctx context.Context) []Short {
 
 	err = rows.Err()
 	if err != nil {
-
+		panic(err)
 	}
 
 	return shorts

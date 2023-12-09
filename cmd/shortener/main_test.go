@@ -99,11 +99,11 @@ func Test_main(t *testing.T) {
 
 				brief := strings.TrimLeft(responseURL.Path, "/")
 
-				originDb, exist := serviceURL.GetOrigin(request.Context(), brief)
+				originDB, exist := serviceURL.GetOrigin(request.Context(), brief)
 				require.True(t, exist)
 
 				t.Log("brief url: ", brief)
-				responseURLDb, err := url.JoinPath(originDb, brief)
+				responseURLDb, err := url.JoinPath(originDB, brief)
 				require.NoError(t, err)
 
 				t.Log("ressponseUrl from db: ", responseURLDb)

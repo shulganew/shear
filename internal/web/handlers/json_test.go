@@ -90,12 +90,12 @@ func Test_api(t *testing.T) {
 			t.Log(responseURL)
 			brief := strings.TrimLeft(responseURL.Path, "/")
 
-			originDb, exist := serviceURL.GetOrigin(req.Context(), brief)
+			originDB, exist := serviceURL.GetOrigin(req.Context(), brief)
 			require.True(t, exist)
 
-			t.Log("brief url: ", originDb)
+			t.Log("brief url: ", originDB)
 
-			assert.Equal(t, originDb, tt.link)
+			assert.Equal(t, originDB, tt.link)
 
 		})
 	}
