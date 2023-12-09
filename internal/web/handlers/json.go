@@ -20,14 +20,14 @@ type Resonse struct {
 
 type HandlerAPI struct {
 	serviceURL *service.Shortener
-	conf       *config.Shear
+	conf       *config.App
 }
 
 func (u *HandlerAPI) GetService() service.Shortener {
 	return *u.serviceURL
 }
 
-func (u *HandlerAPI) GetShortURL(res http.ResponseWriter, req *http.Request) {
+func (u *HandlerAPI) Getbrief(res http.ResponseWriter, req *http.Request) {
 
 	var request Request
 
@@ -36,15 +36,15 @@ func (u *HandlerAPI) GetShortURL(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	longURL, err := url.Parse(string(request.URL))
+	origin, err := url.Parse(string(request.URL))
 	if err != nil {
 		http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 	}
 
-	shortURL, answerURL := u.serviceURL.GetAnsURL(longURL.Scheme, u.conf.Response)
+	brief, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response)
 
 	//save map to storage
-	u.serviceURL.SetURL(shortURL, (*longURL).String())
+	u.serviceURL.SetURL(req.Context(), brief, (*origin).String())
 
 	response := Resonse{answerURL.String()}
 
@@ -64,7 +64,7 @@ func (u *HandlerAPI) GetShortURL(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func NewHandlerAPI(configApp *config.Shear) *HandlerAPI {
+func NewHandlerAPI(configApp *config.App) *HandlerAPI {
 
 	return &HandlerAPI{serviceURL: service.NewService(configApp.Storage, configApp.Backup), conf: configApp}
 }

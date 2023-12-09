@@ -10,7 +10,7 @@ import (
 )
 
 // Chi Router for application
-func RouteShear(conf *config.Shear) (r *chi.Mux) {
+func RouteShear(conf *config.App, ) (r *chi.Mux) {
 
 	webHand := handlers.NewHandlerWeb(conf)
 	r = chi.NewRouter()
@@ -21,7 +21,7 @@ func RouteShear(conf *config.Shear) (r *chi.Mux) {
 
 	//api
 	apiHand := handlers.NewHandlerAPI(conf)
-	r.Post("/api/shorten", http.HandlerFunc(apiHand.GetShortURL))
+	r.Post("/api/shorten", http.HandlerFunc(apiHand.Getbrief))
 
 	//DB Postgres
 	dbHand := handlers.NewDB(conf)

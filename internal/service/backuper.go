@@ -39,7 +39,7 @@ func (b Backup) Save(short storage.Short) error {
 	return nil
 }
 
-func (b Backup) SaveAll(storage storage.StorageURL) error {
+func (b Backup) BackupAll(ctx context.Context, storage storage.StorageURL) error {
 
 	//save data fo file
 	file, error := os.OpenFile(b.File, os.O_WRONLY|os.O_CREATE, 0666)
@@ -47,7 +47,7 @@ func (b Backup) SaveAll(storage storage.StorageURL) error {
 		return error
 	}
 	defer file.Close()
-	shorts := storage.GetAll()
+	shorts := storage.GetAll(ctx)
 
 	var data []byte
 	for _, short := range shorts {
@@ -62,6 +62,7 @@ func (b Backup) SaveAll(storage storage.StorageURL) error {
 		shortj = append(shortj, []byte("\n")...)
 		data = append(data, shortj...)
 	}
+	zap.S().Infoln("Backup, # of URLs: ", len(shorts))
 	file.Write(data)
 	return nil
 }
@@ -100,24 +101,25 @@ func (b Backup) Load() ([]storage.Short, error) {
 func Shutdown(ctx context.Context, storage storage.StorageURL, b Backup) {
 	go func() {
 		<-ctx.Done()
-		b.SaveAll(storage)
+		//current context doesn't exist, use background context
+		b.BackupAll(context.Background(), storage)
 		os.Exit(1)
 	}()
 }
 
-func TimeBackup(storage storage.StorageURL, b Backup) {
+func TimeBackup(ctx context.Context, storage storage.StorageURL, b Backup) {
 
 	backup := time.NewTicker(Timer * time.Second)
 	go func() {
 		for {
 			<-backup.C
-			b.SaveAll(storage)
+			b.BackupAll(ctx, storage)
 
 		}
 	}()
 
 }
 
-func New(file string, isActive bool, storage storage.StorageURL) *Backup {
+func NewBackup(file string, isActive bool) *Backup {
 	return &Backup{File: file, IsActive: isActive}
 }

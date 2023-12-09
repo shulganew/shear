@@ -54,7 +54,7 @@ func Test_main(t *testing.T) {
 	// init config with difauls values
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost
-	configApp.Storage = &storage.MemoryStorage{StoreURLs: []storage.Short{}}
+	configApp.Storage = &storage.Memory{StoreURLs: []storage.Short{}}
 
 	//init storage
 	handler := webhandl.NewHandlerWeb(configApp)
@@ -91,23 +91,23 @@ func Test_main(t *testing.T) {
 				t.Log("Body: ", body)
 				defer res.Body.Close()
 
-				//responseURL = hostname+shortUrl
+				//responseURL = hostname+brief
 				responseURL, err := url.Parse(body)
 				require.NoError(t, err)
 
 				t.Log("full url: ", responseURL.Path)
 
-				shortURL := strings.TrimLeft(responseURL.Path, "/")
+				brief := strings.TrimLeft(responseURL.Path, "/")
 
-				longURLDb, exist := serviceURL.GetLongURL(shortURL)
+				originDb, exist := serviceURL.GetOrigin(request.Context(), brief)
 				require.True(t, exist)
 
-				t.Log("shortUrl url: ", shortURL)
-				responseURLDb, err := url.JoinPath(longURLDb, shortURL)
+				t.Log("brief url: ", brief)
+				responseURLDb, err := url.JoinPath(originDb, brief)
 				require.NoError(t, err)
 
 				t.Log("ressponseUrl from db: ", responseURLDb)
-				bodyURL, _ := url.JoinPath(tt.body, shortURL)
+				bodyURL, _ := url.JoinPath(tt.body, brief)
 				t.Log("body url the same: ", bodyURL)
 
 				//check request url and body url the same
@@ -118,18 +118,18 @@ func Test_main(t *testing.T) {
 			} else if tt.method == http.MethodGet {
 				t.Log("=============GET===============")
 
-				//get shortURL from storage
-				shortURL, error := serviceURL.GetShortURL(tt.body)
+				//get brief from storage
+				brief, error := serviceURL.GetBrief(context.Background(), tt.body)
 
-				t.Log("shortUrl: ", shortURL)
+				t.Log("brief: ", brief)
 				require.NotNil(t, error)
 
 				//
-				requestURL, _ := url.JoinPath(tt.request, shortURL)
+				requestURL, _ := url.JoinPath(tt.request, brief)
 				t.Log("requestUrl: ", requestURL)
 
 				rctx := chi.NewRouteContext()
-				rctx.URLParams.Add("id", shortURL)
+				rctx.URLParams.Add("id", brief)
 
 				//use context for chi router - add id
 				request := httptest.NewRequest(http.MethodGet, requestURL, nil)

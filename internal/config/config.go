@@ -16,7 +16,7 @@ import (
 
 const DefaultHost string = "localhost:8080"
 
-type Shear struct {
+type App struct {
 	//flag -a
 	Address string
 	//env var, or flag -b if env not exist
@@ -26,25 +26,26 @@ type Shear struct {
 
 	Storage storage.StorageURL
 
+	//data base connection
 	DB *sql.DB
 }
 
-func InitConfig() (*Shear, context.CancelFunc, *sql.DB) {
+func InitConfig() (*App, context.CancelFunc, *sql.DB) {
 
-	config := Shear{}
+	config := App{}
+
+	//init Context
+	ctx, cancel := InitContext()
 
 	//set logger
 	InitLog()
-
-	//set MemoryStorage storage
-	config.Storage = &storage.MemoryStorage{StoreURLs: []storage.Short{}}
 
 	//read command line argue
 
 	startAddress := flag.String("a", "localhost:8080", "start server address and port")
 	resultAddress := flag.String("b", "localhost:8080", "answer address and port")
 	tempf := flag.String("f", "", "Location of dump file")
-	dsnf := flag.String("d", "postgresql://short:1@localhost/short", "Data Source Name for DataBase connection")
+	dsnf := flag.String("d", "", "Data Source Name for DataBase connection")
 	flag.Parse()
 	//check and parse URL
 
@@ -68,17 +69,52 @@ func InitConfig() (*Shear, context.CancelFunc, *sql.DB) {
 		zap.S().Infoln("Env var SERVER_ADDRESS not found, use default", config.Response)
 	}
 
+	//init Storage
+	dsn, exist := os.LookupEnv(("DATABASE_DSN"))
+	//init shotrage DB from env
+	if exist {
+		zap.S().Infoln("Use DataBase Storge. Found location evn, use: ", dsn)
+		//init shotrage DB from env
+		db := InitDB(ctx, dsn)
+		if err := db.Ping(); err != nil {
+			zap.S().Errorln("Error connect to DB from env: ", err)
+		}
+		//set sqk.DB to config
+		config.DB = db
+
+		//set Storage to DB
+		config.Storage = &storage.DB{DB: db}
+
+	} else if *dsnf != "" {
+		dsn = *dsnf
+		zap.S().Infoln("Use DataBase Storge. Found -d flag, use: ", dsn)
+		//init shotrage DB from flag
+		db := InitDB(ctx, dsn)
+		if err := db.Ping(); err != nil {
+			zap.S().Errorln("Error connect to DB from flag: ", err)
+		}
+		//set sqk.DB to config
+		config.DB = db
+
+		//set Storage to DB
+		config.Storage = &storage.DB{DB: db}
+
+	} else {
+		//init memory storage
+		zap.S().Infoln("Use Memory Storge.")
+		config.Storage = &storage.Memory{}
+	}
+
 	//define backup file
-	config.Backup = service.Backup{}
 
 	temp, exist := os.LookupEnv(("FILE_STORAGE_PATH"))
 	if exist {
-		config.Backup = *service.New(temp, true, config.Storage)
+		config.Backup = *service.NewBackup(temp, true)
 		zap.S().Infoln("Found backup's evn, use file: ", config.Backup.File)
 	} else if *tempf != "" {
-		config.Backup = *service.New(*tempf, true, config.Storage)
+		config.Backup = *service.NewBackup(*tempf, true)
 	} else {
-		config.Backup = *service.New(*tempf, false, config.Storage)
+		config.Backup = *service.NewBackup(*tempf, false)
 	}
 
 	zap.S().Infoln("Backup isActive: ", config.Backup.IsActive)
@@ -89,44 +125,35 @@ func InitConfig() (*Shear, context.CancelFunc, *sql.DB) {
 		zap.S().Error("Error load backup!", err)
 	}
 
-	//set MemoryStorage storage
-	config.Storage = &storage.MemoryStorage{StoreURLs: shorts}
+	//upload shorts to Storage
+	config.Storage.SetAll(ctx, shorts)
 
 	//activate backup
-	var cancel context.CancelFunc
+
 	if config.Backup.IsActive {
-		ctx, c := InitContext()
-		cancel = c
 		InitBackup(ctx, &config)
-
-	}
-
-	//init database
-
-	dsn, exist := os.LookupEnv(("DATABASE_DSN"))
-	if exist {
-		zap.S().Infoln("Found DataBase location evn, use: ", dsn)
 	} else {
-		dsn = *dsnf
+		//if back is not active, make exit after ctrl+C
+		go func() {
+			<-ctx.Done()
+			os.Exit(1)
+		}()
 	}
-
-	db := InitDB(dsn)
-	config.DB = db
 
 	zap.S().Infoln("Configuration complite")
-	return &config, cancel, db
+	return &config, cancel, config.DB
 }
 
-func (c *Shear) SetConfig(startAddress, resultAddress string) {
+func (c *App) SetConfig(startAddress, resultAddress string) {
 	c.Address = startAddress
 	c.Response = resultAddress
 }
 
-func (c *Shear) GetStartAddr() string {
+func (c *App) GetStartAddr() string {
 	return c.Address
 }
 
-func (c *Shear) GetResultAddr() string {
+func (c *App) GetResultAddr() string {
 	return c.Response
 }
 
@@ -153,24 +180,39 @@ func InitContext() (ctx context.Context, cancel context.CancelFunc) {
 	go func() {
 		<-exit
 		cancel()
+
 	}()
 	return
 }
 
 // Activate backup
-func InitBackup(ctx context.Context, config *Shear) {
+func InitBackup(ctx context.Context, config *App) {
 	//Time machine
-	service.TimeBackup(config.Storage, config.Backup)
+	service.TimeBackup(ctx, config.Storage, config.Backup)
 	//backup on graceful
 	service.Shutdown(ctx, config.Storage, config.Backup)
 }
 
 // Init Database
-func InitDB(dsn string) (db *sql.DB) {
+func InitDB(ctx context.Context, dsn string) (db *sql.DB) {
 
 	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		panic(err)
 	}
+
+	//create table short if not exist
+	_, table_check := db.QueryContext(ctx, "select * from short")
+	if table_check != nil {
+		_, err := db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS short (id SERIAL , short_url TEXT NOT NULL, original_url TEXT NOT NULL UNIQUE)")
+		if err != nil {
+			panic(err)
+		}
+
+	}
 	return
+}
+
+func InitMemoryStorge() *storage.StorageURL {
+	return nil
 }

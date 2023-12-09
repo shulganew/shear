@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"math/rand"
 	"net/url"
 	"strings"
@@ -19,28 +20,28 @@ type Shortener struct {
 	backup    Backup
 }
 
-func (s *Shortener) SetURL(sortURL, longURL string) {
-	zap.S().Infof("Store. Save URL [%s]=%s", sortURL, longURL)
-	s.storeURLs.SetURL(sortURL, longURL)
+func (s *Shortener) SetURL(ctx context.Context, brief, origin string) {
+	zap.S().Infof("Store. Save URL [%s]=%s", brief, origin)
+	s.storeURLs.Set(ctx, brief, origin)
 }
 
-func (s *Shortener) GetLongURL(sortURL string) (longURL string, exist bool) {
-	return s.storeURLs.GetLongURL(sortURL)
+func (s *Shortener) GetOrigin(ctx context.Context, brief string) (origin string, exist bool) {
+	return s.storeURLs.GetOrigin(ctx, brief)
 }
 
-func (s *Shortener) GetShortURL(longURL string) (shortURL string, exist bool) {
-	return s.storeURLs.GetShortURL(longURL)
+func (s *Shortener) GetBrief(ctx context.Context, origin string) (brief string, exist bool) {
+	return s.storeURLs.GetBrief(ctx, origin)
 }
 
-// return anwwer url: "shema + respose server addres from config + shortURL"
-func (s *Shortener) GetAnsURL(shema, resultaddr string) (shortURL string, answerURL *url.URL) {
+// return anwwer url: "shema + respose server addres from config + brief"
+func (s *Shortener) GetAnsURL(shema, resultaddr string) (brief string, answerURL *url.URL) {
 	//main URL = Shema + hostname + port (from result add -flag cmd -b)
 	mainURL := shema + "://" + resultaddr
 
-	shortURL = GenerateShorLink()
+	brief = GenerateShorLink()
 
 	//join full long URL
-	longStrURL, err := url.JoinPath(mainURL, shortURL)
+	longStrURL, err := url.JoinPath(mainURL, brief)
 	if err != nil {
 		zap.S().Errorln("Error during JoinPath", err)
 	}

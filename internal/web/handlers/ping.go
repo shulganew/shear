@@ -9,27 +9,26 @@ import (
 
 // hadler for testing db connection
 
-type Base struct {
-	conf *config.Shear
+type Ping struct {
+	conf *config.App
 	db   *sql.DB
 }
 
 // Test DB connection
-func (b *Base) Ping(res http.ResponseWriter, req *http.Request) {
+func (b *Ping) Ping(res http.ResponseWriter, req *http.Request) {
 
 	res.Header().Add("Content-Type", "text/plain")
 
-	if err := b.db.Ping(); err == nil {
+	if err := b.db.PingContext(req.Context()); err == nil {
 		res.WriteHeader(http.StatusOK)
+		res.Write([]byte("<h1>Connected to Data Base!</h1>"))
 	} else {
 		res.WriteHeader(http.StatusInternalServerError)
 	}
 
-	res.Write([]byte("<h1>Connected to Data Base!</h1>"))
-
 }
 
-func NewDB(configApp *config.Shear) *Base {
+func NewDB(configApp *config.App) *Ping {
 
-	return &Base{conf: configApp, db: configApp.DB}
+	return &Ping{conf: configApp, db: configApp.DB}
 }

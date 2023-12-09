@@ -49,7 +49,7 @@ func Test_api(t *testing.T) {
 	// init config with difauls values
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost
-	configApp.Storage = &storage.MemoryStorage{StoreURLs: []storage.Short{}}
+	configApp.Storage = &storage.Memory{StoreURLs: []storage.Short{}}
 
 	//init storage
 	apiHand := NewHandlerAPI(configApp)
@@ -69,7 +69,7 @@ func Test_api(t *testing.T) {
 			//create status recorder
 			resRecord := httptest.NewRecorder()
 
-			apiHand.GetShortURL(resRecord, req)
+			apiHand.Getbrief(resRecord, req)
 
 			//get result
 			res := resRecord.Result()
@@ -84,18 +84,18 @@ func Test_api(t *testing.T) {
 			err := json.NewDecoder(res.Body).Decode(&response)
 			require.NoError(t, err)
 
-			//responseURL = hostname+shortUrl
+			//responseURL = hostname+brief
 			responseURL, err := url.Parse(response.Brief)
 			require.NoError(t, err)
 			t.Log(responseURL)
-			shortURL := strings.TrimLeft(responseURL.Path, "/")
+			brief := strings.TrimLeft(responseURL.Path, "/")
 
-			longURLDb, exist := serviceURL.GetLongURL(shortURL)
+			originDb, exist := serviceURL.GetOrigin(req.Context(), brief)
 			require.True(t, exist)
 
-			t.Log("shortUrl url: ", longURLDb)
+			t.Log("brief url: ", originDb)
 
-			assert.Equal(t, longURLDb, tt.link)
+			assert.Equal(t, originDb, tt.link)
 
 		})
 	}

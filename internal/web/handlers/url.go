@@ -14,25 +14,25 @@ import (
 
 type HandlerURL struct {
 	serviceURL *service.Shortener
-	conf       *config.Shear
+	conf       *config.App
 }
 
 func (u *HandlerURL) GetServiceURL() service.Shortener {
 	return *u.serviceURL
 }
 
-// GET and redirect by shortUrl
+// GET and redirect by brief
 func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
-	shortURL := chi.URLParam(req, "id")
+	brief := chi.URLParam(req, "id")
 
 	//get long Url from storage
-	longURL, exist := u.serviceURL.GetLongURL(shortURL)
+	origin, exist := u.serviceURL.GetOrigin(req.Context(), brief)
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
 
 	if exist {
-		res.Header().Set("Location", longURL)
+		res.Header().Set("Location", origin)
 		//set status code 307
 		res.WriteHeader(http.StatusTemporaryRedirect)
 
@@ -56,10 +56,10 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Wrong URL in body, parse error", http.StatusInternalServerError)
 	}
 
-	shortURL, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.Response)
+	brief, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.Response)
 
 	//save map to storage
-	u.serviceURL.SetURL(shortURL, (*redirectURL).String())
+	u.serviceURL.SetURL(req.Context(), brief, (*redirectURL).String())
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
@@ -69,7 +69,7 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 	res.Write([]byte(answerURL.String()))
 }
 
-func NewHandlerWeb(configApp *config.Shear) *HandlerURL {
+func NewHandlerWeb(configApp *config.App) *HandlerURL {
 
 	return &HandlerURL{serviceURL: service.NewService(configApp.Storage, configApp.Backup), conf: configApp}
 }
