@@ -33,6 +33,10 @@ func (s *Shortener) GetBrief(ctx context.Context, origin string) (brief string, 
 	return s.storeURLs.GetBrief(ctx, origin)
 }
 
+func (s *Shortener) SetAll(ctx context.Context, short []storage.Short) {
+	s.storeURLs.SetAll(ctx, short)
+}
+
 // return anwwer url: "shema + respose server addres from config + brief"
 func (s *Shortener) GetAnsURL(shema, resultaddr string) (brief string, answerURL *url.URL) {
 	//main URL = Shema + hostname + port (from result add -flag cmd -b)

@@ -84,15 +84,31 @@ func (base *DB) GetAll(ctx context.Context) []Short {
 }
 
 func (base *DB) SetAll(ctx context.Context, shorts []Short) {
+
+	tx, err := base.DB.Begin()
+	if err != nil {
+		panic(err)
+	}
+
+	prep, err := base.DB.PrepareContext(ctx, "INSERT INTO short (brief, origin) VALUES ($1, $2)")
+	if err != nil {
+		panic(err)
+	}
+
 	for _, short := range shorts {
-		_, err := base.DB.ExecContext(ctx, "INSERT INTO short (id, brief, origin) VALUES ($1, $2, $3) RETURNING id", short.ID, short.Brief, short.Origin)
+		_, err := prep.ExecContext(ctx, short.Brief, short.Origin)
 		if err != nil {
 			//duplicate key value, alredy exist
 			if strings.Contains(err.Error(), "SQLSTATE 23505") {
 				continue
 			}
+			tx.Rollback()
 			panic(err)
 		}
 
+	}
+	err = tx.Commit()
+	if err != nil {
+		panic(err)
 	}
 }

@@ -69,7 +69,7 @@ func Test_api(t *testing.T) {
 			//create status recorder
 			resRecord := httptest.NewRecorder()
 
-			apiHand.Getbrief(resRecord, req)
+			apiHand.GetBrief(resRecord, req)
 
 			//get result
 			res := resRecord.Result()

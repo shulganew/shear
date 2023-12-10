@@ -10,7 +10,7 @@ import (
 )
 
 // Chi Router for application
-func RouteShear(conf *config.App, ) (r *chi.Mux) {
+func RouteShear(conf *config.App) (r *chi.Mux) {
 
 	webHand := handlers.NewHandlerWeb(conf)
 	r = chi.NewRouter()
@@ -21,11 +21,15 @@ func RouteShear(conf *config.App, ) (r *chi.Mux) {
 
 	//api
 	apiHand := handlers.NewHandlerAPI(conf)
-	r.Post("/api/shorten", http.HandlerFunc(apiHand.Getbrief))
+	r.Post("/api/shorten", http.HandlerFunc(apiHand.GetBrief))
 
-	//DB Postgres
+	//DB Postgres Ping
 	dbHand := handlers.NewDB(conf)
 	r.Get("/ping", http.HandlerFunc(dbHand.Ping))
+
+	//DB Postgres Batch request
+	batchHand := handlers.NewHandlerBatch(conf)
+	r.Post("/api/shorten/batch", http.HandlerFunc(batchHand.Batch))
 
 	return
 }

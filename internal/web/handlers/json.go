@@ -27,7 +27,7 @@ func (u *HandlerAPI) GetService() service.Shortener {
 	return *u.serviceURL
 }
 
-func (u *HandlerAPI) Getbrief(res http.ResponseWriter, req *http.Request) {
+func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 
 	var request Request
 
