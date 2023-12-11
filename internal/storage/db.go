@@ -3,27 +3,37 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"strings"
+	"errors"
 
-	"go.uber.org/zap"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type DB struct {
 	DB *sql.DB
 }
 
-func (base *DB) Set(ctx context.Context, brief, origin string) Short {
-	var lastInsertID int
-	err := base.DB.QueryRowContext(ctx, "INSERT INTO short (brief, origin) VALUES ($1, $2) RETURNING id", brief, origin).Scan(&lastInsertID)
+func (base *DB) Set(ctx context.Context, brief, origin string) error {
+
+	err := base.DB.QueryRowContext(ctx, "INSERT INTO short (brief, origin) VALUES ($1, $2) ", brief, origin).Scan()
 	if err != nil {
-		zap.S().Errorln("Error inserting new short in database.")
-		panic(err)
+		var pgErr *pgconn.PgError
+		// if URL exist in DataBase
+		if errors.As(err, &pgErr) && pgerrcode.UniqueViolation == pgErr.Code {
+			//get brief string
+			if brief, ok := base.GetBrief(ctx, origin); ok {
+
+				return NewErrDuplicatedURL(brief, origin, pgErr)
+			}
+		}
+
+		return err
 	}
-	return Short{ID: lastInsertID, Brief: brief, Origin: origin}
+	return nil
 }
 
 func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, ok bool) {
-	row := base.DB.QueryRowContext(ctx, "SELECT brief from short where brief=$1", brief)
+	row := base.DB.QueryRowContext(ctx, "SELECT brief from short where origin=$1", origin)
 	err := row.Scan(&brief)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -35,7 +45,7 @@ func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, ok b
 	if err != nil {
 		panic(err)
 	}
-	return
+	return brief, true
 }
 
 func (base *DB) GetOrigin(ctx context.Context, brief string) (origin string, ok bool) {
@@ -51,7 +61,7 @@ func (base *DB) GetOrigin(ctx context.Context, brief string) (origin string, ok 
 	if err != nil {
 		panic(err)
 	}
-	return
+	return origin, true
 }
 
 func (base *DB) GetAll(ctx context.Context) []Short {
@@ -83,7 +93,7 @@ func (base *DB) GetAll(ctx context.Context) []Short {
 
 }
 
-func (base *DB) SetAll(ctx context.Context, shorts []Short) {
+func (base *DB) SetAll(ctx context.Context, shorts []Short) error {
 
 	tx, err := base.DB.Begin()
 	if err != nil {
@@ -98,12 +108,20 @@ func (base *DB) SetAll(ctx context.Context, shorts []Short) {
 	for _, short := range shorts {
 		_, err := prep.ExecContext(ctx, short.Brief, short.Origin)
 		if err != nil {
-			//duplicate key value, alredy exist
-			if strings.Contains(err.Error(), "SQLSTATE 23505") {
-				continue
+			if err != nil {
+				var pgErr *pgconn.PgError
+				// if URL exist in DataBase
+				if errors.As(err, &pgErr) && pgerrcode.UniqueViolation == pgErr.Code {
+					//get brief string
+					if brief, ok := base.GetBrief(ctx, short.Origin); ok {
+
+						return NewErrDuplicatedURL(brief, short.Origin, pgErr)
+					}
+				}
+
+				return err
 			}
-			tx.Rollback()
-			panic(err)
+			return nil
 		}
 
 	}
@@ -111,4 +129,5 @@ func (base *DB) SetAll(ctx context.Context, shorts []Short) {
 	if err != nil {
 		panic(err)
 	}
+	return nil
 }

@@ -16,20 +16,20 @@ type Short struct {
 
 // intarface for universal data storage
 type StorageURL interface {
-	Set(ctx context.Context, brief, origin string) Short
+	Set(ctx context.Context, brief, origin string) error
 	GetOrigin(ctx context.Context, brief string) (string, bool)
 	GetBrief(ctx context.Context, origin string) (string, bool)
 	GetAll(ctx context.Context) []Short
-	SetAll(ctx context.Context, short []Short)
+	SetAll(ctx context.Context, short []Short) error
 }
 
 type Memory struct {
 	StoreURLs []Short
 }
 
-func (m *Memory) Set(ctx context.Context, brief, origin string) (short Short) {
+func (m *Memory) Set(ctx context.Context, brief, origin string) (err error) {
 	//init storage
-	short = Short{ID: len(m.StoreURLs), Brief: brief, Origin: origin}
+	short := Short{ID: len(m.StoreURLs), Brief: brief, Origin: origin}
 	m.StoreURLs = append(m.StoreURLs, short)
 	return
 }
@@ -57,6 +57,7 @@ func (m *Memory) GetAll(ctx context.Context) []Short {
 	return m.StoreURLs
 }
 
-func (m *Memory) SetAll(ctx context.Context, shotrs []Short) {
+func (m *Memory) SetAll(ctx context.Context, shotrs []Short) error {
 	m.StoreURLs = append(m.StoreURLs, shotrs...)
+	return nil
 }

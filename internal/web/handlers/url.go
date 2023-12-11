@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -8,6 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
+	"github.com/shulganew/shear.git/internal/storage"
+	"go.uber.org/zap"
 )
 
 // hadler for  GET and POST  short and long urls
@@ -58,15 +61,31 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 
 	brief, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.Response)
 
-	//save map to storage
-	u.serviceURL.SetURL(req.Context(), brief, (*redirectURL).String())
-
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
 
-	//set status code 201
-	res.WriteHeader(http.StatusCreated)
-	res.Write([]byte(answerURL.String()))
+	//save map to storage
+	err = u.serviceURL.SetURL(req.Context(), brief, (*redirectURL).String())
+
+	var tagErr *storage.ErrDuplicatedURL
+	if err != nil {
+		if errors.As(err, &tagErr) {
+			//set status code 409 Conflict
+
+			res.WriteHeader(http.StatusConflict)
+			//send existed string from error
+			res.Write([]byte(tagErr.Brief))
+		} else if err != nil {
+			zap.S().Errorln(err)
+
+		}
+	} else {
+		//set status code 201
+		res.WriteHeader(http.StatusCreated)
+		//send generate and saved string
+		res.Write([]byte(answerURL.String()))
+	}
+
 }
 
 func NewHandlerWeb(configApp *config.App) *HandlerURL {

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"net/url"
 	"strings"
@@ -20,9 +21,13 @@ type Shortener struct {
 	backup    Backup
 }
 
-func (s *Shortener) SetURL(ctx context.Context, brief, origin string) {
+func (s *Shortener) SetURL(ctx context.Context, brief, origin string) (err error) {
 	zap.S().Infof("Store. Save URL [%s]=%s", brief, origin)
-	s.storeURLs.Set(ctx, brief, origin)
+	err = s.storeURLs.Set(ctx, brief, origin)
+	if err != nil {
+		return fmt.Errorf("Error during save URL to Store: %w", err)
+	}
+	return nil
 }
 
 func (s *Shortener) GetOrigin(ctx context.Context, brief string) (origin string, exist bool) {
@@ -33,8 +38,12 @@ func (s *Shortener) GetBrief(ctx context.Context, origin string) (brief string, 
 	return s.storeURLs.GetBrief(ctx, origin)
 }
 
-func (s *Shortener) SetAll(ctx context.Context, short []storage.Short) {
-	s.storeURLs.SetAll(ctx, short)
+func (s *Shortener) SetAll(ctx context.Context, short []storage.Short) (err error) {
+	err = s.storeURLs.SetAll(ctx, short)
+	if err != nil {
+		return fmt.Errorf("Error during save URL to Store: %w", err)
+	}
+	return nil
 }
 
 // return anwwer url: "shema + respose server addres from config + brief"

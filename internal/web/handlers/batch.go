@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
+	"slices"
 
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
@@ -32,10 +34,10 @@ func (u *HandlerBatch) GetService() service.Shortener {
 
 func (u *HandlerBatch) Batch(res http.ResponseWriter, req *http.Request) {
 
-	//handle bach request
-	var request []BatchRequest
+	//handle bach requests
+	var requests []BatchRequest
 
-	if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
+	if err := json.NewDecoder(req.Body).Decode(&requests); err != nil {
 		zap.S().Errorln("Get batch: ", err)
 
 		http.Error(res, err.Error(), http.StatusBadRequest)
@@ -44,9 +46,9 @@ func (u *HandlerBatch) Batch(res http.ResponseWriter, req *http.Request) {
 
 	batches := []BatchResonse{}
 	shorts := []storage.Short{}
-	for i := 0; i < len(request); i++ {
+	for i := 0; i < len(requests); i++ {
 
-		origin, err := url.Parse(string(request[i].Origin))
+		origin, err := url.Parse(string(requests[i].Origin))
 		if err != nil {
 			http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 		}
@@ -54,7 +56,7 @@ func (u *HandlerBatch) Batch(res http.ResponseWriter, req *http.Request) {
 		//get short brief and full answer URL
 		brief, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response)
 		//get batch for answer
-		batch := BatchResonse{SessionID: request[i].SessionID, Answer: answerURL.String()}
+		batch := BatchResonse{SessionID: requests[i].SessionID, Answer: answerURL.String()}
 		//add batches
 		batches = append(batches, batch)
 		//add short
@@ -63,8 +65,42 @@ func (u *HandlerBatch) Batch(res http.ResponseWriter, req *http.Request) {
 
 	}
 	//save to storage
-	u.serviceURL.SetAll(req.Context(), shorts)
+	err := u.serviceURL.SetAll(req.Context(), shorts)
 
+	//check duplicated strings
+	var tagErr *storage.ErrDuplicatedURL
+	if err != nil {
+		if errors.As(err, &tagErr) {
+			//set status code 409 Conflict
+			res.WriteHeader(http.StatusConflict)
+			//send existed string from error
+			broken := []BatchResonse{}
+
+			id := slices.IndexFunc(requests, func(b BatchRequest) bool { return b.Origin == tagErr.Origin })
+
+			if id != -1 {
+
+				batch := BatchResonse{SessionID: requests[id].SessionID, Answer: tagErr.Brief}
+				broken = append(broken, batch)
+				jsonBrokenBatch, err := json.Marshal(broken)
+				if err != nil {
+					http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
+				}
+
+				//set content type
+				res.Header().Add("Content-Type", "application/json")
+
+				zap.S().Infoln("Broken: ", string(jsonBrokenBatch))
+				res.Write(jsonBrokenBatch)
+				return
+			}
+
+		} else {
+			zap.S().Errorln(err)
+			http.Error(res, "Error during saving to Store", http.StatusInternalServerError)
+		}
+	}
+	//create Ok answer
 	jsonBatch, err := json.Marshal(batches)
 	if err != nil {
 		http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
@@ -75,7 +111,6 @@ func (u *HandlerBatch) Batch(res http.ResponseWriter, req *http.Request) {
 
 	//set status code 201
 	res.WriteHeader(http.StatusCreated)
-
 	res.Write(jsonBatch)
 
 }
