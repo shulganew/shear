@@ -124,6 +124,7 @@ func (base *DB) SetAll(ctx context.Context, shorts []Short) error {
 					return NewErrDuplicatedURL(brief, short.Origin, pgErr)
 				}
 			}
+			tx.Rollback()
 			return err
 		}
 
