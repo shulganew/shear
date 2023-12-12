@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/url"
 
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
+	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"
 )
 
@@ -41,10 +43,43 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 	}
 
-	brief, _, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response)
+	brief, mainURL, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response)
 
 	//save map to storage
-	u.serviceURL.SetURL(req.Context(), brief, (*origin).String())
+	err = u.serviceURL.SetURL(req.Context(), brief, (*origin).String())
+
+	//set content type
+	res.Header().Add("Content-Type", "application/json")
+
+	if err != nil {
+
+		var tagErr *storage.ErrDuplicatedURL
+		if errors.As(err, &tagErr) {
+			//set status code 409 Conflict
+
+			//get correct answer URL
+			res.WriteHeader(http.StatusConflict)
+			//send existed string from error
+			answer, err := url.JoinPath(mainURL, tagErr.Brief)
+			if err != nil {
+				zap.S().Errorln("Error during JoinPath", err)
+			}
+			response := Resonse{answer}
+			jsonBrokenURL, err := json.Marshal(response)
+			if err != nil {
+				http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
+			}
+			zap.S().Infoln("Server ansver with short URL in JSON (duplicated request): ", string(jsonBrokenURL))
+
+			//set status code 409
+			res.WriteHeader(http.StatusConflict)
+			res.Write([]byte(answer))
+			return
+		}
+
+		zap.S().Errorln(err)
+		http.Error(res, "Error saving in Storage.", http.StatusInternalServerError)
+	}
 
 	response := Resonse{answerURL.String()}
 
@@ -53,9 +88,6 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
 	}
 	zap.S().Infoln("Server ansver with short URL in JSON: ", string(jsonURL))
-
-	//set content type
-	res.Header().Add("Content-Type", "application/json")
 
 	//set status code 201
 	res.WriteHeader(http.StatusCreated)
