@@ -136,7 +136,7 @@ func InitConfig() (*App, context.CancelFunc, *sql.DB) {
 		//if back is not active, make exit after ctrl+C
 		go func() {
 			<-ctx.Done()
-			os.Exit(1)
+			os.Exit(0)
 		}()
 	}
 

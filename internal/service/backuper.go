@@ -104,7 +104,7 @@ func Shutdown(ctx context.Context, storage storage.StorageURL, b Backup) {
 		<-ctx.Done()
 		//current context doesn't exist, use background context
 		b.BackupAll(context.Background(), storage)
-		os.Exit(1)
+		os.Exit(0)
 	}()
 }
 
