@@ -67,24 +67,25 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 	//save map to storage
 	err = u.serviceURL.SetURL(req.Context(), brief, (*redirectURL).String())
 
-	var tagErr *storage.ErrDuplicatedURL
 	if err != nil {
+
+		var tagErr *storage.ErrDuplicatedURL
 		if errors.As(err, &tagErr) {
 			//set status code 409 Conflict
 
 			res.WriteHeader(http.StatusConflict)
 			//send existed string from error
 			res.Write([]byte(tagErr.Brief))
-		} else if err != nil {
-			zap.S().Errorln(err)
-
+			return
 		}
-	} else {
-		//set status code 201
-		res.WriteHeader(http.StatusCreated)
-		//send generate and saved string
-		res.Write([]byte(answerURL.String()))
+
+		zap.S().Errorln(err)
+		http.Error(res, "Error saving in Storage.", http.StatusInternalServerError)
 	}
+	//set status code 201
+	res.WriteHeader(http.StatusCreated)
+	//send generate and saved string
+	res.Write([]byte(answerURL.String()))
 
 }
 

@@ -25,7 +25,7 @@ func (s *Shortener) SetURL(ctx context.Context, brief, origin string) (err error
 	zap.S().Infof("Store. Save URL [%s]=%s", brief, origin)
 	err = s.storeURLs.Set(ctx, brief, origin)
 	if err != nil {
-		return fmt.Errorf("Error during save URL to Store: %w", err)
+		return err
 	}
 	return nil
 }
@@ -41,7 +41,7 @@ func (s *Shortener) GetBrief(ctx context.Context, origin string) (brief string, 
 func (s *Shortener) SetAll(ctx context.Context, short []storage.Short) (err error) {
 	err = s.storeURLs.SetAll(ctx, short)
 	if err != nil {
-		return fmt.Errorf("Error during save URL to Store: %w", err)
+		return fmt.Errorf("error during save URL to Store: %w", err)
 	}
 	return nil
 }

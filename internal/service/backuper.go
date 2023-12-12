@@ -89,7 +89,8 @@ func (b Backup) Load() ([]storage.Short, error) {
 		if err := dec.Decode(&short); err == io.EOF {
 			break
 		} else if err != nil {
-			zap.S().Errorln("Error unmarshal data", err)
+			zap.S().Errorln("Error unmarshal data, check validation of backup file", err)
+			panic(err)
 		}
 		shorts = append(shorts, short)
 	}
