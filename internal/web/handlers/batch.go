@@ -14,12 +14,12 @@ import (
 )
 
 type BatchRequest struct {
-	SessionID int    `json:"correlation_id"`
+	SessionID string `json:"correlation_id"`
 	Origin    string `json:"original_url"`
 }
 
 type BatchResonse struct {
-	SessionID int    `json:"correlation_id"`
+	SessionID string `json:"correlation_id"`
 	Answer    string `json:"short_url"`
 }
 
@@ -106,9 +106,9 @@ func (u *HandlerBatch) Batch(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
 	}
 
+	zap.S().Infoln("Batch saved size: ", len(batches))
 	//set content type
 	res.Header().Add("Content-Type", "application/json")
-
 	//set status code 201
 	res.WriteHeader(http.StatusCreated)
 	res.Write(jsonBatch)
