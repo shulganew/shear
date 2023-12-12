@@ -110,7 +110,7 @@ func Shutdown(ctx context.Context, storage storage.StorageURL, b Backup) {
 
 func TimeBackup(ctx context.Context, storage storage.StorageURL, b Backup) {
 
-	backup := time.NewTicker(Timer * time.Second)
+	backup := time.NewTicker(Timer * time.Minute)
 	go func() {
 		for {
 			<-backup.C
