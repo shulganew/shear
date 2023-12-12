@@ -73,7 +73,7 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 
 			//set status code 409
 			res.WriteHeader(http.StatusConflict)
-			res.Write([]byte(answer))
+			res.Write([]byte(jsonBrokenURL))
 			return
 		}
 
