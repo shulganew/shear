@@ -59,7 +59,7 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Wrong URL in body, parse error", http.StatusInternalServerError)
 	}
 
-	brief, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.Response)
+	brief, mainURL, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.Response)
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
@@ -73,9 +73,14 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 		if errors.As(err, &tagErr) {
 			//set status code 409 Conflict
 
+			//get correct answer URL
 			res.WriteHeader(http.StatusConflict)
 			//send existed string from error
-			res.Write([]byte(tagErr.Brief))
+			answer, err := url.JoinPath(mainURL, tagErr.Brief)
+			if err != nil {
+				zap.S().Errorln("Error during JoinPath", err)
+			}
+			res.Write([]byte(answer))
 			return
 		}
 

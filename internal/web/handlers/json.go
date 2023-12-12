@@ -41,7 +41,7 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 	}
 
-	brief, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response)
+	brief, _, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response)
 
 	//save map to storage
 	u.serviceURL.SetURL(req.Context(), brief, (*origin).String())

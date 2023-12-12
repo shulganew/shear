@@ -54,7 +54,7 @@ func (u *HandlerBatch) Batch(res http.ResponseWriter, req *http.Request) {
 		}
 
 		//get short brief and full answer URL
-		brief, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response)
+		brief, _, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response)
 		//get batch for answer
 		batch := BatchResonse{SessionID: requests[i].SessionID, Answer: answerURL.String()}
 		//add batches

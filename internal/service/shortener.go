@@ -47,9 +47,9 @@ func (s *Shortener) SetAll(ctx context.Context, short []storage.Short) (err erro
 }
 
 // return anwwer url: "shema + respose server addres from config + brief"
-func (s *Shortener) GetAnsURL(shema, resultaddr string) (brief string, answerURL *url.URL) {
+func (s *Shortener) GetAnsURL(shema, resultaddr string) (brief string, mainURL string, answerURL *url.URL) {
 	//main URL = Shema + hostname + port (from result add -flag cmd -b)
-	mainURL := shema + "://" + resultaddr
+	mainURL = shema + "://" + resultaddr
 
 	brief = GenerateShorLink()
 
