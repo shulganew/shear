@@ -176,7 +176,7 @@ func InitLog() zap.SugaredLogger {
 func InitContext() (ctx context.Context, cancel context.CancelFunc) {
 	exit := make(chan os.Signal, 1)
 	ctx, cancel = context.WithCancel(context.Background())
-	signal.Notify(exit, syscall.SIGINT, syscall.SIGKILL)
+	signal.Notify(exit, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	go func() {
 		<-exit
 		cancel()
