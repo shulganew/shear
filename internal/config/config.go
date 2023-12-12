@@ -202,15 +202,8 @@ func InitDB(ctx context.Context, dsn string) (db *sql.DB) {
 	}
 
 	//create table short if not exist
-	rows, check := db.QueryContext(ctx, "select * from short")
-	if check != nil {
-		_, err := db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS short (id SERIAL , short_url TEXT NOT NULL, original_url TEXT NOT NULL UNIQUE)")
-		if err != nil {
-			panic(err)
-		}
 
-	}
-	err = rows.Err()
+	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS short (id SERIAL , brief TEXT NOT NULL, origin TEXT NOT NULL UNIQUE)")
 	if err != nil {
 		panic(err)
 	}
