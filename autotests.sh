@@ -43,18 +43,17 @@ check 8 $?
 shortenertestbeta -test.v -test.run=^TestIteration9$  -binary-path=cmd/shortener/shortener -source-path=. -file-storage-path=/tmp/short-url-db.json > /dev/null
 check 9 $?
 #10
-export DATABASE_DSN=postgresql://short:1@localhost/short
 #
-#          shortenertestbeta -test.v -test.run=^TestIteration10$ \
-#              -binary-path=cmd/shortener/shortener \
-#              -source-path=. \
-#              -database-dsn='postgres://short:1@127.0.0.1:5432/praktikum?sslmode=disable' > /dev/null
-#check 10 $?
+          shortenertestbeta -test.v -test.run=^TestIteration10$ \
+              -binary-path=cmd/shortener/shortener \
+              -source-path=. \
+              -database-dsn='postgres://short:1@postgres:5432/praktikum?sslmode=disable' > /dev/null
+check 10 $?
 #11
-#          shortenertestbeta -test.v -test.run=^TestIteration11$ \
-#              -binary-path=cmd/shortener/shortener \
-#              -database-dsn='postgres://short:1@127.0.0.1:5432/praktikum?sslmode=disable'
-#check 11 $?
+          shortenertestbeta -test.v -test.run=^TestIteration11$ \
+              -binary-path=cmd/shortener/shortener \
+              -database-dsn='postgres://short:1@postgres:5432/praktikum?sslmode=disable'
+check 11 $?
 #12
           shortenertestbeta -test.v -test.run=^TestIteration12$ \
               -binary-path=cmd/shortener/shortener \
