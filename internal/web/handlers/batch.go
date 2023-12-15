@@ -46,7 +46,7 @@ func (u *HandlerBatch) Batch(res http.ResponseWriter, req *http.Request) {
 
 	batches := []BatchResonse{}
 	shorts := []storage.Short{}
-	for i := 0; i < len(requests); i++ {
+	for r, _ := range requests {
 
 		origin, err := url.Parse(string(requests[i].Origin))
 		if err != nil {
