@@ -11,7 +11,7 @@ import (
 )
 
 type DB struct {
-	DB *sql.DB
+	master *sql.DB
 }
 
 func (base *DB) Set(ctx context.Context, brief, origin string) error {
