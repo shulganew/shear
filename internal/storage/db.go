@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -15,8 +16,10 @@ type DB struct {
 	master *sql.DB
 }
 
-func NewDB(db *sql.DB) *DB {
-	return &DB{master: db}
+func NewDB(ctx context.Context, master *sql.DB) (*DB, error) {
+	db := DB{master: master}
+	err := db.Start(ctx)
+	return &db, err
 }
 
 func (base *DB) Set(ctx context.Context, brief, origin string) error {
@@ -126,7 +129,7 @@ func (base *DB) SetAll(ctx context.Context, shorts []service.Short) error {
 				//get brief string
 				if brief, ok := base.GetBrief(ctx, short.Origin); ok {
 
-					return NewErrDuplicatedURL(brief, short.Origin, pgErr)
+					return NewErrDuplicatedShort(short.ID, brief, short.Origin, pgErr)
 				}
 			}
 			tx.Rollback()
@@ -142,19 +145,28 @@ func (base *DB) SetAll(ctx context.Context, shorts []service.Short) error {
 }
 
 // Init Database
-func InitDB(ctx context.Context, dsn string) (db *sql.DB) {
+func InitDB(ctx context.Context, dsn string) (db *sql.DB, err error) {
 
-	db, err := sql.Open("pgx", dsn)
+	db, err = sql.Open("pgx", dsn)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	//create table short if not exist
 
 	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS short (id SERIAL , brief TEXT NOT NULL, origin TEXT NOT NULL UNIQUE)")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return
+}
+
+func (base *DB) Start(ctx context.Context) error {
+	// ждем 3 секунды - если не смогли стартовать - возвращаем ошибку
+	// читаем контекст
+	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
+	err := base.master.PingContext(ctx)
+	defer cancel()
+	return err
 }

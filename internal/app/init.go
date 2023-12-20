@@ -15,21 +15,20 @@ import (
 
 func InitApp(ctx context.Context, conf config.Config, db *sql.DB) (*service.StorageURL, *service.Backup) {
 
-
 	//Storage
 	var stor service.StorageURL
-
+	var err error
 	//load storage
 	if conf.IsDB && db != nil {
-		if err := db.Ping(); err != nil {
+		//use db storage
+		stor, err = storage.NewDB(ctx, db)
+		if err != nil {
 			zap.S().Errorln("Error connect to DB from env: ", err)
 			//use memory storage
-			//set MemoryStorage storage
 			stor = storage.NewMemory()
 			zap.S().Infoln("Use memory storage: database not pinging")
 		}
-		//use db storage
-		stor = storage.NewDB(db)
+
 		zap.S().Infoln("Use database storage")
 	} else {
 		//use memory storage

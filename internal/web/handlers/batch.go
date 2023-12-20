@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"slices"
+	"strconv"
 
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
@@ -37,7 +37,7 @@ func (u *HandlerBatch) GetService() service.Shortener {
 	return *u.serviceURL
 }
 
-func (u *HandlerBatch) Batch(res http.ResponseWriter, req *http.Request) {
+func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 
 	//handle bach requests
 	var requests []BatchRequest
@@ -64,8 +64,14 @@ func (u *HandlerBatch) Batch(res http.ResponseWriter, req *http.Request) {
 		batch := BatchResonse{SessionID: r.SessionID, Answer: answerURL.String()}
 		//add batches
 		batches = append(batches, batch)
-		//add short
-		short := service.Short{Brief: brief, Origin: (*origin).String()}
+
+		//add short (ID = sessionID). Short creates with sessionID, but database inster Short object with own genereted ID. If dublication URL will be found, error return current session ID, not database ID.
+		sessionID, err := strconv.Atoi(batch.SessionID)
+		if err != nil {
+			zap.S().Errorln("Brocken sessionID", batch.SessionID)
+		}
+
+		short := service.Short{ID: sessionID, Brief: brief, Origin: (*origin).String()}
 		shorts = append(shorts, short)
 
 	}
@@ -73,36 +79,28 @@ func (u *HandlerBatch) Batch(res http.ResponseWriter, req *http.Request) {
 	err := u.serviceURL.SetAll(req.Context(), shorts)
 
 	//check duplicated strings
-	var tagErr *storage.ErrDuplicatedURL
+	var tagErr *storage.ErrDuplicatedShort
 	if err != nil {
 		if errors.As(err, &tagErr) {
 			//set status code 409 Conflict
 			res.WriteHeader(http.StatusConflict)
-			//send existed string from error
+
+			//send existed URL to response
 			broken := []BatchResonse{}
-
-			id := slices.IndexFunc(requests, func(b BatchRequest) bool { return b.Origin == tagErr.Origin })
-
-			if id != -1 {
-
-				batch := BatchResonse{SessionID: requests[id].SessionID, Answer: tagErr.Brief}
-				broken = append(broken, batch)
-				jsonBrokenBatch, err := json.Marshal(broken)
-				if err != nil {
-					http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
-				}
-
-				//set content type
-				res.Header().Add("Content-Type", "application/json")
-
-				zap.S().Infoln("Broken: ", string(jsonBrokenBatch))
-				res.Write(jsonBrokenBatch)
-				return
+			//Short ID == sessionID
+			batch := BatchResonse{SessionID: strconv.Itoa(tagErr.Short.ID), Answer: tagErr.Short.Brief}
+			broken = append(broken, batch)
+			jsonBrokenBatch, err := json.Marshal(broken)
+			if err != nil {
+				http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
 			}
 
-		} else {
-			zap.S().Errorln(err)
-			http.Error(res, "Error during saving to Store", http.StatusInternalServerError)
+			//set content type
+			res.Header().Add("Content-Type", "application/json")
+
+			zap.S().Infoln("Broken: ", string(jsonBrokenBatch))
+			res.Write(jsonBrokenBatch)
+			return
 		}
 	}
 	//create Ok answer

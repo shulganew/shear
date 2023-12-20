@@ -11,6 +11,7 @@ import (
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/shulganew/shear.git/internal/web/router"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -23,12 +24,17 @@ func main() {
 	conf := config.InitConfig()
 
 	var db *sql.DB
-
+	var err error
 	if conf.IsDB {
-		db = storage.InitDB(ctx, conf.DSN)
+		db, err = storage.InitDB(ctx, conf.DSN)
+		if err != nil {
+			db = nil
+			conf.IsDB = false
+			zap.S().Errorln("Can't connect to Database!", err)
+		}
 		defer db.Close()
-	}
 
+	}
 	stor, backup := app.InitApp(ctx, *conf, db)
 
 	go func() {

@@ -31,7 +31,7 @@ func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB) (r *c
 
 	//DB Postgres Batch request
 	batchHand := handlers.NewHandlerBatch(conf, stor)
-	r.Post("/api/shorten/batch", http.HandlerFunc(batchHand.Batch))
+	r.Post("/api/shorten/batch", http.HandlerFunc(batchHand.BatchSet))
 
 	return
 }

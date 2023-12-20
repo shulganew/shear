@@ -11,6 +11,11 @@ type Ping struct {
 	db *sql.DB
 }
 
+func NewDB(db *sql.DB) *Ping {
+
+	return &Ping{db: db}
+}
+
 // Test DB connection
 func (b *Ping) Ping(res http.ResponseWriter, req *http.Request) {
 
@@ -23,9 +28,4 @@ func (b *Ping) Ping(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusInternalServerError)
 	}
 
-}
-
-func NewDB(db *sql.DB) *Ping {
-
-	return &Ping{db: db}
 }
