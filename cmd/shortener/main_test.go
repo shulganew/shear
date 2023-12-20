@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/config"
+	"github.com/shulganew/shear.git/internal/service"
 	webhandl "github.com/shulganew/shear.git/internal/web/handlers"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -49,15 +50,16 @@ func Test_main(t *testing.T) {
 	}
 
 	// init configApp
-	configApp, _, _ := config.InitConfig()
+	configApp := config.InitConfig()
 
 	// init config with difauls values
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost
-	configApp.Storage = &storage.Memory{StoreURLs: []storage.Short{}}
+
+	stor := service.StorageURL(storage.NewMemory())
 
 	//init storage
-	handler := webhandl.NewHandlerWeb(configApp)
+	handler := webhandl.NewHandlerWeb(configApp, &stor)
 	serviceURL := handler.GetServiceURL()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -22,7 +22,12 @@ type Resonse struct {
 
 type HandlerAPI struct {
 	serviceURL *service.Shortener
-	conf       *config.App
+	conf       *config.Config
+}
+
+func NewHandlerAPI(conf *config.Config, stor *service.StorageURL) *HandlerAPI {
+
+	return &HandlerAPI{serviceURL: service.NewService(stor), conf: conf}
 }
 
 func (u *HandlerAPI) GetService() service.Shortener {
@@ -94,9 +99,4 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 
 	res.Write(jsonURL)
 
-}
-
-func NewHandlerAPI(configApp *config.App) *HandlerAPI {
-
-	return &HandlerAPI{serviceURL: service.NewService(configApp.Storage, configApp.Backup), conf: configApp}
 }

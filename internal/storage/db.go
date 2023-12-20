@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/shulganew/shear.git/internal/service"
 	"go.uber.org/zap"
 )
 
@@ -14,9 +15,13 @@ type DB struct {
 	master *sql.DB
 }
 
+func NewDB(db *sql.DB) *DB {
+	return &DB{master: db}
+}
+
 func (base *DB) Set(ctx context.Context, brief, origin string) error {
 
-	err := base.DB.QueryRowContext(ctx, "INSERT INTO short (brief, origin) VALUES ($1, $2) ", brief, origin).Scan()
+	err := base.master.QueryRowContext(ctx, "INSERT INTO short (brief, origin) VALUES ($1, $2) ", brief, origin).Scan()
 	if err != nil {
 		zap.S().Infoln("Insert error!: ", origin)
 		var pgErr *pgconn.PgError
@@ -39,24 +44,8 @@ func (base *DB) Set(ctx context.Context, brief, origin string) error {
 	return nil
 }
 
-func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, ok bool) {
-	row := base.DB.QueryRowContext(ctx, "SELECT brief from short where origin=$1", origin)
-	err := row.Scan(&brief)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return "", false
-		}
-		panic(err)
-	}
-	err = row.Err()
-	if err != nil {
-		panic(err)
-	}
-	return brief, true
-}
-
 func (base *DB) GetOrigin(ctx context.Context, brief string) (origin string, ok bool) {
-	row := base.DB.QueryRowContext(ctx, "SELECT origin from short where brief=$1", brief)
+	row := base.master.QueryRowContext(ctx, "SELECT origin from short where brief=$1", brief)
 	err := row.Scan(&origin)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -71,18 +60,34 @@ func (base *DB) GetOrigin(ctx context.Context, brief string) (origin string, ok 
 	return origin, true
 }
 
-func (base *DB) GetAll(ctx context.Context) []Short {
+func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, ok bool) {
+	row := base.master.QueryRowContext(ctx, "SELECT brief from short where origin=$1", origin)
+	err := row.Scan(&brief)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", false
+		}
+		panic(err)
+	}
+	err = row.Err()
+	if err != nil {
+		panic(err)
+	}
+	return brief, true
+}
 
-	rows, err := base.DB.QueryContext(ctx, "SELECT id, brief, origin from short")
+func (base *DB) GetAll(ctx context.Context) []service.Short {
+
+	rows, err := base.master.QueryContext(ctx, "SELECT id, brief, origin from short")
 	if err != nil {
 		panic(err)
 	}
 
 	defer rows.Close()
 
-	shorts := []Short{}
+	shorts := []service.Short{}
 	for rows.Next() {
-		var short Short
+		var short service.Short
 		err = rows.Scan(&short.ID, &short.Brief, &short.Origin)
 		if err != nil {
 			panic(err)
@@ -100,14 +105,14 @@ func (base *DB) GetAll(ctx context.Context) []Short {
 
 }
 
-func (base *DB) SetAll(ctx context.Context, shorts []Short) error {
+func (base *DB) SetAll(ctx context.Context, shorts []service.Short) error {
 
-	tx, err := base.DB.Begin()
+	tx, err := base.master.Begin()
 	if err != nil {
 		panic(err)
 	}
 
-	prep, err := base.DB.PrepareContext(ctx, "INSERT INTO short (brief, origin) VALUES ($1, $2)")
+	prep, err := base.master.PrepareContext(ctx, "INSERT INTO short (brief, origin) VALUES ($1, $2)")
 	if err != nil {
 		panic(err)
 	}
@@ -134,4 +139,22 @@ func (base *DB) SetAll(ctx context.Context, shorts []Short) error {
 		panic(err)
 	}
 	return nil
+}
+
+// Init Database
+func InitDB(ctx context.Context, dsn string) (db *sql.DB) {
+
+	db, err := sql.Open("pgx", dsn)
+	if err != nil {
+		panic(err)
+	}
+
+	//create table short if not exist
+
+	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS short (id SERIAL , brief TEXT NOT NULL, origin TEXT NOT NULL UNIQUE)")
+	if err != nil {
+		panic(err)
+	}
+
+	return
 }

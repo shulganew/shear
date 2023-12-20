@@ -7,18 +7,39 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"
 )
 
 const ShortLength = 8
 
+// base stract for working with storage
+type Short struct {
+	ID int `json:"uuid"`
+	//short URL (cache)
+	Brief string `json:"short_url"`
+	//Long full URL
+	Origin string `json:"original_url"`
+}
+
 // generate sort URL
 // save short URL
 // get logn URL
 type Shortener struct {
-	storeURLs storage.StorageURL
-	backup    Backup
+	storeURLs StorageURL
+}
+
+// intarface for universal data storage
+type StorageURL interface {
+	Set(ctx context.Context, brief, origin string) error
+	GetOrigin(ctx context.Context, brief string) (string, bool)
+	GetBrief(ctx context.Context, origin string) (string, bool)
+	GetAll(ctx context.Context) []Short
+	SetAll(ctx context.Context, short []Short) error
+}
+
+// return service
+func NewService(storage *StorageURL) *Shortener {
+	return &Shortener{storeURLs: *storage}
 }
 
 func (s *Shortener) SetURL(ctx context.Context, brief, origin string) (err error) {
@@ -38,7 +59,7 @@ func (s *Shortener) GetBrief(ctx context.Context, origin string) (brief string, 
 	return s.storeURLs.GetBrief(ctx, origin)
 }
 
-func (s *Shortener) SetAll(ctx context.Context, short []storage.Short) (err error) {
+func (s *Shortener) SetAll(ctx context.Context, short []Short) (err error) {
 	err = s.storeURLs.SetAll(ctx, short)
 	if err != nil {
 		return fmt.Errorf("error during save URL to Store: %w", err)
@@ -79,9 +100,4 @@ func GenerateShorLink() string {
 		sb.WriteByte(charset[rand.Intn(len(charset))])
 	}
 	return sb.String()
-}
-
-// return service
-func NewService(storage storage.StorageURL, backup Backup) *Shortener {
-	return &Shortener{storeURLs: storage, backup: backup}
 }

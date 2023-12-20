@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"
 )
 
@@ -15,11 +14,23 @@ import (
 const Timer = 10
 
 type Backup struct {
-	File     string
-	IsActive bool
+	File string
+	//IsActive bool
 }
 
-func (b Backup) Save(short storage.Short) error {
+func NewBackup(file string) *Backup {
+	return &Backup{File: file}
+}
+
+// Activate backup
+func InitBackup(ctx context.Context, storage StorageURL, file string) *Backup {
+	backup := &Backup{File: file}
+	//Time machine
+	timeBackup(ctx, storage, *backup)
+	return backup
+}
+
+func (b Backup) Save(short Short) error {
 
 	data, err := json.Marshal(short)
 	//Backup URL:
@@ -39,7 +50,7 @@ func (b Backup) Save(short storage.Short) error {
 	return nil
 }
 
-func (b Backup) BackupAll(ctx context.Context, storage storage.StorageURL) error {
+func (b Backup) BackupAll(ctx context.Context, storage StorageURL) error {
 
 	//save data fo file
 	file, error := os.OpenFile(b.File, os.O_WRONLY|os.O_CREATE, 0666)
@@ -67,14 +78,14 @@ func (b Backup) BackupAll(ctx context.Context, storage storage.StorageURL) error
 	return nil
 }
 
-func (b Backup) Load() ([]storage.Short, error) {
+func (b Backup) Load() ([]Short, error) {
 
 	file, err := os.OpenFile(b.File, os.O_RDONLY, 0666)
 
 	if err != nil {
 		if os.IsNotExist(err) {
 			zap.S().Infoln("Backup file not exist")
-			return []storage.Short{}, nil
+			return []Short{}, nil
 		}
 
 		zap.S().Errorln("Error reading backup file")
@@ -82,10 +93,10 @@ func (b Backup) Load() ([]storage.Short, error) {
 	}
 	defer file.Close()
 
-	shorts := []storage.Short{}
+	shorts := []Short{}
 	dec := json.NewDecoder(file)
 	for {
-		var short storage.Short
+		var short Short
 		if err := dec.Decode(&short); err == io.EOF {
 			break
 		} else if err != nil {
@@ -99,16 +110,12 @@ func (b Backup) Load() ([]storage.Short, error) {
 	return shorts, nil
 }
 
-func Shutdown(ctx context.Context, storage storage.StorageURL, b Backup) {
-	go func() {
-		<-ctx.Done()
-		//current context doesn't exist, use background context
-		b.BackupAll(context.Background(), storage)
-		os.Exit(0)
-	}()
+func Shutdown(storage StorageURL, b Backup) {
+	//current context doesn't exist, use background context
+	b.BackupAll(context.Background(), storage)
 }
 
-func TimeBackup(ctx context.Context, storage storage.StorageURL, b Backup) {
+func timeBackup(ctx context.Context, storage StorageURL, b Backup) {
 
 	backup := time.NewTicker(Timer * time.Minute)
 	go func() {
@@ -119,8 +126,4 @@ func TimeBackup(ctx context.Context, storage storage.StorageURL, b Backup) {
 		}
 	}()
 
-}
-
-func NewBackup(file string, isActive bool) *Backup {
-	return &Backup{File: file, IsActive: isActive}
 }

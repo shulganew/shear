@@ -25,7 +25,12 @@ type BatchResonse struct {
 
 type HandlerBatch struct {
 	serviceURL *service.Shortener
-	conf       *config.App
+	conf       *config.Config
+}
+
+func NewHandlerBatch(conf *config.Config, stor *service.StorageURL) *HandlerBatch {
+
+	return &HandlerBatch{serviceURL: service.NewService(stor), conf: conf}
 }
 
 func (u *HandlerBatch) GetService() service.Shortener {
@@ -45,10 +50,10 @@ func (u *HandlerBatch) Batch(res http.ResponseWriter, req *http.Request) {
 	}
 
 	batches := []BatchResonse{}
-	shorts := []storage.Short{}
-	for r, _ := range requests {
+	shorts := []service.Short{}
+	for _, r := range requests {
 
-		origin, err := url.Parse(string(requests[i].Origin))
+		origin, err := url.Parse(string(r.Origin))
 		if err != nil {
 			http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 		}
@@ -56,11 +61,11 @@ func (u *HandlerBatch) Batch(res http.ResponseWriter, req *http.Request) {
 		//get short brief and full answer URL
 		brief, _, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response)
 		//get batch for answer
-		batch := BatchResonse{SessionID: requests[i].SessionID, Answer: answerURL.String()}
+		batch := BatchResonse{SessionID: r.SessionID, Answer: answerURL.String()}
 		//add batches
 		batches = append(batches, batch)
 		//add short
-		short := storage.Short{Brief: brief, Origin: (*origin).String()}
+		short := service.Short{Brief: brief, Origin: (*origin).String()}
 		shorts = append(shorts, short)
 
 	}
@@ -113,9 +118,4 @@ func (u *HandlerBatch) Batch(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusCreated)
 	res.Write(jsonBatch)
 
-}
-
-func NewHandlerBatch(configApp *config.App) *HandlerBatch {
-
-	return &HandlerBatch{serviceURL: service.NewService(configApp.Storage, configApp.Backup), conf: configApp}
 }

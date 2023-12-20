@@ -13,7 +13,7 @@ go vet -vettool=$(which statictest) ./...
 check S $? 
 TEMP_FILE=$(random tempfile)
 #1
-shortenertestbeta -test.v -test.run=^TestIteration1$ -binary-path=cmd/shortener/shortener > /dev/null
+shortenertestbeta -test.v -test.run=^TestIteration1$ -binary-path=cmd/shortener/shortener
 check 1 $?
 #2
 shortenertestbeta -test.v -test.run=^TestIteration2$ -source-path=. > /dev/null

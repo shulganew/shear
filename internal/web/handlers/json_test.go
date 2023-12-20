@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/shulganew/shear.git/internal/config"
+	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -44,15 +45,15 @@ func Test_api(t *testing.T) {
 	}
 
 	// init configApp
-	configApp, _, _ := config.InitConfig()
+	configApp := config.InitConfig()
 
 	// init config with difauls values
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost
-	configApp.Storage = &storage.Memory{StoreURLs: []storage.Short{}}
 
+	stor := service.StorageURL(storage.NewMemory())
 	//init storage
-	apiHand := NewHandlerAPI(configApp)
+	apiHand := NewHandlerAPI(configApp, &stor)
 	serviceURL := apiHand.GetService()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

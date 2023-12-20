@@ -17,7 +17,12 @@ import (
 
 type HandlerURL struct {
 	serviceURL *service.Shortener
-	conf       *config.App
+	conf       *config.Config
+}
+
+func NewHandlerWeb(conf *config.Config, stor *service.StorageURL) *HandlerURL {
+
+	return &HandlerURL{serviceURL: service.NewService(stor), conf: conf}
 }
 
 func (u *HandlerURL) GetServiceURL() service.Shortener {
@@ -58,7 +63,7 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		http.Error(res, "Wrong URL in body, parse error", http.StatusInternalServerError)
 	}
-
+	zap.S().Infoln("redirectURL ", redirectURL)
 	brief, mainURL, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.Response)
 
 	//set content type
@@ -92,9 +97,4 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 	//send generate and saved string
 	res.Write([]byte(answerURL.String()))
 
-}
-
-func NewHandlerWeb(configApp *config.App) *HandlerURL {
-
-	return &HandlerURL{serviceURL: service.NewService(configApp.Storage, configApp.Backup), conf: configApp}
 }

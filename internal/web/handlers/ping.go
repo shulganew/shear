@@ -3,15 +3,12 @@ package handlers
 import (
 	"database/sql"
 	"net/http"
-
-	"github.com/shulganew/shear.git/internal/config"
 )
 
 // hadler for testing db connection
 
 type Ping struct {
-	conf *config.App
-	db   *sql.DB
+	db *sql.DB
 }
 
 // Test DB connection
@@ -28,7 +25,7 @@ func (b *Ping) Ping(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func NewDB(configApp *config.App) *Ping {
+func NewDB(db *sql.DB) *Ping {
 
-	return &Ping{conf: configApp, db: configApp.DB}
+	return &Ping{db: db}
 }
