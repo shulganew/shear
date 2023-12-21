@@ -43,6 +43,6 @@ func (ed *ErrDuplicatedShort) Unwrap() error {
 	return ed.Err
 }
 
-func NewErrDuplicatedShort(sessionID int, brief string, origin string, err error) *ErrDuplicatedShort {
-	return &ErrDuplicatedShort{Label: "URL alredy existed. ", Short: service.Short{ID: sessionID, Brief: brief, Origin: origin}, Err: err}
+func NewErrDuplicatedShort(sessionID string, brief string, origin string, err error) *ErrDuplicatedShort {
+	return &ErrDuplicatedShort{Label: "URL alredy existed. ", Short: service.Short{SessionID: sessionID, Brief: brief, Origin: origin}, Err: err}
 }

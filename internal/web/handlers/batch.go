@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"strconv"
 
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
@@ -65,14 +64,12 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 		//add batches
 		batches = append(batches, batch)
 
-		//add short (ID = sessionID). Short creates with sessionID, but database inster Short object with own genereted ID. If dublication URL will be found, error return current session ID, not database ID.
-		sessionID, err := strconv.Atoi(batch.SessionID)
 		if err != nil {
 			zap.S().Errorln("Brocken sessionID", batch.SessionID)
 		}
 
-		short := service.Short{ID: sessionID, Brief: brief, Origin: (*origin).String()}
-		shorts = append(shorts, short)
+		shortSession := service.Short{Brief: brief, Origin: (*origin).String(), SessionID: batch.SessionID}
+		shorts = append(shorts, shortSession)
 
 	}
 	//save to storage
@@ -87,8 +84,8 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 
 			//send existed URL to response
 			broken := []BatchResonse{}
-			//Short ID == sessionID
-			batch := BatchResonse{SessionID: strconv.Itoa(tagErr.Short.ID), Answer: tagErr.Short.Brief}
+
+			batch := BatchResonse{SessionID: tagErr.Short.SessionID, Answer: tagErr.Short.Brief}
 			broken = append(broken, batch)
 			jsonBrokenBatch, err := json.Marshal(broken)
 			if err != nil {

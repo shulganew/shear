@@ -129,7 +129,7 @@ func (base *DB) SetAll(ctx context.Context, shorts []service.Short) error {
 				//get brief string
 				if brief, ok := base.GetBrief(ctx, short.Origin); ok {
 
-					return NewErrDuplicatedShort(short.ID, brief, short.Origin, pgErr)
+					return NewErrDuplicatedShort(short.SessionID, brief, short.Origin, pgErr)
 				}
 			}
 			tx.Rollback()
