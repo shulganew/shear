@@ -18,6 +18,7 @@ func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB) (r *c
 	r = chi.NewRouter()
 	r.Use(middlewares.MidlewLog)
 	r.Use(middlewares.MidlewZip)
+	r.Use(middlewares.Cookie)
 	r.Post("/", http.HandlerFunc(webHand.SetURL))
 	r.Get("/{id}", http.HandlerFunc(webHand.GetURL))
 

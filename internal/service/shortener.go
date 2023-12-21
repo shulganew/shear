@@ -19,7 +19,7 @@ type Short struct {
 	Brief string `json:"short_url"`
 	//Long full URL
 	Origin string `json:"original_url"`
-	//For Batch reques use: Unicque Session ID for each request in URL Batch
+	//For Batch reques use: Unique Session ID for each request in URL Batch
 	SessionID string
 }
 

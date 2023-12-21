@@ -54,6 +54,12 @@ func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 // POTS and set generate short Url
 func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 
+	cookie, err := req.Cookie("user_id")
+	if err != nil {
+		zap.S().Errorln("Cookie not found", err)
+	}
+	zap.S().Infoln("Cookie!!!!!!", cookie, len(req.Cookies()))
+
 	readBody, err := io.ReadAll(req.Body)
 	if err != nil {
 		http.Error(res, "Body not found", http.StatusInternalServerError)
