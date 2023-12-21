@@ -18,6 +18,7 @@ func Cookie(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		if userID, ok := getUserID(r); ok {
+			//cookie iser_id is set
 			cookies := r.Cookies()
 
 			//clean cookie data
