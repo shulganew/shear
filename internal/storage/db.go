@@ -154,6 +154,7 @@ func InitDB(ctx context.Context, dsn string) (db *sql.DB, err error) {
 
 	//create table short if not exist
 
+	// _, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS short (id SERIAL , user_id TEXT NOT NULL, brief TEXT NOT NULL, origin TEXT NOT NULL UNIQUE)")
 	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS short (id SERIAL , brief TEXT NOT NULL, origin TEXT NOT NULL UNIQUE)")
 	if err != nil {
 		return nil, err

@@ -5,19 +5,19 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
-const PASS string = "mysecret"
-
-func Cookie(h http.Handler) http.Handler {
+func Auth(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		//get password from context
+		pass := ctx.Value("password").(string)
 
-		if userID, ok := getUserID(r); ok {
+		if userID, ok := getUserID(r, pass); ok {
 			//cookie iser_id is set
 			cookies := r.Cookies()
 
@@ -43,7 +43,7 @@ func Cookie(h http.Handler) http.Handler {
 			}
 
 			//encode coockie for client
-			coded, err := EncodeCookie(userID.String(), PASS)
+			coded, err := EncodeCookie(userID.String(), pass)
 			if err != nil {
 				zap.S().Errorln("Error encode uuid")
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -55,6 +55,9 @@ func Cookie(h http.Handler) http.Handler {
 			//set to request
 			cookie := http.Cookie{Name: "user_id", Value: userID.String()}
 			r.AddCookie(&cookie)
+			//mark new user for handlers
+			newUser := http.Cookie{Name: "new_user", Value: "true"}
+			r.AddCookie(&newUser)
 
 		}
 
@@ -64,14 +67,14 @@ func Cookie(h http.Handler) http.Handler {
 
 }
 
-func getUserID(r *http.Request) (userID string, ok bool) {
+func getUserID(r *http.Request, pass string) (userID string, ok bool) {
 	//find UserID in cookies
 	cookie, err := r.Cookie("user_id")
 	if err != nil {
 		return "", false
 	}
 
-	userID, err = DecodeCookie(cookie.Value, PASS)
+	userID, err = DecodeCookie(cookie.Value, pass)
 	if err != nil {
 		return "", false
 	}
@@ -87,31 +90,23 @@ func getUserID(r *http.Request) (userID string, ok bool) {
 
 func DecodeCookie(secret string, password string) (uuid string, err error) {
 
-	key := sha256.Sum256([]byte(password))
+	nonce, aesgcm, err := getCryptData(password)
+	if err != nil {
+		zap.S().Errorln("Encription Error: get enctypt data")
+		return
+	}
+
 	msg, err := base64.StdEncoding.DecodeString(secret)
 
 	if err != nil {
 		return "", err
 	}
-	aesblock, err := aes.NewCipher(key[:32])
-	if err != nil {
-		return "", err
-	}
 
-	aesgcm, err := cipher.NewGCM(aesblock)
-	if err != nil {
-
-		return
-	}
-
-	lenth := aesgcm.NonceSize()
-	nonceSize := len(key) - lenth
-	nonce := key[nonceSize:]
 	binary := []byte(msg)
 
 	decrypted, err := aesgcm.Open(nil, nonce, binary, nil)
 	if err != nil {
-		fmt.Printf("error: %v\n", err)
+		zap.S().Errorln("Encription Error: Open seal")
 		return
 	}
 	return string(decrypted), nil
@@ -119,30 +114,43 @@ func DecodeCookie(secret string, password string) (uuid string, err error) {
 }
 
 func EncodeCookie(uuid string, password string) (secret string, err error) {
+
+	binary := []byte(uuid)
+
+	nonce, aesgcm, err := getCryptData(password)
+	if err != nil {
+		zap.S().Errorln("Encription Error: get enctypt data")
+		return
+	}
+
+	coded := aesgcm.Seal(nil, nonce, binary, nil)
+	if err != nil {
+		zap.S().Errorln("Encription Error: create Seal")
+		return
+	}
+	return base64.StdEncoding.EncodeToString(coded), nil
+
+}
+
+func getCryptData(password string) (nonce []byte, aesgcm cipher.AEAD, err error) {
+
 	key := sha256.Sum256([]byte(password))
 
 	aesblock, err := aes.NewCipher(key[:32])
 	if err != nil {
-
-		return "", err
+		zap.S().Errorln("Encription Error: aesblock")
+		return
 	}
 
-	aesgcm, err := cipher.NewGCM(aesblock)
+	aesgcm, err = cipher.NewGCM(aesblock)
 	if err != nil {
-
+		zap.S().Errorln("Encription Error: aesgcm")
 		return
 	}
 
 	lenth := aesgcm.NonceSize()
 	nonceSize := len(key) - lenth
-	nonce := key[nonceSize:]
-	binary := []byte(uuid)
-
-	coded := aesgcm.Seal(nil, nonce, binary, nil)
-	if err != nil {
-		fmt.Printf("error: %v\n", err)
-		return
-	}
-	return base64.StdEncoding.EncodeToString(coded), nil
+	nonce = key[nonceSize:]
+	return
 
 }

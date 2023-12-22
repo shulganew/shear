@@ -27,6 +27,9 @@ type Config struct {
 
 	//dsn connection string
 	DSN string
+
+	//User identity encription with cookie
+	Pass string
 }
 
 func InitConfig() *Config {
@@ -36,6 +39,8 @@ func InitConfig() *Config {
 	//read command line argue
 	startAddress := flag.String("a", "localhost:8080", "start server address and port")
 	resultAddress := flag.String("b", "localhost:8080", "answer address and port")
+
+	userAuth := flag.String("p", "mysecret", "User identity encription with cookie (user_id)")
 	tempf := flag.String("f", "", "Location of dump file")
 	dsnf := flag.String("d", "", "Data Source Name for DataBase connection")
 	flag.Parse()
@@ -48,6 +53,9 @@ func InitConfig() *Config {
 	config.Address = startaddr + ":" + startport
 	config.Response = answaddr + ":" + answport
 	zap.S().Infoln("Server address: ", config.Address)
+
+	//save cookie pass
+	config.Pass = *userAuth
 
 	//read OS ENV
 	env, exist := os.LookupEnv(("SERVER_ADDRESS"))

@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"database/sql"
 	"net/http"
 
@@ -16,10 +17,20 @@ func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB) (r *c
 
 	webHand := handlers.NewHandlerWeb(conf, stor)
 	r = chi.NewRouter()
+
+	//send password for enctription to middlewares
+	r.Use(func(h http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := context.WithValue(r.Context(), "password", conf.Pass)
+			h.ServeHTTP(w, r.WithContext(ctx))
+		})
+	})
+
 	r.Route("/", func(r chi.Router) {
+
 		r.Use(middlewares.MidlewLog)
 		r.Use(middlewares.MidlewZip)
-		r.Use(middlewares.Cookie)
+		r.Use(middlewares.Auth)
 		r.Post("/", http.HandlerFunc(webHand.SetURL))
 		r.Get("/{id}", http.HandlerFunc(webHand.GetURL))
 
@@ -39,7 +50,7 @@ func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB) (r *c
 		r.Use(middlewares.MidlewLog)
 		r.Use(middlewares.MidlewZip)
 		//Get shorts for user by user_id
-		handCookieID := handlers.NewHandlerCookieID(conf, stor)
+		handCookieID := handlers.NewHandlerAuthUser(conf, stor)
 		r.Get("/urls", http.HandlerFunc(handCookieID.GetUserURLs))
 	})
 

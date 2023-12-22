@@ -10,22 +10,22 @@ import (
 
 // hadler for  GET and POST  short and long urls
 
-type HandlerCookie struct {
+type HandlerAuth struct {
 	serviceURL *service.Shortener
 	conf       *config.Config
 }
 
-func NewHandlerCookieID(conf *config.Config, stor *service.StorageURL) *HandlerCookie {
+func NewHandlerAuthUser(conf *config.Config, stor *service.StorageURL) *HandlerAuth {
 
-	return &HandlerCookie{serviceURL: service.NewService(stor), conf: conf}
+	return &HandlerAuth{serviceURL: service.NewService(stor), conf: conf}
 }
 
-func (u *HandlerCookie) GetServiceURL() service.Shortener {
+func (u *HandlerAuth) GetServiceURL() service.Shortener {
 	return *u.serviceURL
 }
 
 // GET and redirect by brief
-func (u *HandlerCookie) GetUserURLs(res http.ResponseWriter, req *http.Request) {
+func (u *HandlerAuth) GetUserURLs(res http.ResponseWriter, req *http.Request) {
 
 	zap.S().Infoln("Hello from url api!")
 	cookie, err := req.Cookie("user_id")

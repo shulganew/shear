@@ -21,6 +21,8 @@ type Short struct {
 	Origin string `json:"original_url"`
 	//For Batch reques use: Unique Session ID for each request in URL Batch
 	SessionID string
+	//unique user id string
+	UUID string
 }
 
 // generate sort URL
