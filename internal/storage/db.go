@@ -22,9 +22,9 @@ func NewDB(ctx context.Context, master *sql.DB) (*DB, error) {
 	return &db, err
 }
 
-func (base *DB) Set(ctx context.Context, brief, origin string) error {
+func (base *DB) Set(ctx context.Context, userID, brief, origin string) error {
 
-	err := base.master.QueryRowContext(ctx, "INSERT INTO short (brief, origin) VALUES ($1, $2) ", brief, origin).Scan()
+	err := base.master.QueryRowContext(ctx, "INSERT INTO short (user_id, brief, origin) VALUES ($1, $2, $3) ", userID, brief, origin).Scan()
 	if err != nil {
 		zap.S().Infoln("Insert error!: ", origin)
 		var pgErr *pgconn.PgError
@@ -72,6 +72,7 @@ func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, ok b
 		}
 		panic(err)
 	}
+
 	err = row.Err()
 	if err != nil {
 		panic(err)
@@ -81,7 +82,7 @@ func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, ok b
 
 func (base *DB) GetAll(ctx context.Context) []service.Short {
 
-	rows, err := base.master.QueryContext(ctx, "SELECT id, brief, origin from short")
+	rows, err := base.master.QueryContext(ctx, "SELECT id, user_id, brief, origin from short")
 	if err != nil {
 		panic(err)
 	}
@@ -91,7 +92,7 @@ func (base *DB) GetAll(ctx context.Context) []service.Short {
 	shorts := []service.Short{}
 	for rows.Next() {
 		var short service.Short
-		err = rows.Scan(&short.ID, &short.Brief, &short.Origin)
+		err = rows.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin)
 		if err != nil {
 			panic(err)
 		}
@@ -108,6 +109,34 @@ func (base *DB) GetAll(ctx context.Context) []service.Short {
 
 }
 
+func (base *DB) GetUserAll(ctx context.Context, userID string) []service.Short {
+
+	rows, err := base.master.QueryContext(ctx, "SELECT id, user_id, brief, origin from short where user_id=$1", userID)
+	if err != nil {
+		panic(err)
+	}
+
+	defer rows.Close()
+
+	shorts := []service.Short{}
+	for rows.Next() {
+		var short service.Short
+		err = rows.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin)
+		if err != nil {
+			panic(err)
+		}
+
+		shorts = append(shorts, short)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	return shorts
+}
+
 func (base *DB) SetAll(ctx context.Context, shorts []service.Short) error {
 
 	tx, err := base.master.Begin()
@@ -115,13 +144,13 @@ func (base *DB) SetAll(ctx context.Context, shorts []service.Short) error {
 		panic(err)
 	}
 
-	prep, err := base.master.PrepareContext(ctx, "INSERT INTO short (brief, origin) VALUES ($1, $2)")
+	prep, err := base.master.PrepareContext(ctx, "INSERT INTO short (user_id, brief, origin) VALUES ($1, $2, $3)")
 	if err != nil {
 		panic(err)
 	}
 
 	for _, short := range shorts {
-		_, err := prep.ExecContext(ctx, short.Brief, short.Origin)
+		_, err := prep.ExecContext(ctx, short.UUID, short.Brief, short.Origin)
 		if err != nil {
 			var pgErr *pgconn.PgError
 			// if URL exist in DataBase
@@ -154,8 +183,14 @@ func InitDB(ctx context.Context, dsn string) (db *sql.DB, err error) {
 
 	//create table short if not exist
 
-	// _, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS short (id SERIAL , user_id TEXT NOT NULL, brief TEXT NOT NULL, origin TEXT NOT NULL UNIQUE)")
-	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS short (id SERIAL , brief TEXT NOT NULL, origin TEXT NOT NULL UNIQUE)")
+	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS short (id SERIAL , user_id TEXT NULL, brief TEXT NOT NULL, origin TEXT NOT NULL UNIQUE)")
+	if err != nil {
+		return nil, err
+	}
+
+	//upgrade table if uuid not exist
+
+	_, err = db.ExecContext(ctx, "ALTER TABLE short ADD COLUMN IF NOT EXISTS user_id TEXT")
 	if err != nil {
 		return nil, err
 	}

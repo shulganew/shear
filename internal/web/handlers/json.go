@@ -47,11 +47,17 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 	}
+	brief := service.GenerateShorLink()
+	mainURL, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response, brief)
 
-	brief, mainURL, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response)
+	//find UserID in cookies
+	userID, err := req.Cookie("user_id")
+	if err != nil {
+		http.Error(res, "Can't find user in cookies", http.StatusUnauthorized)
+	}
 
 	//save map to storage
-	err = u.serviceURL.SetURL(req.Context(), brief, (*origin).String())
+	err = u.serviceURL.SetURL(req.Context(), userID.Value, brief, (*origin).String())
 
 	//set content type
 	res.Header().Add("Content-Type", "application/json")
@@ -60,15 +66,14 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 
 		var tagErr *storage.ErrDuplicatedURL
 		if errors.As(err, &tagErr) {
-			//set status code 409 Conflict
 
 			//get correct answer URL
-			res.WriteHeader(http.StatusConflict)
-			//send existed string from error
 			answer, err := url.JoinPath(mainURL, tagErr.Brief)
 			if err != nil {
 				zap.S().Errorln("Error during JoinPath", err)
 			}
+
+			//send existed string from error
 			response := Resonse{answer}
 			jsonBrokenURL, err := json.Marshal(response)
 			if err != nil {

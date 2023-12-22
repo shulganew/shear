@@ -10,9 +10,11 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
 	webhandl "github.com/shulganew/shear.git/internal/web/handlers"
+	"go.uber.org/zap"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/shulganew/shear.git/internal/storage"
@@ -61,6 +63,12 @@ func Test_main(t *testing.T) {
 	//init storage
 	handler := webhandl.NewHandlerWeb(configApp, &stor)
 	serviceURL := handler.GetServiceURL()
+
+	userID, err := uuid.NewV7()
+	if err != nil {
+		zap.S().Errorln("Error generate user uuid")
+	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
@@ -68,11 +76,13 @@ func Test_main(t *testing.T) {
 				t.Log("=============POTS===============")
 				t.Log("tt.request=", tt.request)
 				t.Log("strings.NewReader(tt.body)=", tt.body)
-				request := httptest.NewRequest(http.MethodPost, tt.request, strings.NewReader(tt.body))
+				req := httptest.NewRequest(http.MethodPost, tt.request, strings.NewReader(tt.body))
+				cookie := http.Cookie{Name: "user_id", Value: userID.String()}
+				req.AddCookie(&cookie)
 				//create status recorder
 				resRecord := httptest.NewRecorder()
 
-				handler.SetURL(resRecord, request)
+				handler.SetURL(resRecord, req)
 
 				//get result
 				res := resRecord.Result()
@@ -101,7 +111,7 @@ func Test_main(t *testing.T) {
 
 				brief := strings.TrimLeft(responseURL.Path, "/")
 
-				originDB, exist := serviceURL.GetOrigin(request.Context(), brief)
+				originDB, exist := serviceURL.GetOrigin(req.Context(), brief)
 				require.True(t, exist)
 
 				t.Log("brief url: ", brief)
@@ -134,12 +144,15 @@ func Test_main(t *testing.T) {
 				rctx.URLParams.Add("id", brief)
 
 				//use context for chi router - add id
-				request := httptest.NewRequest(http.MethodGet, requestURL, nil)
-				request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
+				req := httptest.NewRequest(http.MethodGet, requestURL, nil)
+				req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+				cookie := http.Cookie{Name: "user_id", Value: userID.String()}
+				req.AddCookie(&cookie)
 
 				//create status recorder
 				resRecord := httptest.NewRecorder()
-				handler.GetURL(resRecord, request)
+				handler.GetURL(resRecord, req)
 
 				//get result
 				res := resRecord.Result()

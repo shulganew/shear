@@ -21,7 +21,8 @@ func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB) (r *c
 	//send password for enctription to middlewares
 	r.Use(func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ctx := context.WithValue(r.Context(), "password", conf.Pass)
+
+			ctx := context.WithValue(r.Context(), config.CtxPassKey{}, conf.Pass)
 			h.ServeHTTP(w, r.WithContext(ctx))
 		})
 	})

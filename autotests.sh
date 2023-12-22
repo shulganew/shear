@@ -52,22 +52,22 @@ check 10 $?
 #11
           shortenertestbeta -test.v -test.run=^TestIteration11$ \
               -binary-path=cmd/shortener/shortener \
-              -database-dsn='postgres://short:1@postgres:5432/praktikum?sslmode=disable'
+              -database-dsn='postgres://short:1@postgres:5432/praktikum?sslmode=disable' > /dev/null
 check 11 $?
 #12
           shortenertestbeta -test.v -test.run=^TestIteration12$ \
               -binary-path=cmd/shortener/shortener \
-              -database-dsn='postgres://short:1@postgres:5432/praktikum?sslmode=disable'
+              -database-dsn='postgres://short:1@postgres:5432/praktikum?sslmode=disable' > /dev/null
 check 12 $?
 #13
           shortenertestbeta -test.v -test.run=^TestIteration13$ \
               -binary-path=cmd/shortener/shortener \
-              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
+              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' > /dev/null
 check 13 $?
 #14
-#          shortenertestbeta -test.v -test.run=^TestIteration14$ \
-#              -binary-path=cmd/shortener/shortener \
-#              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
+          shortenertestbeta -test.v -test.run=^TestIteration14$ \
+              -binary-path=cmd/shortener/shortener \
+              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
 #15
 #          shortenertestbeta -test.v -test.run=^TestIteration15$ \
 #              -binary-path=cmd/shortener/shortener \

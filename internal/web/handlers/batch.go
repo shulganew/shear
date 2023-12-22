@@ -38,6 +38,12 @@ func (u *HandlerBatch) GetService() service.Shortener {
 
 func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 
+	//find UserID in cookies
+	userID, err := req.Cookie("user_id")
+	if err != nil {
+		http.Error(res, "Can't find user in cookies", http.StatusUnauthorized)
+	}
+
 	//handle bach requests
 	var requests []BatchRequest
 
@@ -50,7 +56,7 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 
 	batches := []BatchResonse{}
 	shorts := []service.Short{}
-	for _, r := range requests {
+	for i, r := range requests {
 
 		origin, err := url.Parse(string(r.Origin))
 		if err != nil {
@@ -58,7 +64,8 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 		}
 
 		//get short brief and full answer URL
-		brief, _, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response)
+		brief := service.GenerateShorLink()
+		_, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response, brief)
 		//get batch for answer
 		batch := BatchResonse{SessionID: r.SessionID, Answer: answerURL.String()}
 		//add batches
@@ -68,12 +75,12 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 			zap.S().Errorln("Brocken sessionID", batch.SessionID)
 		}
 
-		shortSession := service.Short{Brief: brief, Origin: (*origin).String(), SessionID: batch.SessionID}
-		shorts = append(shorts, shortSession)
+		shortSession := service.NewShort(i, userID.Value, brief, (*origin).String(), batch.SessionID)
+		shorts = append(shorts, *shortSession)
 
 	}
 	//save to storage
-	err := u.serviceURL.SetAll(req.Context(), shorts)
+	err = u.serviceURL.SetAll(req.Context(), shorts)
 
 	//check duplicated strings
 	var tagErr *storage.ErrDuplicatedShort

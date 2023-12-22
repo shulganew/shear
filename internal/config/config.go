@@ -10,6 +10,8 @@ import (
 
 const DefaultHost string = "localhost:8080"
 
+type CtxPassKey struct{}
+
 type Config struct {
 	//flag -a
 	Address string
