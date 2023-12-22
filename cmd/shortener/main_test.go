@@ -11,8 +11,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/config"
+	"github.com/shulganew/shear.git/internal/service"
 	webhandl "github.com/shulganew/shear.git/internal/web/handlers"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -49,19 +51,15 @@ func Test_main(t *testing.T) {
 
 	// init configApp
 	configApp := config.InitConfig()
-	if configApp.Backup.IsActive {
-		ctx, cancel := config.InitContext()
-		config.InitBackup(ctx, configApp)
-		defer cancel()
 
-	}
 	// init config with difauls values
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost
-	configApp.Storage = &storage.MemoryStorage{StoreURLs: []storage.Short{}}
+
+	stor := service.StorageURL(storage.NewMemory())
 
 	//init storage
-	handler := webhandl.NewHandlerWeb(configApp)
+	handler := webhandl.NewHandlerWeb(configApp, &stor)
 	serviceURL := handler.GetServiceURL()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -95,23 +93,23 @@ func Test_main(t *testing.T) {
 				t.Log("Body: ", body)
 				defer res.Body.Close()
 
-				//responseURL = hostname+shortUrl
+				//responseURL = hostname+brief
 				responseURL, err := url.Parse(body)
 				require.NoError(t, err)
 
 				t.Log("full url: ", responseURL.Path)
 
-				shortURL := strings.TrimLeft(responseURL.Path, "/")
+				brief := strings.TrimLeft(responseURL.Path, "/")
 
-				longURLDb, exist := serviceURL.GetLongURL(shortURL)
+				originDB, exist := serviceURL.GetOrigin(request.Context(), brief)
 				require.True(t, exist)
 
-				t.Log("shortUrl url: ", shortURL)
-				responseURLDb, err := url.JoinPath(longURLDb, shortURL)
+				t.Log("brief url: ", brief)
+				responseURLDb, err := url.JoinPath(originDB, brief)
 				require.NoError(t, err)
 
 				t.Log("ressponseUrl from db: ", responseURLDb)
-				bodyURL, _ := url.JoinPath(tt.body, shortURL)
+				bodyURL, _ := url.JoinPath(tt.body, brief)
 				t.Log("body url the same: ", bodyURL)
 
 				//check request url and body url the same
@@ -122,18 +120,18 @@ func Test_main(t *testing.T) {
 			} else if tt.method == http.MethodGet {
 				t.Log("=============GET===============")
 
-				//get shortURL from storage
-				shortURL, error := serviceURL.GetShortURL(tt.body)
+				//get brief from storage
+				brief, error := serviceURL.GetBrief(context.Background(), tt.body)
 
-				t.Log("shortUrl: ", shortURL)
+				t.Log("brief: ", brief)
 				require.NotNil(t, error)
 
 				//
-				requestURL, _ := url.JoinPath(tt.request, shortURL)
+				requestURL, _ := url.JoinPath(tt.request, brief)
 				t.Log("requestUrl: ", requestURL)
 
 				rctx := chi.NewRouteContext()
-				rctx.URLParams.Add("id", shortURL)
+				rctx.URLParams.Add("id", brief)
 
 				//use context for chi router - add id
 				request := httptest.NewRequest(http.MethodGet, requestURL, nil)

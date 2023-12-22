@@ -10,7 +10,9 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/shulganew/shear.git/internal/config"
+	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -44,19 +46,14 @@ func Test_api(t *testing.T) {
 
 	// init configApp
 	configApp := config.InitConfig()
-	if configApp.Backup.IsActive {
-		ctx, cancel := config.InitContext()
-		config.InitBackup(ctx, configApp)
-		defer cancel()
 
-	}
 	// init config with difauls values
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost
-	configApp.Storage = &storage.MemoryStorage{StoreURLs: []storage.Short{}}
 
+	stor := service.StorageURL(storage.NewMemory())
 	//init storage
-	apiHand := NewHandlerAPI(configApp)
+	apiHand := NewHandlerAPI(configApp, &stor)
 	serviceURL := apiHand.GetService()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -73,7 +70,7 @@ func Test_api(t *testing.T) {
 			//create status recorder
 			resRecord := httptest.NewRecorder()
 
-			apiHand.GetShortURL(resRecord, req)
+			apiHand.GetBrief(resRecord, req)
 
 			//get result
 			res := resRecord.Result()
@@ -88,18 +85,18 @@ func Test_api(t *testing.T) {
 			err := json.NewDecoder(res.Body).Decode(&response)
 			require.NoError(t, err)
 
-			//responseURL = hostname+shortUrl
+			//responseURL = hostname+brief
 			responseURL, err := url.Parse(response.Brief)
 			require.NoError(t, err)
 			t.Log(responseURL)
-			shortURL := strings.TrimLeft(responseURL.Path, "/")
+			brief := strings.TrimLeft(responseURL.Path, "/")
 
-			longURLDb, exist := serviceURL.GetLongURL(shortURL)
+			originDB, exist := serviceURL.GetOrigin(req.Context(), brief)
 			require.True(t, exist)
 
-			t.Log("shortUrl url: ", longURLDb)
+			t.Log("brief url: ", originDB)
 
-			assert.Equal(t, longURLDb, tt.link)
+			assert.Equal(t, originDB, tt.link)
 
 		})
 	}

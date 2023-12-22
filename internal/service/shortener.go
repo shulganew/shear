@@ -1,46 +1,83 @@
 package service
 
 import (
+	"context"
+	"fmt"
 	"math/rand"
 	"net/url"
 	"strings"
 
-	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"
 )
 
 const ShortLength = 8
 
+// base stract for working with storage
+type Short struct {
+	ID int `json:"uuid"`
+	//short URL (cache)
+	Brief string `json:"short_url"`
+	//Long full URL
+	Origin string `json:"original_url"`
+	//For Batch reques use: Unicque Session ID for each request in URL Batch
+	SessionID string
+}
+
 // generate sort URL
 // save short URL
 // get logn URL
 type Shortener struct {
-	storeURLs storage.StorageURL
-	backup    Backup
+	storeURLs StorageURL
 }
 
-func (s *Shortener) SetURL(sortURL, longURL string) {
-	zap.S().Infof("Store. Save URL [%s]=%s", sortURL, longURL)
-	s.storeURLs.SetURL(sortURL, longURL)
+// intarface for universal data storage
+type StorageURL interface {
+	Set(ctx context.Context, brief, origin string) error
+	GetOrigin(ctx context.Context, brief string) (string, bool)
+	GetBrief(ctx context.Context, origin string) (string, bool)
+	GetAll(ctx context.Context) []Short
+	SetAll(ctx context.Context, short []Short) error
 }
 
-func (s *Shortener) GetLongURL(sortURL string) (longURL string, exist bool) {
-	return s.storeURLs.GetLongURL(sortURL)
+// return service
+func NewService(storage *StorageURL) *Shortener {
+	return &Shortener{storeURLs: *storage}
 }
 
-func (s *Shortener) GetShortURL(longURL string) (shortURL string, exist bool) {
-	return s.storeURLs.GetShortURL(longURL)
+func (s *Shortener) SetURL(ctx context.Context, brief, origin string) (err error) {
+	zap.S().Infof("Store. Save URL [%s]=%s", brief, origin)
+	err = s.storeURLs.Set(ctx, brief, origin)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-// return anwwer url: "shema + respose server addres from config + shortURL"
-func (s *Shortener) GetAnsURL(shema, resultaddr string) (shortURL string, answerURL *url.URL) {
+func (s *Shortener) GetOrigin(ctx context.Context, brief string) (origin string, exist bool) {
+	return s.storeURLs.GetOrigin(ctx, brief)
+}
+
+func (s *Shortener) GetBrief(ctx context.Context, origin string) (brief string, exist bool) {
+	return s.storeURLs.GetBrief(ctx, origin)
+}
+
+func (s *Shortener) SetAll(ctx context.Context, short []Short) (err error) {
+	err = s.storeURLs.SetAll(ctx, short)
+	if err != nil {
+		return fmt.Errorf("error during save URL to Store: %w", err)
+	}
+	return nil
+}
+
+// return anwwer url: "shema + respose server addres from config + brief"
+func (s *Shortener) GetAnsURL(shema, resultaddr string) (brief string, mainURL string, answerURL *url.URL) {
 	//main URL = Shema + hostname + port (from result add -flag cmd -b)
-	mainURL := shema + "://" + resultaddr
+	mainURL = shema + "://" + resultaddr
 
-	shortURL = GenerateShorLink()
+	brief = GenerateShorLink()
 
 	//join full long URL
-	longStrURL, err := url.JoinPath(mainURL, shortURL)
+	longStrURL, err := url.JoinPath(mainURL, brief)
 	if err != nil {
 		zap.S().Errorln("Error during JoinPath", err)
 	}
@@ -65,9 +102,4 @@ func GenerateShorLink() string {
 		sb.WriteByte(charset[rand.Intn(len(charset))])
 	}
 	return sb.String()
-}
-
-// return service
-func NewService(storage storage.StorageURL, backup Backup) *Shortener {
-	return &Shortener{storeURLs: storage, backup: backup}
 }

@@ -1,46 +1,43 @@
 package config
 
 import (
-	"context"
 	"flag"
 	"os"
-	"os/signal"
-	"syscall"
 
-	"github.com/shulganew/shear.git/internal/service"
-	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/shulganew/shear.git/internal/web/validators"
 	"go.uber.org/zap"
 )
 
 const DefaultHost string = "localhost:8080"
 
-type Shear struct {
+type Config struct {
 	//flag -a
 	Address string
 	//env var, or flag -b if env not exist
 	Response string
 
-	Backup service.Backup
+	//Is backup enable
+	IsBackup bool
 
-	Storage storage.StorageURL
+	//File Path for backup
+	BackupPath string
+
+	//Is db enable
+	IsDB bool
+
+	//dsn connection string
+	DSN string
 }
 
-func InitConfig() *Shear {
+func InitConfig() *Config {
 
-	config := Shear{}
-
-	//set logger
-	InitLog()
-
-	//set MemoryStorage storage
-	config.Storage = &storage.MemoryStorage{StoreURLs: []storage.Short{}}
+	config := Config{}
 
 	//read command line argue
-
 	startAddress := flag.String("a", "localhost:8080", "start server address and port")
 	resultAddress := flag.String("b", "localhost:8080", "answer address and port")
 	tempf := flag.String("f", "", "Location of dump file")
+	dsnf := flag.String("d", "", "Data Source Name for DataBase connection")
 	flag.Parse()
 	//check and parse URL
 
@@ -62,80 +59,54 @@ func InitConfig() *Shear {
 
 	} else {
 		zap.S().Infoln("Env var SERVER_ADDRESS not found, use default", config.Response)
+
+	}
+
+	//init Storage
+	dsn, exist := os.LookupEnv(("DATABASE_DSN"))
+	//init shotrage DB from env
+	if exist {
+		zap.S().Infoln("Use DataBase Storge. Found location DATABASE_DSN, use: ", dsn)
+		config.DSN = dsn
+		config.IsDB = true
+
+	} else if *dsnf != "" {
+		dsn = *dsnf
+		zap.S().Infoln("Use DataBase Storge. Found -d flag, use: ", dsn)
+		config.DSN = dsn
+		config.IsDB = true
+
 	}
 
 	//define backup file
-	config.Backup = service.Backup{}
 
 	temp, exist := os.LookupEnv(("FILE_STORAGE_PATH"))
 	if exist {
-		config.Backup = *service.New(temp, true, config.Storage)
-		zap.S().Infoln("Found backup's evn, use file: ", config.Backup.File)
+		zap.S().Infoln("Found backup's evn, use file: ", temp)
+		config.IsBackup = true
+		config.BackupPath = temp
 	} else if *tempf != "" {
-		config.Backup = *service.New(*tempf, true, config.Storage)
+		zap.S().Infoln("Found backup's flag, use file: ", *tempf)
+		config.IsBackup = true
+		config.BackupPath = *tempf
 	} else {
-		config.Backup = *service.New(*tempf, false, config.Storage)
+		config.IsBackup = false
+		config.BackupPath = ""
 	}
-
-	zap.S().Infoln("Backup isActive: ", config.Backup.IsActive)
-
-	//load all dump links
-	shorts, err := config.Backup.Load()
-	if err != nil {
-		zap.S().Error("Error load backup!", err)
-	}
-
-	//set MemoryStorage storage
-	config.Storage = &storage.MemoryStorage{StoreURLs: shorts}
 
 	zap.S().Infoln("Configuration complite")
 	return &config
 }
 
-func (c *Shear) SetConfig(startAddress, resultAddress string) {
+func (c *Config) SetConfig(startAddress, resultAddress string) {
 	c.Address = startAddress
 	c.Response = resultAddress
 }
 
-func (c *Shear) GetStartAddr() string {
+func (c *Config) GetStartAddr() string {
 	return c.Address
 }
 
-func (c *Shear) GetResultAddr() string {
+func (c *Config) GetResultAddr() string {
 	return c.Response
-}
-
-func InitLog() zap.SugaredLogger {
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-
-		panic(err)
-	}
-	zap.ReplaceGlobals(logger)
-	defer logger.Sync()
-
-	sugar := *logger.Sugar()
-
-	defer sugar.Sync()
-	return sugar
-}
-
-// Init context from graceful shutdown. Send to all function for return by syscall.SIGINT, syscall.SIGTERM
-func InitContext() (ctx context.Context, cancel context.CancelFunc) {
-	exit := make(chan os.Signal, 1)
-	ctx, cancel = context.WithCancel(context.Background())
-	signal.Notify(exit, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-exit
-		cancel()
-	}()
-	return
-}
-
-// Activate backup
-func InitBackup(ctx context.Context, config *Shear) {
-	//Time machine
-	service.TimeBackup(config.Storage, config.Backup)
-	//backup on graceful
-	service.Shutdown(ctx, config.Storage, config.Backup)
 }

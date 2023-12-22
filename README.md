@@ -20,10 +20,25 @@ set SERVER_ADDRESS=localhost:8080
 echo %SERVER_ADDRESS%
 ```
 # Git
-
+```
 //git push -u origin iter5
 //git checkout -b iter1
+```
 
+# PostGreSQL
+
+```
+Connection string:
+postgresql://[user[:password]@][netloc][:port][/dbname][?param1=value1&...]
+postgresql://short:1@localhost/short
+~/.bashrc
+export DATABASE_DSN=postgresql://short:1@localhost/short
+```
+# Backup
+~/.bash_profile
+```
+export FILE_STORAGE_PATH=/tmp/short-url-db.json
+```
 
 # Tests
 
