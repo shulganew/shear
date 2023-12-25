@@ -13,7 +13,7 @@ go vet -vettool=$(which statictest) ./...
 check S $? 
 TEMP_FILE=$(random tempfile)
 #1
-shortenertestbeta -test.v -test.run=^TestIteration1$ -binary-path=cmd/shortener/shortener
+shortenertestbeta -test.v -test.run=^TestIteration1$ -binary-path=cmd/shortener/shortener> /dev/null
 check 1 $?
 #2
 shortenertestbeta -test.v -test.run=^TestIteration2$ -source-path=. > /dev/null
@@ -47,7 +47,7 @@ check 9 $?
           shortenertestbeta -test.v -test.run=^TestIteration10$ \
               -binary-path=cmd/shortener/shortener \
               -source-path=. \
-              -database-dsn='postgres://short:1@postgres:5432/praktikum?sslmode=disable'
+              -database-dsn='postgres://short:1@postgres:5432/praktikum?sslmode=disable' > /dev/null
 check 10 $?
 #11
           shortenertestbeta -test.v -test.run=^TestIteration11$ \
@@ -67,7 +67,7 @@ check 13 $?
 #14
           shortenertestbeta -test.v -test.run=^TestIteration14$ \
               -binary-path=cmd/shortener/shortener \
-              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
+              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'> /dev/null
 #15
 #          shortenertestbeta -test.v -test.run=^TestIteration15$ \
 #              -binary-path=cmd/shortener/shortener \

@@ -54,3 +54,13 @@ func (m Memory) GetUserAll(ctx context.Context, userID string) []service.Short {
 	slices.DeleteFunc(m.StoreURLs, func(s service.Short) bool { return s.UUID.String == userID })
 	return m.StoreURLs
 }
+
+func (m *Memory) DelelteBatch(ctx context.Context, userID string, briefs []string) {
+	for _, brief := range briefs {
+		id := slices.IndexFunc(m.StoreURLs, func(s service.Short) bool { return s.Brief == brief && s.UUID.String == userID })
+		if id != -1 {
+			m.StoreURLs[id].IsDeleted = true
+
+		}
+	}
+}

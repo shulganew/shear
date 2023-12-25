@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"net/http"
 	"os"
@@ -10,9 +11,12 @@ import (
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/storage"
+	"github.com/shulganew/shear.git/internal/web/handlers"
 	"github.com/shulganew/shear.git/internal/web/router"
 	"go.uber.org/zap"
 )
+
+
 
 func main() {
 
@@ -47,7 +51,23 @@ func main() {
 
 	}()
 
-	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, stor, db)); err != nil {
+	// сигнальный канал для завершения горутин
+	doneCh := make(chan struct{})
+	// закрываем его при завершении программы
+	defer close(doneCh)
+
+	// канал с данными
+	inputCh := make(chan handlers.DelBrief, 1000)
+
+	go func(ctx context.Context, s *service.StorageURL) {
+		service := service.NewService(s)
+		for res := range inputCh {
+			service.DelelteBatch(ctx, res.UserID, res.Briefs)
+		}
+
+	}(ctx, stor)
+
+	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, stor, db, inputCh)); err != nil {
 		panic(err)
 	}
 

@@ -111,7 +111,7 @@ func (base *DB) GetAll(ctx context.Context) []service.Short {
 
 func (base *DB) GetUserAll(ctx context.Context, userID string) []service.Short {
 
-	rows, err := base.master.QueryContext(ctx, "SELECT id, user_id, brief, origin from short where user_id=$1", userID)
+	rows, err := base.master.QueryContext(ctx, "SELECT id, user_id, brief, origin FROM short WHERE user_id=$1", userID)
 	if err != nil {
 		panic(err)
 	}
@@ -150,6 +150,7 @@ func (base *DB) SetAll(ctx context.Context, shorts []service.Short) error {
 	}
 
 	for _, short := range shorts {
+		zap.S().Infoln("Insert!!!!!!!!!!!!!! ", short.Brief)
 		_, err := prep.ExecContext(ctx, short.UUID, short.Brief, short.Origin)
 		if err != nil {
 			var pgErr *pgconn.PgError
@@ -173,6 +174,42 @@ func (base *DB) SetAll(ctx context.Context, shorts []service.Short) error {
 	return nil
 }
 
+func (base *DB) DelelteBatch(ctx context.Context, userID string, briefs []string) {
+	zap.S().Infoln("UPDATE !!!!!!!!!!!!!! ", briefs)
+	time.Sleep(time.Second)
+	tx, err := base.master.Begin()
+
+	if err != nil {
+		panic(err)
+	}
+
+	//prerare bulck request to database
+	//fille
+	userIDs := make([]string, len(briefs), len(briefs))
+	for i := range briefs {
+		userIDs[i] = userID
+	}
+
+	bulck := `
+	UPDATE short SET is_deleted = TRUE 
+	FROM (SELECT unnest($1::text[]) AS user_id, unnest($2::text[]) AS brief) AS data_table 
+	WHERE short.user_id = data_table.user_id AND short.brief = data_table.brief;
+	`
+
+	_, err = base.master.ExecContext(ctx, bulck, userIDs, briefs)
+
+	if err != nil {
+		tx.Rollback()
+		panic(err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		panic(err)
+	}
+
+}
+
 // Init Database
 func InitDB(ctx context.Context, dsn string) (db *sql.DB, err error) {
 
@@ -189,8 +226,13 @@ func InitDB(ctx context.Context, dsn string) (db *sql.DB, err error) {
 	}
 
 	//upgrade table if uuid not exist
-
 	_, err = db.ExecContext(ctx, "ALTER TABLE short ADD COLUMN IF NOT EXISTS user_id TEXT")
+	if err != nil {
+		return nil, err
+	}
+
+	//upgrade table if is_deleted not exist
+	_, err = db.ExecContext(ctx, "ALTER TABLE short ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE")
 	if err != nil {
 		return nil, err
 	}

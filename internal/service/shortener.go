@@ -22,12 +22,19 @@ const ShortLength = 8
 // base stract for working with storage
 type Short struct {
 	ID int `json:"uuid"`
+
 	//unique user id string
 	UUID sql.NullString `json:"-"`
+
+	//mark deleted URL by user
+	IsDeleted bool `json:"-"`
+
 	//short URL (cache)
 	Brief string `json:"short_url"`
+
 	//Long full URL
 	Origin string `json:"original_url"`
+
 	//For Batch reques use: Unique Session ID for each request in URL Batch
 	SessionID string `json:"-"`
 }
@@ -38,7 +45,7 @@ func NewShort(ID int, UUID string, brief string, origin string, sessionID string
 		nullUUID.Valid = false
 	}
 
-	return &Short{ID, nullUUID, brief, origin, sessionID}
+	return &Short{ID, nullUUID, false, brief, origin, sessionID}
 }
 
 // generate sort URL
@@ -55,7 +62,8 @@ type StorageURL interface {
 	GetOrigin(ctx context.Context, brief string) (string, bool)
 	GetBrief(ctx context.Context, origin string) (string, bool)
 	GetAll(ctx context.Context) []Short
-	GetUserAll(ctx context.Context, UserID string) []Short
+	GetUserAll(ctx context.Context, userID string) []Short
+	DelelteBatch(ctx context.Context, userID string, briefs []string)
 }
 
 // return service
@@ -90,6 +98,10 @@ func (s *Shortener) GetBrief(ctx context.Context, origin string) (brief string, 
 
 func (s *Shortener) GetUserAll(ctx context.Context, userID string) (short []Short) {
 	return s.storeURLs.GetUserAll(ctx, userID)
+}
+
+func (s *Shortener) DelelteBatch(ctx context.Context, userID string, briefs []string) {
+	s.storeURLs.DelelteBatch(ctx, userID, briefs)
 }
 
 // return anwwer url: "shema + respose server addres from config + brief"
