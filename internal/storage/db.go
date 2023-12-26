@@ -184,9 +184,8 @@ func (base *DB) SetAll(ctx context.Context, shorts []service.Short) error {
 }
 
 func (base *DB) DelelteBatch(ctx context.Context, userID string, briefs []string) {
-	zap.S().Infoln("Delete briefs: ", len(briefs))
+
 	//prerare bulck request to database
-	//fille
 	userIDs := make([]string, len(briefs))
 	for i := range briefs {
 		userIDs[i] = userID

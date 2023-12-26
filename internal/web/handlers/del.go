@@ -9,7 +9,6 @@ import (
 
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
-	"go.uber.org/zap"
 )
 
 const BATCHSIZE int = 10
@@ -119,21 +118,19 @@ func writeDB(doneCh chan struct{}, input chan string, userID string, stor *servi
 }
 
 func generator(doneCh chan struct{}, input []string) chan string {
-	inputCh := make(chan string)
+	inputCh := make(chan string, BATCHSIZE)
 
 	go func() {
 		defer close(inputCh)
 
-		for i, data := range input {
-			zap.S().Infoln("Input ", data, " ", i)
+		for _, data := range input {
+
 			select {
 
 			case <-doneCh:
-				zap.S().Infoln("Generator closed")
 				return
 
 			case inputCh <- data:
-				zap.S().Infoln("Send data ", data)
 			}
 		}
 	}()
