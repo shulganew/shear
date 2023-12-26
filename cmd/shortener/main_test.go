@@ -111,7 +111,7 @@ func Test_main(t *testing.T) {
 
 				brief := strings.TrimLeft(responseURL.Path, "/")
 
-				originDB, exist := serviceURL.GetOrigin(req.Context(), brief)
+				originDB, exist, _ := serviceURL.GetOrigin(req.Context(), brief)
 				require.True(t, exist)
 
 				t.Log("brief url: ", brief)
@@ -131,7 +131,7 @@ func Test_main(t *testing.T) {
 				t.Log("=============GET===============")
 
 				//get brief from storage
-				brief, error := serviceURL.GetBrief(context.Background(), tt.body)
+				brief, error, _ := serviceURL.GetBrief(context.Background(), tt.body)
 
 				t.Log("brief: ", brief)
 				require.NotNil(t, error)

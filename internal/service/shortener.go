@@ -59,8 +59,8 @@ type Shortener struct {
 type StorageURL interface {
 	Set(ctx context.Context, userID string, brief, origin string) error
 	SetAll(ctx context.Context, short []Short) error
-	GetOrigin(ctx context.Context, brief string) (string, bool)
-	GetBrief(ctx context.Context, origin string) (string, bool)
+	GetOrigin(ctx context.Context, brief string) (string, bool, bool)
+	GetBrief(ctx context.Context, origin string) (string, bool, bool)
 	GetAll(ctx context.Context) []Short
 	GetUserAll(ctx context.Context, userID string) []Short
 	DelelteBatch(ctx context.Context, userID string, briefs []string)
@@ -72,7 +72,7 @@ func NewService(storage *StorageURL) *Shortener {
 }
 
 func (s *Shortener) SetURL(ctx context.Context, userID, brief, origin string) (err error) {
-	zap.S().Infof("Store. Save URL [%s]=%s", brief, origin)
+	//zap.S().Infof("Store. Save URL [%s]=%s", brief, origin)
 	err = s.storeURLs.Set(ctx, userID, brief, origin)
 	if err != nil {
 		return err
@@ -88,11 +88,11 @@ func (s *Shortener) SetAll(ctx context.Context, short []Short) (err error) {
 	return nil
 }
 
-func (s *Shortener) GetOrigin(ctx context.Context, brief string) (origin string, exist bool) {
+func (s *Shortener) GetOrigin(ctx context.Context, brief string) (origin string, exist bool, isDeleted bool) {
 	return s.storeURLs.GetOrigin(ctx, brief)
 }
 
-func (s *Shortener) GetBrief(ctx context.Context, origin string) (brief string, exist bool) {
+func (s *Shortener) GetBrief(ctx context.Context, origin string) (brief string, exist bool, isDeleted bool) {
 	return s.storeURLs.GetBrief(ctx, origin)
 }
 

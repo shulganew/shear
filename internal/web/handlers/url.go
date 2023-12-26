@@ -34,12 +34,18 @@ func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 	brief := chi.URLParam(req, "id")
 
 	//get long Url from storage
-	origin, exist := u.serviceURL.GetOrigin(req.Context(), brief)
+	origin, exist, isDeleted := u.serviceURL.GetOrigin(req.Context(), brief)
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
 
 	if exist {
+		if isDeleted {
+			//set status code 410
+			res.WriteHeader(http.StatusGone)
+
+			return
+		}
 		res.Header().Set("Location", origin)
 		//set status code 307
 		res.WriteHeader(http.StatusTemporaryRedirect)

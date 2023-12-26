@@ -100,7 +100,7 @@ func Test_api(t *testing.T) {
 			t.Log(responseURL)
 			brief := strings.TrimLeft(responseURL.Path, "/")
 
-			originDB, exist := serviceURL.GetOrigin(req.Context(), brief)
+			originDB, exist, _ := serviceURL.GetOrigin(req.Context(), brief)
 			require.True(t, exist)
 
 			t.Log("brief url: ", originDB)

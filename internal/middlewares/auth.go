@@ -29,7 +29,7 @@ func Auth(h http.Handler) http.Handler {
 				req.AddCookie(cookie)
 			}
 
-			zap.S().Infoln("UserID: ", userID)
+			
 
 		} else {
 			//cookie not set or not decoded

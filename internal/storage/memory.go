@@ -27,20 +27,23 @@ func (m *Memory) SetAll(ctx context.Context, shotrs []service.Short) error {
 	return nil
 }
 
-func (m Memory) GetOrigin(ctx context.Context, brief string) (origin string, ok bool) {
+func (m Memory) GetOrigin(ctx context.Context, brief string) (origin string, existed bool, isDeleted bool) {
 	id := slices.IndexFunc(m.StoreURLs, func(s service.Short) bool { return s.Brief == brief })
 	if id != -1 {
 		origin = m.StoreURLs[id].Origin
-		ok = true
+		existed = true
+		isDeleted = m.StoreURLs[id].IsDeleted
 	}
+
 	return
 }
 
-func (m Memory) GetBrief(ctx context.Context, origin string) (brief string, ok bool) {
+func (m Memory) GetBrief(ctx context.Context, origin string) (brief string, existed bool, isDeleted bool) {
 	id := slices.IndexFunc(m.StoreURLs, func(s service.Short) bool { return s.Origin == origin })
 	if id != -1 {
 		brief = m.StoreURLs[id].Brief
-		ok = true
+		existed = true
+		isDeleted = m.StoreURLs[id].IsDeleted
 	}
 	return
 

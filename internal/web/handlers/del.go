@@ -4,27 +4,25 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"sync"
 
+	"github.com/shulganew/shear.git/internal/concurrent"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
 )
 
-const BATCHSIZE int = 2
+const BATCHSIZE int = 30
 
 type DelShorts struct {
 	serviceURL *service.Shortener
 	conf       *config.Config
-	inputCh    chan DelBrief
+	chgen      *concurrent.ChGen
+	cond       *sync.Cond
 }
 
-type DelBrief struct {
-	Briefs []string
-	UserID string
-}
+func NewHandlerDelShorts(conf *config.Config, stor *service.StorageURL, cg *concurrent.ChGen, cd *sync.Cond) *DelShorts {
 
-func NewHandlerDelShorts(conf *config.Config, stor *service.StorageURL, inCh chan DelBrief) *DelShorts {
-
-	return &DelShorts{serviceURL: service.NewService(stor), conf: conf, inputCh: inCh}
+	return &DelShorts{serviceURL: service.NewService(stor), conf: conf, chgen: cg, cond: cd}
 }
 
 func (u *DelShorts) GetServiceURL() service.Shortener {
@@ -48,9 +46,7 @@ func (u *DelShorts) DelUserURLs(res http.ResponseWriter, req *http.Request) {
 			req.AddCookie(cookie)
 		}
 
-		//create slice of Breifs size of int BATCHSIZE
-
-		closeCh := DeleteGorutine(req, u.inputCh, userID)
+		DeleteGorutine(req, u.chgen, userID, u.cond)
 		// while the array contains values
 
 		// set content type
@@ -60,19 +56,24 @@ func (u *DelShorts) DelUserURLs(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusAccepted)
 
 		res.Write([]byte("Done."))
-		
-		<-closeCh
+
 	} else {
 		http.Error(res, "Cookie not set or can't Open UserID Seal", http.StatusUnauthorized)
 	}
 
 }
 
-func DeleteGorutine(req *http.Request, inputCh chan DelBrief, userID string) chan struct{} {
+func DeleteGorutine(req *http.Request, chgen *concurrent.ChGen, userID string, cond *sync.Cond) {
 
-	closeCh := make(chan struct{})
+	//create slice of Breifs size of int BATCHSIZE
+	inputCh := make(chan concurrent.DelBrief)
+	chgen.AddChennel(inputCh)
+	cond.Broadcast()
 
-	go func(req *http.Request, inputCh chan DelBrief, userID string) {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func(req *http.Request, inputCh chan concurrent.DelBrief, userID string) {
+
 		//read body as buffer
 		dec := json.NewDecoder(req.Body)
 
@@ -93,23 +94,31 @@ func DeleteGorutine(req *http.Request, inputCh chan DelBrief, userID string) cha
 			//check end of json array
 			if brief != "]" {
 				breifs = append(breifs, brief)
+			} else {
+				break
 			}
 
 			// send butch of short ULS (briefs) in channel, zise BATCHSIZE
-			if len(breifs) == BATCHSIZE {
-				inputCh <- DelBrief{UserID: userID, Briefs: breifs}
-				//clean slice for next briefs from buffer
-				breifs = breifs[:0]
-			}
+			//if len(breifs) == BATCHSIZE {
+
+			inputCh <- concurrent.DelBrief{UserID: userID, Briefs: breifs}
+			//clean slice for next briefs from buffer
+			//	breifs = breifs[:0]
+			//	}
 
 		}
 
 		//send last breifs, that wasn't sent with batch BATCHSIZE (less BATCHSIZE)
-		if len(breifs) != 0 {
-			inputCh <- DelBrief{UserID: userID, Briefs: breifs}
-		}
+		//if len(breifs) != 0 {
+		//	inputCh <- concurrent.DelBrief{UserID: userID, Briefs: breifs}
+		//}
+		wg.Done()
 
-		close(closeCh)
 	}(req, inputCh, userID)
-	return closeCh
+
+	wg.Wait()
+	close(inputCh)
+	inputCh = nil
+	
+
 }
