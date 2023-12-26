@@ -36,18 +36,17 @@ check 6 $?
 shortenertestbeta -test.v -test.run=^TestIteration7$ -binary-path=cmd/shortener/shortener -source-path=. > /dev/null
 check 7 $?
 #8
-shortenertestbeta -test.v -test.run=^TestIteration8$ -binary-path=cmd/shortener/shortener \
-> /dev/null
+shortenertestbeta -test.v -test.run=^TestIteration8$ -binary-path=cmd/shortener/shortener 
 check 8 $?
 #9
-shortenertestbeta -test.v -test.run=^TestIteration9$  -binary-path=cmd/shortener/shortener -source-path=. -file-storage-path=/tmp/short-url-db.json > /dev/null
+shortenertestbeta -test.v -test.run=^TestIteration9$  -binary-path=cmd/shortener/shortener -source-path=. -file-storage-path=/tmp/short-url-db.json
 check 9 $?
 #10
 #
           shortenertestbeta -test.v -test.run=^TestIteration10$ \
               -binary-path=cmd/shortener/shortener \
               -source-path=. \
-              -database-dsn='postgres://short:1@postgres:5432/praktikum?sslmode=disable' > /dev/null
+              -database-dsn='postgres://short:1@postgres:5432/praktikum?sslmode=disable' 
 check 10 $?
 #11
           shortenertestbeta -test.v -test.run=^TestIteration11$ \

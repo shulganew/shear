@@ -4,10 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
-	"sync"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/shulganew/shear.git/internal/concurrent"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/middlewares"
 	"github.com/shulganew/shear.git/internal/service"
@@ -15,7 +13,7 @@ import (
 )
 
 // Chi Router for application
-func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB, chgen *concurrent.ChGen, cond *sync.Cond) (r *chi.Mux) {
+func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB) (r *chi.Mux) {
 
 	webHand := handlers.NewHandlerWeb(conf, stor)
 	r = chi.NewRouter()
@@ -31,7 +29,7 @@ func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB, chgen
 
 	r.Route("/", func(r chi.Router) {
 
-		//r.Use(middlewares.MidlewLog)
+		r.Use(middlewares.MidlewLog)
 		r.Use(middlewares.MidlewZip)
 		r.Use(middlewares.Auth)
 		r.Post("/", http.HandlerFunc(webHand.SetURL))
@@ -56,7 +54,7 @@ func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB, chgen
 		handCookieID := handlers.NewHandlerAuthUser(conf, stor)
 		r.Get("/urls", http.HandlerFunc(handCookieID.GetUserURLs))
 
-		delID := handlers.NewHandlerDelShorts(conf, stor, chgen, cond)
+		delID := handlers.NewHandlerDelShorts(conf, stor)
 		r.Delete("/urls", http.HandlerFunc(delID.DelUserURLs))
 	})
 
