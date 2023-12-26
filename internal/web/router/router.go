@@ -48,8 +48,9 @@ func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB) (r *c
 		r.Post("/api/shorten/batch", http.HandlerFunc(batchHand.BatchSet))
 	})
 	r.Route("/api/user", func(r chi.Router) {
-		//r.Use(middlewares.MidlewLog)
+		r.Use(middlewares.MidlewLog)
 		r.Use(middlewares.MidlewZip)
+		
 		//Get shorts for user by user_id
 		handCookieID := handlers.NewHandlerAuthUser(conf, stor)
 		r.Get("/urls", http.HandlerFunc(handCookieID.GetUserURLs))

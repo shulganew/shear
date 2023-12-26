@@ -47,33 +47,6 @@ func main() {
 
 	}()
 
-	// // сигнальный канал для завершения горутин
-	// doneCh := make(chan struct{})
-	// // закрываем его при завершении программы
-	// defer close(doneCh)
-
-	// //var wg sync.WaitGroup
-	// var mu = new(sync.Mutex)
-	// var cond = sync.NewCond(mu)
-	// chGen := concurrent.NewChgen(cond)
-
-	// go func(ctx context.Context, dCh chan struct{}, s *service.StorageURL, cond *sync.Cond) {
-	// 	mu.Lock()
-	// 	defer mu.Unlock()
-	// 	for {
-	// 		cond.Wait()
-	// 		finalCh := concurrent.FanIn(dCh, chGen.GetAllChannels())
-	// 		for res := range finalCh {
-	// 			zap.S().Infoln("Number of briefs in main: ", len(res.Briefs))
-	// 			service := service.NewService(s)
-	// 			service.DelelteBatch(ctx, res.UserID, res.Briefs)
-
-	// 		}
-
-	// 	}
-
-	// }(ctx, doneCh, stor, cond)
-
 	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, stor, db)); err != nil {
 		panic(err)
 	}
