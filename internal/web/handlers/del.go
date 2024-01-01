@@ -99,7 +99,6 @@ func DeleteGorutine(req *http.Request, userID string, stor *service.Shortener) {
 			go writeDB(doneCh, generator(doneCh, tmp), userID, stor)
 			breifs = breifs[:0]
 		}
-
 	}
 
 	go writeDB(doneCh, generator(doneCh, breifs), userID, stor)
