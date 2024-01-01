@@ -112,7 +112,6 @@ func writeDB(doneCh chan struct{}, input chan string, userID string, stor *servi
 	//read to buffer from generator channel
 	for data := range input {
 		buff = append(buff, data)
-
 	}
 	stor.DelelteBatch(context.Background(), userID, buff)
 }
