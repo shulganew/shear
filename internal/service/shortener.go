@@ -55,6 +55,12 @@ type Shortener struct {
 	storeURLs StorageURL
 }
 
+// stuct for working with concurrent requests for delete update with channes - fanIn pattern
+type DelBatch struct {
+	UserID string
+	Briefs []string
+}
+
 // intarface for universal data storage
 type StorageURL interface {
 	Set(ctx context.Context, userID string, brief, origin string) error
@@ -100,8 +106,18 @@ func (s *Shortener) GetUserAll(ctx context.Context, userID string) (short []Shor
 	return s.storeURLs.GetUserAll(ctx, userID)
 }
 
-func (s *Shortener) DelelteBatch(ctx context.Context, userID string, briefs []string) {
-	s.storeURLs.DelelteBatch(ctx, userID, briefs)
+func (s *Shortener) DelelteBatchArray(ctx context.Context, delBatchs []DelBatch) {
+
+	for _, del := range delBatchs {
+		s.storeURLs.DelelteBatch(ctx, del.UserID, del.Briefs)
+	}
+
+}
+
+func (s *Shortener) DelelteBatch(ctx context.Context, delBatch DelBatch) {
+
+	s.storeURLs.DelelteBatch(ctx, delBatch.UserID, delBatch.Briefs)
+
 }
 
 // return anwwer url: "shema + respose server addres from config + brief"

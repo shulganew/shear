@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -11,27 +10,28 @@ import (
 	"github.com/shulganew/shear.git/internal/service"
 )
 
-const BATCHSIZE int = 10
+const BATCHSIZE int = 20
 
 type DelShorts struct {
 	serviceURL *service.Shortener
 	conf       *config.Config
-	cond       *sync.Cond
+	finalCh    chan service.DelBatch
+	waitDel    *sync.WaitGroup
 }
 
-func NewHandlerDelShorts(conf *config.Config, stor *service.StorageURL) *DelShorts {
+func NewHandlerDelShorts(conf *config.Config, stor *service.StorageURL, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) *DelShorts {
 
-	return &DelShorts{serviceURL: service.NewService(stor), conf: conf}
+	return &DelShorts{serviceURL: service.NewService(stor), conf: conf, finalCh: finalCh, waitDel: waitDel}
 }
 
-func (u *DelShorts) GetServiceURL() service.Shortener {
-	return *u.serviceURL
+func (d *DelShorts) GetServiceURL() service.Shortener {
+	return *d.serviceURL
 }
 
 // Delete User's URLs from json array in request (mark as deleted with saving in DB)
-func (u *DelShorts) DelUserURLs(res http.ResponseWriter, req *http.Request) {
+func (d *DelShorts) DelUserURLs(res http.ResponseWriter, req *http.Request) {
 
-	if userID, ok := service.GetCodedUserID(req, u.conf.Pass); ok {
+	if userID, ok := service.GetCodedUserID(req, d.conf.Pass); ok {
 		//cookie iser_id is set
 		cookies := req.Cookies()
 
@@ -46,7 +46,7 @@ func (u *DelShorts) DelUserURLs(res http.ResponseWriter, req *http.Request) {
 		}
 
 		//read the body and UPDATE DB in gorutine
-		DeleteGorutine(req, userID, u.serviceURL)
+		DeleteGorutine(req, userID, d.serviceURL, d.finalCh, d.waitDel)
 
 		// set content type
 		res.Header().Add("Content-Type", "plain/text")
@@ -62,7 +62,7 @@ func (u *DelShorts) DelUserURLs(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func DeleteGorutine(req *http.Request, userID string, stor *service.Shortener) {
+func DeleteGorutine(req *http.Request, userID string, stor *service.Shortener, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) {
 
 	//read body as buffer
 	dec := json.NewDecoder(req.Body)
@@ -74,8 +74,6 @@ func DeleteGorutine(req *http.Request, userID string, stor *service.Shortener) {
 	}
 
 	breifs := make([]string, 0)
-
-	doneCh := make(chan struct{})
 
 	for dec.More() {
 
@@ -96,42 +94,39 @@ func DeleteGorutine(req *http.Request, userID string, stor *service.Shortener) {
 
 			tmp := make([]string, len(breifs))
 			copy(tmp, breifs)
-			go writeDB(doneCh, generator(doneCh, tmp), userID, stor)
+			waitDel.Add(1)
+			go writeOut(generator(tmp), userID, stor, finalCh, waitDel)
 			breifs = breifs[:0]
 		}
 	}
-
-	go writeDB(doneCh, generator(doneCh, breifs), userID, stor)
+	if len(breifs) != 0 {
+		waitDel.Add(1)
+		go writeOut(generator(breifs), userID, stor, finalCh, waitDel)
+	}
 
 }
 
-func writeDB(doneCh chan struct{}, input chan string, userID string, stor *service.Shortener) {
+func writeOut(input chan string, userID string, stor *service.Shortener, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) {
 
 	buff := make([]string, 0)
 	//read to buffer from generator channel
 	for data := range input {
 		buff = append(buff, data)
 	}
-	stor.DelelteBatch(context.Background(), userID, buff)
+	//stor.DelelteBatch(context.Background(), userID, buff)
+	finalCh <- service.DelBatch{UserID: userID, Briefs: buff}
+	waitDel.Done()
 }
 
-func generator(doneCh chan struct{}, input []string) chan string {
-	inputCh := make(chan string, BATCHSIZE)
+// return channel with useres briefs for sending in final channel (fan-in)
+func generator(input []string) chan string {
 
+	inputCh := make(chan string, BATCHSIZE)
 	go func() {
 		defer close(inputCh)
-
 		for _, data := range input {
-
-			select {
-
-			case <-doneCh:
-				return
-
-			case inputCh <- data:
-			}
+			inputCh <- data
 		}
 	}()
-
 	return inputCh
 }

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"net/http"
 	"os"
+	"sync"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/shulganew/shear.git/internal/app"
@@ -37,17 +39,30 @@ func main() {
 	}
 	stor, backup := app.InitApp(ctx, *conf, db)
 
-	go func() {
+	//Use fanIn pattern for storing data from delete requests
+	finalCh := make(chan service.DelBatch)
+	defer close(finalCh)
 
-		<-ctx.Done()
-		if conf.IsBackup {
-			service.Shutdown(*stor, *backup)
+	var waitDel sync.WaitGroup
+
+	go func(ctx context.Context, stor *service.StorageURL, finalCh chan service.DelBatch, wg *sync.WaitGroup) {
+		serviceURL := service.NewService(stor)
+		for {
+			select {
+			case <-ctx.Done():
+				zap.S().Infoln("Waiting of update delete...")
+				wg.Wait()
+				if conf.IsBackup {
+					service.Shutdown(*stor, *backup)
+				}
+				os.Exit(0)
+			case delBatch := <-finalCh:
+				serviceURL.DelelteBatch(ctx, delBatch)
+			}
 		}
-		os.Exit(0)
+	}(ctx, stor, finalCh, &waitDel)
 
-	}()
-
-	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, stor, db)); err != nil {
+	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, stor, db, finalCh, &waitDel)); err != nil {
 		panic(err)
 	}
 
