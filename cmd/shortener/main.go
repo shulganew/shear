@@ -37,10 +37,12 @@ func main() {
 		defer db.Close()
 
 	}
+
+	//Init application
 	stor, backup := app.InitApp(ctx, *conf, db)
 
 	//Use fanIn pattern for storing data from delete requests
-	finalCh := make(chan service.DelBatch)
+	finalCh := make(chan service.DelBatch, 100)
 	defer close(finalCh)
 
 	var waitDel sync.WaitGroup
@@ -62,6 +64,7 @@ func main() {
 		}
 	}(ctx, stor, finalCh, &waitDel)
 
+	//start web
 	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, stor, db, finalCh, &waitDel)); err != nil {
 		panic(err)
 	}
