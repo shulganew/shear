@@ -10,7 +10,10 @@ import (
 
 const DefaultHost string = "localhost:8080"
 
+// send pass to midleware
 type CtxPassKey struct{}
+
+
 
 type Config struct {
 	//flag -a

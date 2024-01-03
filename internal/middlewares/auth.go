@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -15,8 +16,12 @@ func Auth(h http.Handler) http.Handler {
 		//get password from context
 		pass := req.Context().Value(config.CtxPassKey{}).(string)
 
-		if userID, ok := service.GetCodedUserID(req, pass); ok {
-			//cookie iser_id is set
+		isNewUser := false
+
+		userID, ok := service.GetCodedUserID(req, pass)
+
+		if ok {
+			//cookie user_id is set
 			cookies := req.Cookies()
 
 			//clean cookie data
@@ -27,9 +32,8 @@ func Auth(h http.Handler) http.Handler {
 					cookie.Value = userID
 				}
 				req.AddCookie(cookie)
-			}
 
-			
+			}
 
 		} else {
 			//cookie not set or not decoded
@@ -57,9 +61,12 @@ func Auth(h http.Handler) http.Handler {
 			newUser := http.Cookie{Name: "new_user", Value: "true"}
 			req.AddCookie(&newUser)
 
+			isNewUser = true
+
 		}
 
-		h.ServeHTTP(res, req)
+		ctx := context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID, isNewUser))
+		h.ServeHTTP(res, req.WithContext(ctx))
 
 	})
 

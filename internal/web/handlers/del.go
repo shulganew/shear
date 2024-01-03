@@ -31,72 +31,64 @@ func (d *DelShorts) GetServiceURL() service.Shortener {
 // Delete User's URLs from json array in request (mark as deleted with saving in DB)
 func (d *DelShorts) DelUserURLs(res http.ResponseWriter, req *http.Request) {
 
-	if userID, ok := service.GetCodedUserID(req, d.conf.Pass); ok {
-		//cookie iser_id is set
-		cookies := req.Cookies()
+	//get UserID from cxt values
+	ctxConfig := req.Context().Value(config.CtxConfig{}).(config.CtxConfig)
 
-		//clean cookie data
-		req.Header["Cookie"] = make([]string, 0)
-		for _, cookie := range cookies {
+	if ctxConfig.IsNewUser() {
+		http.Error(res, "Cookie not set.", http.StatusUnauthorized)
 
-			if cookie.Name == "user_id" {
-				cookie.Value = userID
-			}
-			req.AddCookie(cookie)
-		}
+	}
 
-		//read the body
-		//read body as buffer
-		dec := json.NewDecoder(req.Body)
+	userID := ctxConfig.GetUserID()
 
-		// read open bracket
-		_, err := dec.Token()
+	//read the body
+	//read body as buffer
+	dec := json.NewDecoder(req.Body)
+
+	// read open bracket
+	_, err := dec.Token()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	breifs := make([]string, 0)
+
+	for dec.More() {
+
+		var brief string
+		// // decode an array value (Message)
+		err := dec.Decode(&brief)
 		if err != nil {
 			log.Fatal(err)
 		}
+		//check end of json array
+		if brief != "]" {
 
-		breifs := make([]string, 0)
-
-		for dec.More() {
-
-			var brief string
-			// // decode an array value (Message)
-			err := dec.Decode(&brief)
-			if err != nil {
-				log.Fatal(err)
-			}
-			//check end of json array
-			if brief != "]" {
-
-				breifs = append(breifs, brief)
-			}
-
-			// send butch of short ULS (briefs) in channel, zise BATCHSIZE
-			if len(breifs) == BATCHSIZE {
-
-				tmp := make([]string, len(breifs))
-				copy(tmp, breifs)
-				d.waitDel.Add(1)
-				go service.WriteFinal(service.Generator(tmp, BATCHSIZE), userID, d.serviceURL, d.finalCh, d.waitDel)
-				breifs = breifs[:0]
-			}
+			breifs = append(breifs, brief)
 		}
-		
-		if len(breifs) != 0 {
+
+		// send butch of short ULS (briefs) in channel, zise BATCHSIZE
+		if len(breifs) == BATCHSIZE {
+
+			tmp := make([]string, len(breifs))
+			copy(tmp, breifs)
 			d.waitDel.Add(1)
-			go service.WriteFinal(service.Generator(breifs, BATCHSIZE), userID, d.serviceURL, d.finalCh, d.waitDel)
+			go service.WriteFinal(service.Generator(tmp, BATCHSIZE), userID, d.serviceURL, d.finalCh, d.waitDel)
+			breifs = breifs[:0]
 		}
-
-		// set content type
-		res.Header().Add("Content-Type", "plain/text")
-
-		//set status code 202
-		res.WriteHeader(http.StatusAccepted)
-
-		res.Write([]byte("Done."))
-
-	} else {
-		http.Error(res, "Cookie not set or can't Open UserID Seal", http.StatusUnauthorized)
 	}
+
+	if len(breifs) != 0 {
+		d.waitDel.Add(1)
+		go service.WriteFinal(service.Generator(breifs, BATCHSIZE), userID, d.serviceURL, d.finalCh, d.waitDel)
+	}
+
+	// set content type
+	res.Header().Add("Content-Type", "plain/text")
+
+	//set status code 202
+	res.WriteHeader(http.StatusAccepted)
+
+	res.Write([]byte("Done."))
 
 }

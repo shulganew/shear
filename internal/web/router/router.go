@@ -47,17 +47,12 @@ func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB, final
 		//DB Postgres Batch request
 		batchHand := handlers.NewHandlerBatch(conf, stor)
 		r.Post("/api/shorten/batch", http.HandlerFunc(batchHand.BatchSet))
-	})
-	r.Route("/api/user", func(r chi.Router) {
-		r.Use(middlewares.MidlewLog)
-		r.Use(middlewares.MidlewZip)
 
-		//Get shorts for user by user_id
 		handCookieID := handlers.NewHandlerAuthUser(conf, stor)
-		r.Get("/urls", http.HandlerFunc(handCookieID.GetUserURLs))
+		r.Get("/api/user/urls", http.HandlerFunc(handCookieID.GetUserURLs))
 
 		delID := handlers.NewHandlerDelShorts(conf, stor, finalCh, waitDel)
-		r.Delete("/urls", http.HandlerFunc(delID.DelUserURLs))
+		r.Delete("/api/user/urls", http.HandlerFunc(delID.DelUserURLs))
 	})
 
 	return
