@@ -24,6 +24,10 @@ echo %SERVER_ADDRESS%
 //git push -u origin iter5
 //git checkout -b iter1
 ```
+# UUID
+```
+https://pkg.go.dev/github.com/google/uuid#section-readme
+```
 
 # PostGreSQL
 

@@ -8,14 +8,15 @@ _golangci-lint-reports-mkdir:
 	mkdir -p ./golangci-lint
 
 .PHONY: _golangci-lint-run
-_golangci-c-docker: _golangci-lint-reports-mkdir
+_golangci-lint-run: _golangci-lint-reports-mkdir
 	-docker run --rm \
-    -v $(pwd):/app \
+    -v $(shell pwd):/app \
     -v $(GOLANGCI_LINT_CACHE):/root/.cache \
     -w /app \
     golangci/golangci-lint:v1.55.2 \
         golangci-lint run \
             -c .golangci.yml \
+	> ./golangci-lint/report-unformatted.json
 
 .PHONY: _golangci-lint-format-report
 _golangci-lint-format-report: _golangci-lint-run
@@ -30,17 +31,60 @@ golangci-lint-clean:
 	sudo rm -rf ./golangci-lint 
 
 
-.PHONY: go-postgres-start
-go-postgres-start:
-	@if [[ "$(docker images -q shortdb:v1 2> /dev/null)" == "" ]]; then \
-		echo "buid image"; \
-		#echo '127.0.0.1 postgres' | sudo tee -a /etc/hosts \
-		docker build -t shortdb:v1 - <Dockerfile; \
-	fi
-	docker run -d --name="shortdb" -p 5432:5432 shortdb:v1
+# .PHONY: go-postgres-start
+# go-postgres-start:
+# 	@if [[ "$(docker images -q shortdb:v1 2> /dev/null)" == "" ]]; then \
+# 		echo "buid image"; \
+# 		#echo '127.0.0.1 postgres' | sudo tee -a /etc/hosts \
+# 		docker build -t shortdb:v1 - <Dockerfile; \
+# 	fi
+# 	docker run -d --name="shortdb" -p 5432:5432 shortdb:v1
 	
 
-.PHONY: go-postgres-stop
-go-postgres-stop:
-	docker stop shortdb
-	docker rm shortdb
+# .PHONY: go-postgres-stop
+# go-postgres-stop:
+# 	docker stop shortdb
+# 	docker rm shortdb
+
+
+#Migrations
+
+.PHONY: db-init
+db-init:
+	docker run --rm \
+    	-v $(realpath ./db/migrations):/migrations \
+    	migrate/migrate:v4.16.2 \
+        	create \
+        	-dir /migrations \
+        	-ext .sql \
+        	-seq -digits 3 \
+        	init
+
+
+.PHONY: pg
+pg:
+	docker run --rm \
+		--name=shortdb_v10 \
+		-v $(abspath ./db/init/):/docker-entrypoint-initdb.d \
+		-e POSTGRES_PASSWORD="postgres" \
+		-d \
+		-p 5432:5432 \
+		postgres:15.3
+
+.PHONY: pg-stop
+pg-stop:
+	docker stop shortdb_v10
+
+.PHONY: clean-data
+clean-data:
+	sudo rm -rf ./db/data/
+
+.PHONY: pg-up
+pg-up:
+
+	docker run --rm \
+    -v $(realpath ./db/migrations):/migrations \
+    migrate/migrate:v4.16.2 \
+        -path=/migrations \
+        -database postgres://short:1@172.17.0.2:5432/short?sslmode=disable \
+        up

@@ -1,0 +1,1 @@
+ALTER TABLE short DROP COLUMN is_deleted;
