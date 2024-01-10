@@ -13,8 +13,6 @@ const DefaultHost string = "localhost:8080"
 // send pass to midleware
 type CtxPassKey struct{}
 
-
-
 type Config struct {
 	//flag -a
 	Address string
@@ -40,7 +38,6 @@ type Config struct {
 func InitConfig() *Config {
 
 	config := Config{}
-
 	//read command line argue
 	startAddress := flag.String("a", "localhost:8080", "start server address and port")
 	resultAddress := flag.String("b", "localhost:8080", "answer address and port")

@@ -4,31 +4,31 @@ import (
 	"context"
 	"slices"
 
-	"github.com/shulganew/shear.git/internal/service"
+	"github.com/shulganew/shear.git/internal/model"
 )
 
 type Memory struct {
-	StoreURLs []service.Short
+	StoreURLs []model.Short
 }
 
 func NewMemory() *Memory {
-	return &Memory{StoreURLs: make([]service.Short, 0)}
+	return &Memory{StoreURLs: make([]model.Short, 0)}
 }
 
 func (m *Memory) Set(ctx context.Context, userID, brief, origin string) (err error) {
 	//init storage
-	short := service.NewShort(len(m.StoreURLs), userID, brief, origin, "")
+	short := model.NewShort(len(m.StoreURLs), userID, brief, origin, "")
 	m.StoreURLs = append(m.StoreURLs, *short)
 	return
 }
 
-func (m *Memory) SetAll(ctx context.Context, shotrs []service.Short) error {
+func (m *Memory) SetAll(ctx context.Context, shotrs []model.Short) error {
 	m.StoreURLs = append(m.StoreURLs, shotrs...)
 	return nil
 }
 
-func (m Memory) GetOrigin(ctx context.Context, brief string) (origin string, existed bool, isDeleted bool) {
-	id := slices.IndexFunc(m.StoreURLs, func(s service.Short) bool { return s.Brief == brief })
+func (m *Memory) GetOrigin(ctx context.Context, brief string) (origin string, existed bool, isDeleted bool) {
+	id := slices.IndexFunc(m.StoreURLs, func(s model.Short) bool { return s.Brief == brief })
 	if id != -1 {
 		origin = m.StoreURLs[id].Origin
 		existed = true
@@ -38,8 +38,8 @@ func (m Memory) GetOrigin(ctx context.Context, brief string) (origin string, exi
 	return
 }
 
-func (m Memory) GetBrief(ctx context.Context, origin string) (brief string, existed bool, isDeleted bool) {
-	id := slices.IndexFunc(m.StoreURLs, func(s service.Short) bool { return s.Origin == origin })
+func (m *Memory) GetBrief(ctx context.Context, origin string) (brief string, existed bool, isDeleted bool) {
+	id := slices.IndexFunc(m.StoreURLs, func(s model.Short) bool { return s.Origin == origin })
 	if id != -1 {
 		brief = m.StoreURLs[id].Brief
 		existed = true
@@ -49,18 +49,18 @@ func (m Memory) GetBrief(ctx context.Context, origin string) (brief string, exis
 
 }
 
-func (m *Memory) GetAll(ctx context.Context) []service.Short {
+func (m *Memory) GetAll(ctx context.Context) []model.Short {
 	return m.StoreURLs
 }
 
-func (m Memory) GetUserAll(ctx context.Context, userID string) []service.Short {
-	slices.DeleteFunc(m.StoreURLs, func(s service.Short) bool { return s.UUID.String == userID })
+func (m *Memory) GetUserAll(ctx context.Context, userID string) []model.Short {
+	slices.DeleteFunc(m.StoreURLs, func(s model.Short) bool { return s.UUID.String == userID })
 	return m.StoreURLs
 }
 
 func (m *Memory) DelelteBatch(ctx context.Context, userID string, briefs []string) {
 	for _, brief := range briefs {
-		id := slices.IndexFunc(m.StoreURLs, func(s service.Short) bool { return s.Brief == brief && s.UUID.String == userID })
+		id := slices.IndexFunc(m.StoreURLs, func(s model.Short) bool { return s.Brief == brief && s.UUID.String == userID })
 		if id != -1 {
 			m.StoreURLs[id].IsDeleted = true
 

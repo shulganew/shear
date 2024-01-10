@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/shulganew/shear.git/internal/model"
 	"go.uber.org/zap"
 )
 
@@ -30,7 +31,7 @@ func InitBackup(ctx context.Context, storage StorageURL, file string) *Backup {
 	return backup
 }
 
-func (b Backup) Save(short Short) error {
+func (b Backup) Save(short model.Short) error {
 
 	data, err := json.Marshal(short)
 	//Backup URL:
@@ -78,14 +79,14 @@ func (b Backup) BackupAll(ctx context.Context, storage StorageURL) error {
 	return nil
 }
 
-func (b Backup) Load() ([]Short, error) {
+func (b Backup) Load() ([]model.Short, error) {
 
 	file, err := os.OpenFile(b.File, os.O_RDONLY, 0666)
 
 	if err != nil {
 		if os.IsNotExist(err) {
 			zap.S().Infoln("Backup file not exist")
-			return []Short{}, nil
+			return []model.Short{}, nil
 		}
 
 		zap.S().Errorln("Error reading backup file")
@@ -93,10 +94,10 @@ func (b Backup) Load() ([]Short, error) {
 	}
 	defer file.Close()
 
-	shorts := []Short{}
+	shorts := []model.Short{}
 	dec := json.NewDecoder(file)
 	for {
-		var short Short
+		var short model.Short
 		if err := dec.Decode(&short); err == io.EOF {
 			break
 		} else if err != nil {

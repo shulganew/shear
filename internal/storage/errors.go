@@ -3,7 +3,7 @@ package storage
 import (
 	"fmt"
 
-	"github.com/shulganew/shear.git/internal/service"
+	"github.com/shulganew/shear.git/internal/model"
 )
 
 // Error use when ID unknown
@@ -30,7 +30,7 @@ func NewErrDuplicatedURL(brief string, origin string, err error) *ErrDuplicatedU
 // Error use when ID exit, creates object short
 type ErrDuplicatedShort struct {
 	Label string
-	Short service.Short
+	Short model.Short
 	Err   error
 }
 
@@ -44,5 +44,5 @@ func (ed *ErrDuplicatedShort) Unwrap() error {
 }
 
 func NewErrDuplicatedShort(sessionID string, brief string, origin string, err error) *ErrDuplicatedShort {
-	return &ErrDuplicatedShort{Label: "URL alredy existed. ", Short: service.Short{SessionID: sessionID, Brief: brief, Origin: origin}, Err: err}
+	return &ErrDuplicatedShort{Label: "URL alredy existed. ", Short: model.Short{SessionID: sessionID, Brief: brief, Origin: origin}, Err: err}
 }

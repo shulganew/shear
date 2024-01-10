@@ -20,7 +20,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func Test_api(t *testing.T) {
+func TestAPI(t *testing.T) {
 	tests := []struct {
 		name       string
 		requestURL string

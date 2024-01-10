@@ -30,23 +30,6 @@ _golangci-lint-rm-unformatted-report: _golangci-lint-format-report
 golangci-lint-clean:
 	sudo rm -rf ./golangci-lint 
 
-
-# .PHONY: go-postgres-start
-# go-postgres-start:
-# 	@if [[ "$(docker images -q shortdb:v1 2> /dev/null)" == "" ]]; then \
-# 		echo "buid image"; \
-# 		#echo '127.0.0.1 postgres' | sudo tee -a /etc/hosts \
-# 		docker build -t shortdb:v1 - <Dockerfile; \
-# 	fi
-# 	docker run -d --name="shortdb" -p 5432:5432 shortdb:v1
-	
-
-# .PHONY: go-postgres-stop
-# go-postgres-stop:
-# 	docker stop shortdb
-# 	docker rm shortdb
-
-
 #Migrations
 
 .PHONY: db-init

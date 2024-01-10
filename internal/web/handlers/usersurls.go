@@ -42,8 +42,8 @@ func (u HandlerAuth) GetUserURLs(res http.ResponseWriter, req *http.Request) {
 	userID := ctxConfig.GetUserID()
 
 	//get Short URLs for userID
-	servece := u.GetServiceURL()
-	shorts := servece.GetUserAll(req.Context(), userID)
+	serv := u.GetServiceURL()
+	shorts := serv.GetUserAll(req.Context(), userID)
 	zap.S().Infof("Found: %d saved URL for User with ID: %s", len(shorts), userID)
 
 	//if no data - 204

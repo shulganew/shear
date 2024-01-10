@@ -5,7 +5,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha256"
-	"database/sql"
 	"encoding/base64"
 	"fmt"
 	"math/rand"
@@ -14,39 +13,11 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/shulganew/shear.git/internal/model"
 	"go.uber.org/zap"
 )
 
 const ShortLength = 8
-
-// base stract for working with storage
-type Short struct {
-	ID int `json:"uuid"`
-
-	//unique user id string
-	UUID sql.NullString `json:"-"`
-
-	//mark deleted URL by user
-	IsDeleted bool `json:"-"`
-
-	//short URL (cache)
-	Brief string `json:"short_url"`
-
-	//Long full URL
-	Origin string `json:"original_url"`
-
-	//For Batch reques use: Unique Session ID for each request in URL Batch
-	SessionID string `json:"-"`
-}
-
-func NewShort(ID int, UUID string, brief string, origin string, sessionID string) *Short {
-	nullUUID := sql.NullString{String: UUID, Valid: true}
-	if UUID == "" {
-		nullUUID.Valid = false
-	}
-
-	return &Short{ID, nullUUID, false, brief, origin, sessionID}
-}
 
 // generate sort URL
 // save short URL
@@ -64,11 +35,11 @@ type DelBatch struct {
 // intarface for universal data storage
 type StorageURL interface {
 	Set(ctx context.Context, userID string, brief, origin string) error
-	SetAll(ctx context.Context, short []Short) error
+	SetAll(ctx context.Context, short []model.Short) error
 	GetOrigin(ctx context.Context, brief string) (string, bool, bool)
 	GetBrief(ctx context.Context, origin string) (string, bool, bool)
-	GetAll(ctx context.Context) []Short
-	GetUserAll(ctx context.Context, userID string) []Short
+	GetAll(ctx context.Context) []model.Short
+	GetUserAll(ctx context.Context, userID string) []model.Short
 	DelelteBatch(ctx context.Context, userID string, briefs []string)
 }
 
@@ -78,7 +49,6 @@ func NewService(storage *StorageURL) *Shortener {
 }
 
 func (s *Shortener) SetURL(ctx context.Context, userID, brief, origin string) (err error) {
-	//zap.S().Infof("Store. Save URL [%s]=%s", brief, origin)
 	err = s.storeURLs.Set(ctx, userID, brief, origin)
 	if err != nil {
 		return err
@@ -86,7 +56,7 @@ func (s *Shortener) SetURL(ctx context.Context, userID, brief, origin string) (e
 	return nil
 }
 
-func (s *Shortener) SetAll(ctx context.Context, short []Short) (err error) {
+func (s *Shortener) SetAll(ctx context.Context, short []model.Short) (err error) {
 	err = s.storeURLs.SetAll(ctx, short)
 	if err != nil {
 		return fmt.Errorf("error during save URL to Store: %w", err)
@@ -102,7 +72,7 @@ func (s *Shortener) GetBrief(ctx context.Context, origin string) (brief string, 
 	return s.storeURLs.GetBrief(ctx, origin)
 }
 
-func (s *Shortener) GetUserAll(ctx context.Context, userID string) (short []Short) {
+func (s *Shortener) GetUserAll(ctx context.Context, userID string) (short []model.Short) {
 	return s.storeURLs.GetUserAll(ctx, userID)
 }
 

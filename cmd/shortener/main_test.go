@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
-	webhandl "github.com/shulganew/shear.git/internal/web/handlers"
+	"github.com/shulganew/shear.git/internal/web/handlers"
 	"go.uber.org/zap"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -61,7 +61,7 @@ func Test_main(t *testing.T) {
 	stor := service.StorageURL(storage.NewMemory())
 
 	//init storage
-	handler := webhandl.NewHandlerWeb(configApp, &stor)
+	handler := handlers.NewHandlerWeb(configApp, &stor)
 	serviceURL := handler.GetServiceURL()
 
 	userID, err := uuid.NewV7()

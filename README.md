@@ -1,14 +1,18 @@
-# cmd commands for test purposes
-```
+# Shortener with Yandex Practicum
+
+## cmd commands for test purposes
+### GET and POST handles
+```bash
 curl -v -H "Content-Type: text/plain" -X POST http://localhost:8080/ -d "https://yandex1.ru"
 curl -v -H "Content-Type: text/plain" http://localhost:8080/hjnFtibr
 
 curl -v -H "Content-Type: application/json" -X POST http://localhost:8080/api/shorten -d '{"url":"https://practicum1.yandex1.ru"}'
 curl -v -H "Content-Type: application/json" -X POST http://localhost:8080/api/shorten -d '{"url":"http://liceih591s.com/rmqtluduv3fe8t/qtefpaham0"}'
-
-
+```
+### gzip
+```bash
 //gzip
-//add --compressed key, this include accept encoding header
+add --compressed key, this include accept encoding header
 curl --compressed -v -H "Content-Type: application/json" -X POST http://localhost:8080/api/shorten -d '{"url":"https://practicum1.yandex1.ru"}' | gunzip
 
 //send gzip body to server
@@ -19,7 +23,7 @@ curl --compressed -v -X POST http://localhost:8080/api/shorten -H'Content-Encodi
 set SERVER_ADDRESS=localhost:8080
 echo %SERVER_ADDRESS%
 ```
-# Git
+## Git
 ```
 //git push -u origin iter5
 //git checkout -b iter1
@@ -29,18 +33,20 @@ echo %SERVER_ADDRESS%
 https://pkg.go.dev/github.com/google/uuid#section-readme
 ```
 
-# PostGreSQL
+#3 PostGreSQL
 
-```
+```bash
 Connection string:
 postgresql://[user[:password]@][netloc][:port][/dbname][?param1=value1&...]
 postgresql://short:1@localhost/short
 ~/.bashrc
 export DATABASE_DSN=postgresql://short:1@localhost/short
 ```
+```bash
 # Backup
 ~/.bash_profile
 ```
+```bash
 export FILE_STORAGE_PATH=/tmp/short-url-db.json
 ```
 
@@ -62,7 +68,7 @@ https://github.com/nektos/act
 
 
 # My links
-```
+```bash
 https://github.com/golang/go/wiki/CodeReviewComments#receiver-type
 
 status code during the test issue:
@@ -78,8 +84,8 @@ file lseek
 https://www.opennet.ru/docs/RUS/zlp/005.html
 ```
 
-# ###############Lint instal##########################
-```
+# Lint install
+```bash
 go install golang.org/x/tools/gopls@latest
 //========================================
 run ci lint
@@ -92,6 +98,19 @@ golangci-lint run
 
 ```
 
+## Mock generate 
+
+```bash
+go install github.com/golang/mock/mockgen@v1.6.0
+```
+
+```bash
+mockgen -source=internal/service/shortener.go \
+    -destination=internal/internal/mocks/shortener_mock.gen.go \
+    -package=mocks
+```
+
+
 # go-musthave-shortener-tpl
 
 Шаблон репозитория для трека «Сервис сокращения URL».
@@ -101,17 +120,18 @@ golangci-lint run
 1. Склонируйте репозиторий в любую подходящую директорию на вашем компьютере.
 2. В корне репозитория выполните команду `go mod init <name>` (где `<name>` — адрес вашего репозитория на GitHub без префикса `https://`) для создания модуля.
 
+
 ## Обновление шаблона
 
 Чтобы иметь возможность получать обновления автотестов и других частей шаблона, выполните команду:
 
-```
+```bash
 git remote add -m main template https://github.com/Yandex-Practicum/go-musthave-shortener-tpl.git
 ```
 
 Для обновления кода автотестов выполните команду:
 
-```
+```bash
 git fetch template && git checkout template/main .github
 ```
 
@@ -124,3 +144,5 @@ git fetch template && git checkout template/main .github
 При мёрже ветки с инкрементом в основную ветку `main` будут запускаться все автотесты.
 
 Подробнее про локальный и автоматический запуск читайте в [README автотестов](https://github.com/Yandex-Practicum/go-autotests).
+
+
