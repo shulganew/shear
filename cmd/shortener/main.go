@@ -38,14 +38,14 @@ func main() {
 
 	}
 
-	//Init application
-	stor, backup := app.InitApp(ctx, *conf, db)
-
 	//Use fanIn pattern for storing data from delete requests
 	finalCh := make(chan service.DelBatch, 100)
 	defer close(finalCh)
 
 	var waitDel sync.WaitGroup
+
+	//Init application
+	stor, backup, del := app.InitApp(ctx, *conf, db, finalCh, &waitDel)
 
 	go func(ctx context.Context, stor *service.StorageURL, finalCh chan service.DelBatch, wg *sync.WaitGroup) {
 		serviceURL := service.NewService(stor)
@@ -65,7 +65,7 @@ func main() {
 	}(ctx, stor, finalCh, &waitDel)
 
 	//start web
-	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, stor, db, finalCh, &waitDel)); err != nil {
+	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, stor, db, del, finalCh, &waitDel)); err != nil {
 		panic(err)
 	}
 

@@ -14,7 +14,7 @@ import (
 )
 
 // Chi Router for application
-func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (r *chi.Mux) {
+func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB, delete *service.Delete, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (r *chi.Mux) {
 
 	webHand := handlers.NewHandlerWeb(conf, stor)
 	r = chi.NewRouter()
@@ -51,7 +51,7 @@ func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB, final
 		handCookieID := handlers.NewHandlerAuthUser(conf, stor)
 		r.Get("/api/user/urls", http.HandlerFunc(handCookieID.GetUserURLs))
 
-		delID := handlers.NewHandlerDelShorts(conf, stor, finalCh, waitDel)
+		delID := handlers.NewHandlerDelShorts(delete)
 		r.Delete("/api/user/urls", http.HandlerFunc(delID.DelUserURLs))
 	})
 

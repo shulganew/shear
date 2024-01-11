@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/shulganew/shear.git/internal/config"
@@ -13,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func InitApp(ctx context.Context, conf config.Config, db *sql.DB) (*service.StorageURL, *service.Backup) {
+func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (*service.StorageURL, *service.Backup, *service.Delete) {
 
 	//Storage
 	var stor service.StorageURL
@@ -54,8 +55,11 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB) (*service.Stor
 
 	}
 
+	del := service.NewDelete(&stor, finalCh, waitDel, &conf)
+
 	zap.S().Infoln("Application init complite")
-	return &stor, backup
+
+	return &stor, backup, del
 
 }
 

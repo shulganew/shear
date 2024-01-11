@@ -26,12 +26,6 @@ type Shortener struct {
 	storeURLs StorageURL
 }
 
-// stuct for working with concurrent requests for delete update with channes - fanIn pattern
-type DelBatch struct {
-	UserID string
-	Briefs []string
-}
-
 // intarface for universal data storage
 type StorageURL interface {
 	Set(ctx context.Context, userID string, brief, origin string) error
