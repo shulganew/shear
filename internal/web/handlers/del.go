@@ -8,8 +8,6 @@ import (
 	"github.com/shulganew/shear.git/internal/service"
 )
 
-const BATCHSIZE int = 20
-
 type DelShorts struct {
 	servDeleter *service.Deleter
 }
