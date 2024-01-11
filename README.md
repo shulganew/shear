@@ -11,7 +11,6 @@ curl -v -H "Content-Type: application/json" -X POST http://localhost:8080/api/sh
 ```
 ### gzip
 ```bash
-//gzip
 add --compressed key, this include accept encoding header
 curl --compressed -v -H "Content-Type: application/json" -X POST http://localhost:8080/api/shorten -d '{"url":"https://practicum1.yandex1.ru"}' | gunzip
 
@@ -23,17 +22,24 @@ curl --compressed -v -X POST http://localhost:8080/api/shorten -H'Content-Encodi
 set SERVER_ADDRESS=localhost:8080
 echo %SERVER_ADDRESS%
 ```
-## Git
+# Git
 ```
-//git push -u origin iter5
-//git checkout -b iter1
+git push -u origin iter5
+git checkout -b iter1
+
+git add .
+git commit -m "refactor del handler"
+git push -u origin iter15
+
+git log
+diff 80846d62286fd8d87e16f9ae833f3e859ab8ecaf 0b2e0a457317162be17339da7c557f3d56c3db8a
 ```
 # UUID
 ```
 https://pkg.go.dev/github.com/google/uuid#section-readme
 ```
 
-#3 PostGreSQL
+# PostGreSQL
 
 ```bash
 Connection string:
@@ -42,26 +48,26 @@ postgresql://short:1@localhost/short
 ~/.bashrc
 export DATABASE_DSN=postgresql://short:1@localhost/short
 ```
+
 ```bash
 # Backup
 ~/.bash_profile
-```
-```bash
 export FILE_STORAGE_PATH=/tmp/short-url-db.json
 ```
 
 # Tests
 
-# Run static test localy
+## Run static test localy
 
+```bash
 go vet -vettool=$(which statictest) ./...
-
 shortenertestbeta -test.v -test.run=^TestIteration7$ -binary-path=cmd/shortener/shortener -source-path=.
+```
 
-# Iterantion tests
+## Iterantion tests
 go build -o ./cmd/shortener/shortener ./cmd/shortener/main.go
 
-# my links to useful sites
+## my links to useful sites
 
 # Use autotest local 
 https://github.com/nektos/act
