@@ -14,7 +14,7 @@ import (
 )
 
 // Chi Router for application
-func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB, delete *service.Delete, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (r *chi.Mux) {
+func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB, delete *service.Deleter, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (r *chi.Mux) {
 
 	webHand := handlers.NewHandlerWeb(conf, stor)
 	r = chi.NewRouter()

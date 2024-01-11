@@ -11,16 +11,16 @@ import (
 const BATCHSIZE int = 20
 
 type DelShorts struct {
-	serviceDel *service.Delete
+	servDeleter *service.Deleter
 }
 
-func NewHandlerDelShorts(serviceDel *service.Delete) *DelShorts {
+func NewHandlerDelShorts(serviceDel *service.Deleter) *DelShorts {
 
-	return &DelShorts{serviceDel: serviceDel}
+	return &DelShorts{servDeleter: serviceDel}
 }
 
-func (d *DelShorts) GetServiceURL() service.Delete {
-	return *d.serviceDel
+func (d *DelShorts) GetServiceURL() service.Deleter {
+	return *d.servDeleter
 }
 
 // Delete User's URLs from json array in request (mark as deleted with saving in DB)
@@ -40,7 +40,7 @@ func (d *DelShorts) DelUserURLs(res http.ResponseWriter, req *http.Request) {
 	dec := json.NewDecoder(req.Body)
 
 	//async delete Shorts from body
-	d.serviceDel.AsyncDelete(userID, dec)
+	d.servDeleter.AsyncDelete(userID, dec)
 
 	// set content type
 	res.Header().Add("Content-Type", "plain/text")

@@ -8,7 +8,7 @@ import (
 	"github.com/shulganew/shear.git/internal/config"
 )
 
-type Delete struct {
+type Deleter struct {
 	storeURLs StorageURL
 	finalCh   chan DelBatch
 	waitDel   *sync.WaitGroup
@@ -16,8 +16,8 @@ type Delete struct {
 }
 
 // return service
-func NewDelete(storage *StorageURL, finalCh chan DelBatch, waitDel *sync.WaitGroup, conf *config.Config) *Delete {
-	return &Delete{storeURLs: *storage, finalCh: finalCh, waitDel: waitDel, conf: conf}
+func NewDelete(storage *StorageURL, finalCh chan DelBatch, waitDel *sync.WaitGroup, conf *config.Config) *Deleter {
+	return &Deleter{storeURLs: *storage, finalCh: finalCh, waitDel: waitDel, conf: conf}
 }
 
 // stuct for working with concurrent requests for delete update with channes - fanIn pattern
@@ -26,7 +26,7 @@ type DelBatch struct {
 	Briefs []string
 }
 
-func (d *Delete) AsyncDelete(userID string, dec *json.Decoder) {
+func (d *Deleter) AsyncDelete(userID string, dec *json.Decoder) {
 	// read open bracket
 	_, err := dec.Token()
 	if err != nil {

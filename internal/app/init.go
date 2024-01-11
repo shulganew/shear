@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (*service.StorageURL, *service.Backup, *service.Delete) {
+func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (*service.StorageURL, *service.Backup, *service.Deleter) {
 
 	//Storage
 	var stor service.StorageURL
