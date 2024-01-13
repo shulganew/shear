@@ -8,13 +8,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/config"
-	"github.com/shulganew/shear.git/internal/middlewares"
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/web/handlers"
+	"github.com/shulganew/shear.git/internal/web/middlewares"
 )
 
 // Chi Router for application
-func RouteShear(conf *config.Config, stor *service.StorageURL, db *sql.DB, delete *service.Deleter, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (r *chi.Mux) {
+func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete *service.Deleter, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (r *chi.Mux) {
 
 	webHand := handlers.NewHandlerWeb(conf, stor)
 	r = chi.NewRouter()

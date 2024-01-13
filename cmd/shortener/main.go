@@ -47,7 +47,7 @@ func main() {
 	//Init application
 	stor, backup, del := app.InitApp(ctx, *conf, db, finalCh, &waitDel)
 
-	go func(ctx context.Context, stor *service.StorageURL, finalCh chan service.DelBatch, wg *sync.WaitGroup) {
+	go func(ctx context.Context, stor service.StorageURL, finalCh chan service.DelBatch, wg *sync.WaitGroup) {
 		serviceURL := service.NewService(stor)
 		for {
 			select {
@@ -55,7 +55,7 @@ func main() {
 				zap.S().Infoln("Waiting of update delete...")
 				wg.Wait()
 				if conf.IsBackup {
-					service.Shutdown(*stor, *backup)
+					service.Shutdown(stor, *backup)
 				}
 				os.Exit(0)
 			case delBatch := <-finalCh:

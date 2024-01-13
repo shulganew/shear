@@ -55,7 +55,7 @@ func TestAPI(t *testing.T) {
 
 	stor := service.StorageURL(storage.NewMemory())
 	//init storage
-	apiHand := NewHandlerAPI(configApp, &stor)
+	apiHand := NewHandlerAPI(configApp, stor)
 	serviceURL := apiHand.GetService()
 
 	userID, err := uuid.NewV7()

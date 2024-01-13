@@ -28,7 +28,7 @@ type HandlerBatch struct {
 	conf       *config.Config
 }
 
-func NewHandlerBatch(conf *config.Config, stor *service.StorageURL) *HandlerBatch {
+func NewHandlerBatch(conf *config.Config, stor service.StorageURL) *HandlerBatch {
 
 	return &HandlerBatch{serviceURL: service.NewService(stor), conf: conf}
 }

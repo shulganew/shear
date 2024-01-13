@@ -19,7 +19,7 @@ type HandlerAuth struct {
 	conf       *config.Config
 }
 
-func NewHandlerAuthUser(conf *config.Config, stor *service.StorageURL) *HandlerAuth {
+func NewHandlerAuthUser(conf *config.Config, stor service.StorageURL) *HandlerAuth {
 
 	return &HandlerAuth{serviceURL: service.NewService(stor), conf: conf}
 }

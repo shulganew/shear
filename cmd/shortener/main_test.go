@@ -61,7 +61,7 @@ func Test_main(t *testing.T) {
 	stor := service.StorageURL(storage.NewMemory())
 
 	//init storage
-	handler := handlers.NewHandlerWeb(configApp, &stor)
+	handler := handlers.NewHandlerWeb(configApp, stor)
 	serviceURL := handler.GetServiceURL()
 
 	userID, err := uuid.NewV7()

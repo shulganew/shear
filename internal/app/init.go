@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (*service.StorageURL, *service.Backup, *service.Deleter) {
+func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (service.StorageURL, *service.Backup, *service.Deleter) {
 
 	//Storage
 	var stor service.StorageURL
@@ -59,7 +59,7 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan s
 
 	zap.S().Infoln("Application init complite")
 
-	return &stor, backup, del
+	return stor, backup, del
 
 }
 

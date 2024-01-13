@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/shulganew/shear.git/internal/config"
-	"github.com/shulganew/shear.git/internal/internal/mocks"
+	"github.com/shulganew/shear.git/internal/service/mocks"
 	"github.com/stretchr/testify/assert"
 )
 

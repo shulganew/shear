@@ -25,7 +25,7 @@ type HandlerAPI struct {
 	conf       *config.Config
 }
 
-func NewHandlerAPI(conf *config.Config, stor *service.StorageURL) *HandlerAPI {
+func NewHandlerAPI(conf *config.Config, stor service.StorageURL) *HandlerAPI {
 
 	return &HandlerAPI{serviceURL: service.NewService(stor), conf: conf}
 }

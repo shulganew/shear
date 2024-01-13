@@ -38,8 +38,8 @@ type StorageURL interface {
 }
 
 // return service
-func NewService(storage *StorageURL) *Shortener {
-	return &Shortener{storeURLs: *storage}
+func NewService(storage StorageURL) *Shortener {
+	return &Shortener{storeURLs: storage}
 }
 
 func (s *Shortener) SetURL(ctx context.Context, userID, brief, origin string) (err error) {

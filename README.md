@@ -112,7 +112,7 @@ go install github.com/golang/mock/mockgen@v1.6.0
 
 ```bash
 mockgen -source=internal/service/shortener.go \
-    -destination=internal/internal/mocks/shortener_mock.gen.go \
+    -destination=internal/service/mocks/shortener_mock.gen.go \
     -package=mocks
 ```
 
