@@ -10,6 +10,9 @@ import (
 
 const DefaultHost string = "localhost:8080"
 
+// send pass to midleware
+type CtxPassKey struct{}
+
 type Config struct {
 	//flag -a
 	Address string
@@ -27,17 +30,28 @@ type Config struct {
 
 	//dsn connection string
 	DSN string
+
+	//User identity encription with cookie
+	Pass string
+
+	//System parameter, user for delete service
+	//It describe size of reading buffered body contentent slice in
+	//handler Delete /api/user/urls
+	//service.Delete
+	BatchSize int
 }
 
 func InitConfig() *Config {
 
 	config := Config{}
-
 	//read command line argue
 	startAddress := flag.String("a", "localhost:8080", "start server address and port")
 	resultAddress := flag.String("b", "localhost:8080", "answer address and port")
+
+	userAuth := flag.String("p", "mysecret", "User identity encription with cookie (user_id)")
 	tempf := flag.String("f", "", "Location of dump file")
 	dsnf := flag.String("d", "", "Data Source Name for DataBase connection")
+	delSize := flag.Int("s", 20, "Size of butch ansync delete")
 	flag.Parse()
 	//check and parse URL
 
@@ -48,6 +62,12 @@ func InitConfig() *Config {
 	config.Address = startaddr + ":" + startport
 	config.Response = answaddr + ":" + answport
 	zap.S().Infoln("Server address: ", config.Address)
+
+	//set batch size
+	config.BatchSize = *delSize
+
+	//save cookie pass
+	config.Pass = *userAuth
 
 	//read OS ENV
 	env, exist := os.LookupEnv(("SERVER_ADDRESS"))

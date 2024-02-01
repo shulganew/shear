@@ -10,15 +10,17 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
-func Test_api(t *testing.T) {
+func TestAPI(t *testing.T) {
 	tests := []struct {
 		name       string
 		requestURL string
@@ -53,8 +55,13 @@ func Test_api(t *testing.T) {
 
 	stor := service.StorageURL(storage.NewMemory())
 	//init storage
-	apiHand := NewHandlerAPI(configApp, &stor)
+	apiHand := NewHandlerAPI(configApp, stor)
 	serviceURL := apiHand.GetService()
+
+	userID, err := uuid.NewV7()
+	if err != nil {
+		zap.S().Errorln("Error generate user uuid")
+	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
@@ -67,6 +74,8 @@ func Test_api(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, tt.requestURL, strings.NewReader(tt.body))
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 			req.Header.Add("Content-Type", "application/json")
+			cookie := http.Cookie{Name: "user_id", Value: userID.String()}
+			req.AddCookie(&cookie)
 			//create status recorder
 			resRecord := httptest.NewRecorder()
 
@@ -91,7 +100,7 @@ func Test_api(t *testing.T) {
 			t.Log(responseURL)
 			brief := strings.TrimLeft(responseURL.Path, "/")
 
-			originDB, exist := serviceURL.GetOrigin(req.Context(), brief)
+			originDB, exist, _ := serviceURL.GetOrigin(req.Context(), brief)
 			require.True(t, exist)
 
 			t.Log("brief url: ", originDB)

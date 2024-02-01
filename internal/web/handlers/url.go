@@ -20,7 +20,7 @@ type HandlerURL struct {
 	conf       *config.Config
 }
 
-func NewHandlerWeb(conf *config.Config, stor *service.StorageURL) *HandlerURL {
+func NewHandlerWeb(conf *config.Config, stor service.StorageURL) *HandlerURL {
 
 	return &HandlerURL{serviceURL: service.NewService(stor), conf: conf}
 }
@@ -34,12 +34,18 @@ func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 	brief := chi.URLParam(req, "id")
 
 	//get long Url from storage
-	origin, exist := u.serviceURL.GetOrigin(req.Context(), brief)
+	origin, exist, isDeleted := u.serviceURL.GetOrigin(req.Context(), brief)
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
 
 	if exist {
+		if isDeleted {
+			//set status code 410
+			res.WriteHeader(http.StatusGone)
+
+			return
+		}
 		res.Header().Set("Location", origin)
 		//set status code 307
 		res.WriteHeader(http.StatusTemporaryRedirect)
@@ -64,22 +70,28 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Wrong URL in body, parse error", http.StatusInternalServerError)
 	}
 	zap.S().Infoln("redirectURL ", redirectURL)
-	brief, mainURL, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.Response)
+	brief := service.GenerateShorLink()
+	mainURL, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.Response, brief)
 
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
 
 	//save map to storage
-	err = u.serviceURL.SetURL(req.Context(), brief, (*redirectURL).String())
+	//find UserID in cookies
+	userID, err := req.Cookie("user_id")
+	if err != nil {
+		http.Error(res, "Can't find user in cookies", http.StatusUnauthorized)
+	}
+
+	err = u.serviceURL.SetURL(req.Context(), userID.Value, brief, (*redirectURL).String())
 
 	if err != nil {
 
 		var tagErr *storage.ErrDuplicatedURL
 		if errors.As(err, &tagErr) {
 			//set status code 409 Conflict
-
-			//get correct answer URL
 			res.WriteHeader(http.StatusConflict)
+
 			//send existed string from error
 			answer, err := url.JoinPath(mainURL, tagErr.Brief)
 			if err != nil {
