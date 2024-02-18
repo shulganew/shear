@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	model "github.com/shulganew/shear.git/internal/model"
+	entities "github.com/shulganew/shear.git/internal/entities"
 )
 
 // MockStorageURL is a mock of StorageURL interface.
@@ -48,10 +48,10 @@ func (mr *MockStorageURLMockRecorder) DelelteBatch(ctx, userID, briefs interface
 }
 
 // GetAll mocks base method.
-func (m *MockStorageURL) GetAll(ctx context.Context) []model.Short {
+func (m *MockStorageURL) GetAll(ctx context.Context) []entities.Short {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAll", ctx)
-	ret0, _ := ret[0].([]model.Short)
+	ret0, _ := ret[0].([]entities.Short)
 	return ret0
 }
 
@@ -94,10 +94,10 @@ func (mr *MockStorageURLMockRecorder) GetOrigin(ctx, brief interface{}) *gomock.
 }
 
 // GetUserAll mocks base method.
-func (m *MockStorageURL) GetUserAll(ctx context.Context, userID string) []model.Short {
+func (m *MockStorageURL) GetUserAll(ctx context.Context, userID string) []entities.Short {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserAll", ctx, userID)
-	ret0, _ := ret[0].([]model.Short)
+	ret0, _ := ret[0].([]entities.Short)
 	return ret0
 }
 
@@ -122,7 +122,7 @@ func (mr *MockStorageURLMockRecorder) Set(ctx, userID, brief, origin interface{}
 }
 
 // SetAll mocks base method.
-func (m *MockStorageURL) SetAll(ctx context.Context, short []model.Short) error {
+func (m *MockStorageURL) SetAll(ctx context.Context, short []entities.Short) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetAll", ctx, short)
 	ret0, _ := ret[0].(error)

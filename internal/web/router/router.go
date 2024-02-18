@@ -16,7 +16,6 @@ import (
 // Chi Router for application
 func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete *service.Deleter, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (r *chi.Mux) {
 
-	webHand := handlers.NewHandlerWeb(conf, stor)
 	r = chi.NewRouter()
 
 	//send password for enctription to middlewares
@@ -33,6 +32,8 @@ func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete
 		r.Use(middlewares.MidlewLog)
 		r.Use(middlewares.MidlewZip)
 		r.Use(middlewares.Auth)
+
+		webHand := handlers.NewHandlerWeb(conf, stor)
 		r.Post("/", http.HandlerFunc(webHand.SetURL))
 		r.Get("/{id}", http.HandlerFunc(webHand.GetURL))
 

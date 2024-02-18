@@ -8,7 +8,7 @@ import (
 
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/shulganew/shear.git/internal/model"
+	"github.com/shulganew/shear.git/internal/entities"
 	"go.uber.org/zap"
 )
 
@@ -26,7 +26,6 @@ func (base *DB) Set(ctx context.Context, userID, brief, origin string) error {
 
 	err := base.master.QueryRowContext(ctx, "INSERT INTO short (user_id, brief, origin, is_deleted) VALUES ($1, $2, $3, $4) ", userID, brief, origin, false).Scan()
 	if err != nil {
-		//zap.S().Infoln("Insert error!: ", origin)
 
 		var pgErr *pgconn.PgError
 		// if URL exist in DataBase
@@ -61,7 +60,7 @@ func (base *DB) GetOrigin(ctx context.Context, brief string) (origin string, exi
 
 	row := base.master.QueryRowContext(ctx, "SELECT id, user_id, brief, origin, is_deleted FROM short WHERE brief=$1", brief)
 
-	var short model.Short
+	var short entities.Short
 	err := row.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin, &short.IsDeleted)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -76,7 +75,7 @@ func (base *DB) GetOrigin(ctx context.Context, brief string) (origin string, exi
 func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, existed bool, isDeleted bool) {
 	row := base.master.QueryRowContext(ctx, "SELECT id, user_id, brief, origin, is_deleted FROM short WHERE origin=$1", origin)
 
-	var short model.Short
+	var short entities.Short
 	err := row.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin, &short.IsDeleted)
 
 	if err != nil {
@@ -90,7 +89,7 @@ func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, exis
 
 }
 
-func (base *DB) GetAll(ctx context.Context) []model.Short {
+func (base *DB) GetAll(ctx context.Context) []entities.Short {
 
 	rows, err := base.master.QueryContext(ctx, "SELECT id, user_id, brief, origin from short")
 	if err != nil {
@@ -99,9 +98,9 @@ func (base *DB) GetAll(ctx context.Context) []model.Short {
 
 	defer rows.Close()
 
-	shorts := []model.Short{}
+	shorts := []entities.Short{}
 	for rows.Next() {
-		var short model.Short
+		var short entities.Short
 		err = rows.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin)
 		if err != nil {
 			panic(err)
@@ -119,7 +118,7 @@ func (base *DB) GetAll(ctx context.Context) []model.Short {
 
 }
 
-func (base *DB) GetUserAll(ctx context.Context, userID string) []model.Short {
+func (base *DB) GetUserAll(ctx context.Context, userID string) []entities.Short {
 
 	rows, err := base.master.QueryContext(ctx, "SELECT id, user_id, brief, origin FROM short WHERE user_id=$1", userID)
 	if err != nil {
@@ -128,9 +127,9 @@ func (base *DB) GetUserAll(ctx context.Context, userID string) []model.Short {
 
 	defer rows.Close()
 
-	shorts := []model.Short{}
+	shorts := []entities.Short{}
 	for rows.Next() {
-		var short model.Short
+		var short entities.Short
 		err = rows.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin)
 		if err != nil {
 			panic(err)
@@ -147,7 +146,7 @@ func (base *DB) GetUserAll(ctx context.Context, userID string) []model.Short {
 	return shorts
 }
 
-func (base *DB) SetAll(ctx context.Context, shorts []model.Short) error {
+func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
 
 	tx, err := base.master.Begin()
 	if err != nil {

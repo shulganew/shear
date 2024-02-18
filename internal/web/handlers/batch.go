@@ -7,7 +7,7 @@ import (
 	"net/url"
 
 	"github.com/shulganew/shear.git/internal/config"
-	"github.com/shulganew/shear.git/internal/model"
+	"github.com/shulganew/shear.git/internal/entities"
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"
@@ -56,7 +56,7 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 	}
 
 	batches := []BatchResonse{}
-	shorts := []model.Short{}
+	shorts := []entities.Short{}
 	for i, r := range requests {
 
 		origin, err := url.Parse(string(r.Origin))
@@ -76,7 +76,7 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 			zap.S().Errorln("Brocken sessionID", batch.SessionID)
 		}
 
-		shortSession := model.NewShort(i, userID.Value, brief, (*origin).String(), batch.SessionID)
+		shortSession := entities.NewShort(i, userID.Value, brief, (*origin).String(), batch.SessionID)
 		shorts = append(shorts, *shortSession)
 
 	}

@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/shulganew/shear.git/internal/model"
+	"github.com/shulganew/shear.git/internal/entities"
 	"go.uber.org/zap"
 )
 
@@ -29,11 +29,11 @@ type Shortener struct {
 // intarface for universal data storage
 type StorageURL interface {
 	Set(ctx context.Context, userID string, brief, origin string) error
-	SetAll(ctx context.Context, short []model.Short) error
+	SetAll(ctx context.Context, short []entities.Short) error
 	GetOrigin(ctx context.Context, brief string) (string, bool, bool)
 	GetBrief(ctx context.Context, origin string) (string, bool, bool)
-	GetAll(ctx context.Context) []model.Short
-	GetUserAll(ctx context.Context, userID string) []model.Short
+	GetAll(ctx context.Context) []entities.Short
+	GetUserAll(ctx context.Context, userID string) []entities.Short
 	DelelteBatch(ctx context.Context, userID string, briefs []string)
 }
 
@@ -50,7 +50,7 @@ func (s *Shortener) SetURL(ctx context.Context, userID, brief, origin string) (e
 	return nil
 }
 
-func (s *Shortener) SetAll(ctx context.Context, short []model.Short) (err error) {
+func (s *Shortener) SetAll(ctx context.Context, short []entities.Short) (err error) {
 	err = s.storeURLs.SetAll(ctx, short)
 	if err != nil {
 		return fmt.Errorf("error during save URL to Store: %w", err)
@@ -66,7 +66,7 @@ func (s *Shortener) GetBrief(ctx context.Context, origin string) (brief string, 
 	return s.storeURLs.GetBrief(ctx, origin)
 }
 
-func (s *Shortener) GetUserAll(ctx context.Context, userID string) (short []model.Short) {
+func (s *Shortener) GetUserAll(ctx context.Context, userID string) (short []entities.Short) {
 	return s.storeURLs.GetUserAll(ctx, userID)
 }
 
