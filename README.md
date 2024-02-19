@@ -1,5 +1,8 @@
 # Shortener with Yandex Practicum
 
+## benchmark
+go test -bench  . ./internal/service/
+
 ## cmd commands for test purposes
 ### GET and POST handles
 ```bash

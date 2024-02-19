@@ -23,7 +23,6 @@ func NewDB(ctx context.Context, master *sql.DB) (*DB, error) {
 }
 
 func (base *DB) Set(ctx context.Context, userID, brief, origin string) error {
-
 	err := base.master.QueryRowContext(ctx, "INSERT INTO short (user_id, brief, origin, is_deleted) VALUES ($1, $2, $3, $4) ", userID, brief, origin, false).Scan()
 	if err != nil {
 
@@ -86,11 +85,9 @@ func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, exis
 	}
 
 	return short.Brief, true, short.IsDeleted
-
 }
 
 func (base *DB) GetAll(ctx context.Context) []entities.Short {
-
 	rows, err := base.master.QueryContext(ctx, "SELECT id, user_id, brief, origin from short")
 	if err != nil {
 		panic(err)
@@ -115,16 +112,13 @@ func (base *DB) GetAll(ctx context.Context) []entities.Short {
 	}
 
 	return shorts
-
 }
 
 func (base *DB) GetUserAll(ctx context.Context, userID string) []entities.Short {
-
 	rows, err := base.master.QueryContext(ctx, "SELECT id, user_id, brief, origin FROM short WHERE user_id=$1", userID)
 	if err != nil {
 		panic(err)
 	}
-
 	defer rows.Close()
 
 	shorts := []entities.Short{}
@@ -137,12 +131,10 @@ func (base *DB) GetUserAll(ctx context.Context, userID string) []entities.Short 
 
 		shorts = append(shorts, short)
 	}
-
 	err = rows.Err()
 	if err != nil {
 		panic(err)
 	}
-
 	return shorts
 }
 
@@ -183,7 +175,6 @@ func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
 }
 
 func (base *DB) DelelteBatch(ctx context.Context, userID string, briefs []string) {
-
 	//prerare bulck request to database
 	userIDs := make([]string, len(briefs))
 	for i := range briefs {
@@ -195,17 +186,14 @@ func (base *DB) DelelteBatch(ctx context.Context, userID string, briefs []string
 	FROM (SELECT unnest($1::text[]) AS user_id, unnest($2::text[]) AS brief) AS data_table 
 	WHERE short.user_id = data_table.user_id AND short.brief = data_table.brief;
 	`
-
 	_, err := base.master.ExecContext(ctx, bulck, userIDs, briefs)
 
 	if err != nil {
 		panic(err)
 	}
-
 }
 
 func (base *DB) isDeleted(ctx context.Context, brief string) bool {
-
 	row := base.master.QueryRowContext(ctx, "SELECT is_deleted FROM short WHERE brief=$1", brief)
 
 	var isDeleted bool
@@ -216,11 +204,9 @@ func (base *DB) isDeleted(ctx context.Context, brief string) bool {
 	}
 	zap.S().Infoln("isDeleted: ", brief, isDeleted)
 	return isDeleted
-
 }
 
 func (base *DB) Recover(ctx context.Context, userID string, brief string) {
-
 	_, err := base.master.ExecContext(ctx, "UPDATE short SET is_deleted=FALSE, user_id=$1 WHERE brief=$2", userID, brief)
 	zap.S().Infoln("Recover!!!", userID, brief)
 	if err != nil {
@@ -231,31 +217,10 @@ func (base *DB) Recover(ctx context.Context, userID string, brief string) {
 
 // Init Database
 func InitDB(ctx context.Context, dsn string) (db *sql.DB, err error) {
-
 	db, err = sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, err
 	}
-
-	//create table short if not exist
-
-	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS short (id SERIAL , user_id TEXT NULL, brief TEXT NOT NULL, origin TEXT NOT NULL UNIQUE)")
-	if err != nil {
-		return nil, err
-	}
-
-	//upgrade table if uuid not exist
-	_, err = db.ExecContext(ctx, "ALTER TABLE short ADD COLUMN IF NOT EXISTS user_id TEXT")
-	if err != nil {
-		return nil, err
-	}
-
-	//upgrade table if is_deleted not exist
-	_, err = db.ExecContext(ctx, "ALTER TABLE short ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE")
-	if err != nil {
-		return nil, err
-	}
-
 	return
 }
 

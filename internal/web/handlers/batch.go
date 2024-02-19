@@ -13,16 +13,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type BatchRequest struct {
-	SessionID string `json:"correlation_id"`
-	Origin    string `json:"original_url"`
-}
-
-type BatchResonse struct {
-	SessionID string `json:"correlation_id"`
-	Answer    string `json:"short_url"`
-}
-
 type HandlerBatch struct {
 	serviceURL *service.Shortener
 	conf       *config.Config
@@ -38,24 +28,20 @@ func (u *HandlerBatch) GetService() service.Shortener {
 }
 
 func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
-
 	//find UserID in cookies
 	userID, err := req.Cookie("user_id")
 	if err != nil {
 		http.Error(res, "Can't find user in cookies", http.StatusUnauthorized)
 	}
-
 	//handle bach requests
-	var requests []BatchRequest
-
+	var requests []entities.BatchRequest
 	if err := json.NewDecoder(req.Body).Decode(&requests); err != nil {
 		zap.S().Errorln("Get batch: ", err)
-
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	batches := []BatchResonse{}
+	batches := []entities.BatchResponse{}
 	shorts := []entities.Short{}
 	for i, r := range requests {
 
@@ -63,19 +49,17 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 		}
-
 		//get short brief and full answer URL
 		brief := service.GenerateShorLink()
 		_, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response, brief)
 		//get batch for answer
-		batch := BatchResonse{SessionID: r.SessionID, Answer: answerURL.String()}
+		batch := entities.BatchResponse{SessionID: r.SessionID, Answer: answerURL.String()}
 		//add batches
 		batches = append(batches, batch)
 
 		if err != nil {
 			zap.S().Errorln("Brocken sessionID", batch.SessionID)
 		}
-
 		shortSession := entities.NewShort(i, userID.Value, brief, (*origin).String(), batch.SessionID)
 		shorts = append(shorts, *shortSession)
 
@@ -89,11 +73,9 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 		if errors.As(err, &tagErr) {
 			//set status code 409 Conflict
 			res.WriteHeader(http.StatusConflict)
-
 			//send existed URL to response
-			broken := []BatchResonse{}
-
-			batch := BatchResonse{SessionID: tagErr.Short.SessionID, Answer: tagErr.Short.Brief}
+			broken := []entities.BatchResponse{}
+			batch := entities.BatchResponse{SessionID: tagErr.Short.SessionID, Answer: tagErr.Short.Brief}
 			broken = append(broken, batch)
 			jsonBrokenBatch, err := json.Marshal(broken)
 			if err != nil {
@@ -102,7 +84,6 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 
 			//set content type
 			res.Header().Add("Content-Type", "application/json")
-
 			zap.S().Infoln("Broken: ", string(jsonBrokenBatch))
 			res.Write(jsonBrokenBatch)
 			return
@@ -120,5 +101,4 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 	//set status code 201
 	res.WriteHeader(http.StatusCreated)
 	res.Write(jsonBatch)
-
 }

@@ -33,25 +33,29 @@ func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete
 		r.Use(middlewares.MidlewZip)
 		r.Use(middlewares.Auth)
 
+		// Set short from URL.
 		webHand := handlers.NewHandlerWeb(conf, stor)
 		r.Post("/", http.HandlerFunc(webHand.SetURL))
+		// Get URL by short.
 		r.Get("/{id}", http.HandlerFunc(webHand.GetURL))
 
-		//api
+		// JSON API for shortener.
 		apiHand := handlers.NewHandlerAPI(conf, stor)
 		r.Post("/api/shorten", http.HandlerFunc(apiHand.GetBrief))
 
-		//DB Postgres Ping
+		// Databes teset - ping.
 		dbHand := handlers.NewDB(db)
 		r.Get("/ping", http.HandlerFunc(dbHand.Ping))
 
-		//DB Postgres Batch request
+		// DB Postgres Batch request (multiple JSON)
 		batchHand := handlers.NewHandlerBatch(conf, stor)
 		r.Post("/api/shorten/batch", http.HandlerFunc(batchHand.BatchSet))
 
+		// Get all users URLs.
 		handCookieID := handlers.NewHandlerAuthUser(conf, stor)
 		r.Get("/api/user/urls", http.HandlerFunc(handCookieID.GetUserURLs))
 
+		// Batch delete shorts from handlers (bulk postgers delete).
 		delID := handlers.NewHandlerDelShorts(delete)
 		r.Delete("/api/user/urls", http.HandlerFunc(delID.DelUserURLs))
 	})

@@ -34,6 +34,7 @@ func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 	brief := chi.URLParam(req, "id")
 
 	//get long Url from storage
+	zap.S().Infoln("ID: ", brief)
 	origin, exist, isDeleted := u.serviceURL.GetOrigin(req.Context(), brief)
 
 	//set content type
@@ -43,7 +44,6 @@ func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 		if isDeleted {
 			//set status code 410
 			res.WriteHeader(http.StatusGone)
-
 			return
 		}
 		res.Header().Set("Location", origin)
@@ -54,12 +54,10 @@ func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 	}
 
 	res.WriteHeader(http.StatusNotFound)
-
 }
 
 // POTS and set generate short Url
 func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
-
 	readBody, err := io.ReadAll(req.Body)
 	if err != nil {
 		http.Error(res, "Body not found", http.StatusInternalServerError)
@@ -76,17 +74,16 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 	//set content type
 	res.Header().Add("Content-Type", "text/plain")
 
-	//save map to storage
 	//find UserID in cookies
 	userID, err := req.Cookie("user_id")
 	if err != nil {
 		http.Error(res, "Can't find user in cookies", http.StatusUnauthorized)
 	}
 
+	// Save map to storage.
 	err = u.serviceURL.SetURL(req.Context(), userID.Value, brief, (*redirectURL).String())
 
 	if err != nil {
-
 		var tagErr *storage.ErrDuplicatedURL
 		if errors.As(err, &tagErr) {
 			//set status code 409 Conflict
@@ -108,5 +105,4 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusCreated)
 	//send generate and saved string
 	res.Write([]byte(answerURL.String()))
-
 }

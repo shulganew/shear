@@ -34,9 +34,7 @@ func (d *Deleter) AsyncDelete(userID string, dec *json.Decoder) {
 	}
 
 	breifs := make([]string, 0)
-
 	for dec.More() {
-
 		var brief string
 		// // decode an array value (Message)
 		err := dec.Decode(&brief)
@@ -45,7 +43,6 @@ func (d *Deleter) AsyncDelete(userID string, dec *json.Decoder) {
 		}
 		//check end of json array
 		if brief != "]" {
-
 			breifs = append(breifs, brief)
 		}
 
@@ -71,7 +68,6 @@ func (d *Deleter) AsyncDelete(userID string, dec *json.Decoder) {
 
 // Write data from handlers to final channel
 func WriteFinal(input chan string, userID string, finalCh chan DelBatch, waitDel *sync.WaitGroup) {
-
 	buff := make([]string, 0)
 	//read to buffer from generator channel
 	for data := range input {

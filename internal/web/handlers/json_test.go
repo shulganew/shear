@@ -47,7 +47,7 @@ func TestAPI(t *testing.T) {
 	}
 
 	// init configApp
-	configApp := config.InitConfig()
+	configApp := &config.Config{}
 
 	// init config with difauls values
 	configApp.Address = config.DefaultHost

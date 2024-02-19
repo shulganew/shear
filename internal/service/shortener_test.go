@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service/mocks"
 	"github.com/stretchr/testify/assert"
@@ -56,4 +57,56 @@ func Test_main(t *testing.T) {
 		})
 
 	}
+}
+func BenchmarkShortener(b *testing.B) {
+	b.Run("generate short", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			GenerateShorLink()
+		}
+	})
+
+	ctrl := gomock.NewController(b)
+	defer ctrl.Finish()
+
+	//crete mock storege
+	storeMock := mocks.NewMockStorageURL(ctrl)
+
+	// init configApp
+	configApp := &config.Config{}
+
+	// init config with difauls values
+	configApp.Address = config.DefaultHost
+	configApp.Response = config.DefaultHost
+
+	//init storage
+	shortener := NewService(storeMock)
+
+	_ = storeMock.EXPECT().
+		GetOrigin(gomock.Any(), gomock.Any()).
+		AnyTimes().
+		Return("yandex.ru", true, false)
+
+	b.Run("get URL", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			shortener.GetAnsURL("http", "localhost:8080", GenerateShorLink())
+		}
+
+	})
+
+	pass := "mypassword"
+	b.Run("Encode and decode", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			// Init user's UUID.
+			b.StopTimer()
+			uuid, err := uuid.NewV7()
+			assert.NoError(b, err)
+			b.StartTimer()
+
+			secret, err := EncodeCookie(uuid.String(), pass)
+			assert.NoError(b, err)
+			_, err = DecodeCookie(secret, pass)
+			assert.NoError(b, err)
+		}
+	})
+
 }
