@@ -1,1 +1,0 @@
-CREATE TABLE short (id SERIAL , brief TEXT NOT NULL, origin TEXT NOT NULL UNIQUE);

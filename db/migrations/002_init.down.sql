@@ -1,1 +1,0 @@
-ALTER TABLE short DROP COLUMN user_id;

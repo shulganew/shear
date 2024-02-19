@@ -116,6 +116,28 @@ mockgen -source=internal/service/shortener.go \
     -package=mocks
 ```
 
+## Запуск Postgres в контейнере
+
+Для запуска и остановки Postgres в контейнере выполнятьются скрипты создания и миграции базы в make-файле:
+* Инициализация
+```bash
+make pg
+```
+* Миграция goose
+```bash
+https://github.com/pressly/goose
+GOOSE_DRIVER=postgres
+GOOSE_DBSTRING="postgresql://market:1@localhost/market"
+GOOSE_DRIVER=postgres GOOSE_DBSTRING="postgresql://market:1@localhost/market" goose up
+GOOSE_DRIVER=postgres GOOSE_DBSTRING="postgresql://postgres:postgres@postgres/praktikum" goose -dir ./migrations  up
+export GOOSE_DRIVER=postgres
+export GOOSE_DBSTRING="postgresql://postgres:postgres@postgres/praktikum"
+```
+
+* Остановка и удаление контейнера
+```bash
+make pg-stop
+```
 
 # go-musthave-shortener-tpl
 

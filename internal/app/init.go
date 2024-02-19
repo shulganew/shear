@@ -25,7 +25,7 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan s
 		stor, err = storage.NewDB(ctx, db)
 		if err != nil {
 			zap.S().Errorln("Error connect to DB from env: ", err)
-			//use memory storage
+			// use memory storage
 			stor = storage.NewMemory()
 			zap.S().Infoln("Use memory storage: database not pinging")
 		}

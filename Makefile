@@ -32,42 +32,20 @@ golangci-lint-clean:
 
 #Migrations
 
-.PHONY: db-init
-db-init:
-	docker run --rm \
-    	-v $(realpath ./db/migrations):/migrations \
-    	migrate/migrate:v4.16.2 \
-        	create \
-        	-dir /migrations \
-        	-ext .sql \
-        	-seq -digits 3 \
-        	init
-
-
 .PHONY: pg
 pg:
 	docker run --rm \
-		--name=shortdb_v10 \
-		-v $(abspath ./db/init/):/docker-entrypoint-initdb.d \
+		--name=shortdb_v11 \
+		-v $(abspath ./docker/init/):/docker-entrypoint-initdb.d \
 		-e POSTGRES_PASSWORD="postgres" \
 		-d \
 		-p 5432:5432 \
 		postgres:15.3
+	
+	sleep 3
+	
+	goose -dir ./migrations  up
 
 .PHONY: pg-stop
 pg-stop:
-	docker stop shortdb_v10
-
-.PHONY: clean-data
-clean-data:
-	sudo rm -rf ./db/data/
-
-.PHONY: pg-up
-pg-up:
-
-	docker run --rm \
-    -v $(realpath ./db/migrations):/migrations \
-    migrate/migrate:v4.16.2 \
-        -path=/migrations \
-        -database postgres://short:1@172.17.0.2:5432/short?sslmode=disable \
-        up
+	docker stop shortdb_v11
