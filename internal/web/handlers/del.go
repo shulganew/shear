@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/shulganew/shear.git/internal/config"
@@ -17,10 +18,6 @@ func NewHandlerDelShorts(serviceDel *service.Deleter) *DelShorts {
 	return &DelShorts{servDeleter: serviceDel}
 }
 
-func (d *DelShorts) GetServiceURL() service.Deleter {
-	return *d.servDeleter
-}
-
 // Delete User's URLs from json array in request (mark as deleted with saving in DB)
 func (d *DelShorts) DelUserURLs(res http.ResponseWriter, req *http.Request) {
 	//get UserID from cxt values
@@ -32,11 +29,19 @@ func (d *DelShorts) DelUserURLs(res http.ResponseWriter, req *http.Request) {
 
 	userID := ctxConfig.GetUserID()
 
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		http.Error(res, "Can't read body. ", http.StatusInternalServerError)
+	}
 	//read body as buffer
-	dec := json.NewDecoder(req.Body)
+	var breifs []string
+	err = json.Unmarshal(body, &breifs)
+	if err != nil {
+		http.Error(res, "Can't parse JSON delete short's array. ", http.StatusInternalServerError)
+	}
 
 	//async delete Shorts from body
-	d.servDeleter.AsyncDelete(userID, dec)
+	d.servDeleter.AsyncDelete(userID, breifs)
 
 	// set content type
 	res.Header().Add("Content-Type", "plain/text")

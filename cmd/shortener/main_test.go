@@ -62,7 +62,7 @@ func Test_main(t *testing.T) {
 
 	//init storage
 	handler := handlers.NewHandlerGetURL(configApp, stor)
-	serviceURL := handler.GetServiceURL()
+	serviceURL := service.NewService(stor)
 
 	userID, err := uuid.NewV7()
 	if err != nil {
@@ -124,8 +124,6 @@ func Test_main(t *testing.T) {
 
 				//check request url and body url the same
 				assert.Equal(t, responseURLDb, bodyURL)
-
-				//go test -v ./...
 
 			} else if tt.method == http.MethodGet {
 				t.Log("=============GET===============")

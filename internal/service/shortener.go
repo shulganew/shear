@@ -104,9 +104,11 @@ func (s *Shortener) GetAnsURL(shema, resultaddr string, brief string) (mainURL s
 
 // generate short link
 func GenerateShorLink() string {
+
 	//base charset
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	//nuber of short chars in url string
+
 	sb := strings.Builder{}
 	sb.Grow(ShortLength)
 	for i := 0; i < ShortLength; i++ {

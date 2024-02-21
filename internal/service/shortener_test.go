@@ -71,13 +71,6 @@ func BenchmarkShortener(b *testing.B) {
 	//crete mock storege
 	storeMock := mocks.NewMockStorageURL(ctrl)
 
-	// init configApp
-	configApp := &config.Config{}
-
-	// init config with difauls values
-	configApp.Address = config.DefaultHost
-	configApp.Response = config.DefaultHost
-
 	//init storage
 	shortener := NewService(storeMock)
 

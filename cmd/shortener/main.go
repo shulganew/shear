@@ -4,10 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
+
 	"os"
 	"sync"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+
+	_ "net/http/pprof"
+
 	"github.com/shulganew/shear.git/internal/app"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"

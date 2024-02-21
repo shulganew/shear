@@ -1,7 +1,45 @@
 # Shortener with Yandex Practicum
 
+
+
+## Profiling
+pprof is a tool for visualization and analysis of profiling data
+### Install
+```go
+go install github.com/google/pprof@latest
+```
+### WEB
+```go
+http://127.0.0.1:8080/debug/pprof/
+go tool pprof -http=":9090" -seconds=30 http://localhost:8080/debug/pprof/profile 
+```
+### Consloe
+```go
+go tool pprof -seconds=30 http://localhost:8080/debug/pprof/profile
+```
+```cmd
+list foo
+top foo
+```
+### Memory (use URL)
+```
+go tool pprof -http=":9090" -seconds=30 http://localhost:8080/debug/pprof/heap 
+```
+### Memory (use local file)
+```
+curl -sK -v http://localhost:8080/debug/pprof/heap > profiles/base.pprof
+go tool pprof -http=":9090" -seconds=30 profiles/base.pprof 
+curl -sK -v http://localhost:8080/debug/pprof/heap > profiles/result.pprof
+go tool pprof -http=":9090" -seconds=30 profiles/result.pprof 
+
+pprof -top -diff_base=profiles/base.pprof profiles/result.pprof
+```
+
+
 ## benchmark
+```
 go test -bench  . ./internal/service/
+```
 
 ## cmd commands for test purposes
 ### GET and POST handles
@@ -71,6 +109,12 @@ shortenertestbeta -test.v -test.run=^TestIteration7$ -binary-path=cmd/shortener/
 go build -o ./cmd/shortener/shortener ./cmd/shortener/main.go
 
 ## my links to useful sites
+
+## Test cover
+```
+go test -v -coverpkg=./... -coverprofile=profile.cov ./...
+go tool cover -func profile.cov
+```
 
 # Use autotest local 
 https://github.com/nektos/act

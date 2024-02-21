@@ -30,10 +30,6 @@ func NewHandlerAPI(conf *config.Config, stor service.StorageURL) *HandlerAPI {
 	return &HandlerAPI{serviceURL: service.NewService(stor), conf: conf}
 }
 
-func (u *HandlerAPI) GetService() service.Shortener {
-	return *u.serviceURL
-}
-
 func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 
 	var request Request

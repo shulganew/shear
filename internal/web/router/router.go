@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
+	"net/http/pprof"
 	"sync"
 
 	"github.com/go-chi/chi/v5"
@@ -58,6 +59,16 @@ func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete
 		// Batch delete shorts from handlers (bulk postgers delete).
 		delID := handlers.NewHandlerDelShorts(delete)
 		r.Delete("/api/user/urls", http.HandlerFunc(delID.DelUserURLs))
+
+		if conf.Pprof {
+			// Adding pprof
+			r.Get("/debug/pprof/{}", http.HandlerFunc(pprof.Index))
+			r.Get("/debug/pprof/", http.HandlerFunc(pprof.Index))
+			r.Get("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
+			r.Get("/debug/pprof/profile", http.HandlerFunc(pprof.Profile))
+			r.Get("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
+			r.Get("/debug/pprof/trace", http.HandlerFunc(pprof.Trace))
+		}
 	})
 
 	return

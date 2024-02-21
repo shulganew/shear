@@ -25,10 +25,6 @@ func NewHandlerGetURL(conf *config.Config, stor service.StorageURL) *HandlerURL 
 	return &HandlerURL{serviceURL: service.NewService(stor), conf: conf}
 }
 
-func (u *HandlerURL) GetServiceURL() service.Shortener {
-	return *u.serviceURL
-}
-
 // GET and redirect by brief
 func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 	brief := chi.URLParam(req, "id")

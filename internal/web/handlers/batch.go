@@ -23,10 +23,6 @@ func NewHandlerBatch(conf *config.Config, stor service.StorageURL) *HandlerBatch
 	return &HandlerBatch{serviceURL: service.NewService(stor), conf: conf}
 }
 
-func (u *HandlerBatch) GetService() service.Shortener {
-	return *u.serviceURL
-}
-
 func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 	//find UserID in cookies
 	userID, err := req.Cookie("user_id")

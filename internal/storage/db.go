@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgerrcode"
@@ -176,6 +177,7 @@ func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
 
 func (base *DB) DelelteBatch(ctx context.Context, userID string, briefs []string) {
 	//prerare bulck request to database
+	fmt.Println(briefs)
 	userIDs := make([]string, len(briefs))
 	for i := range briefs {
 		userIDs[i] = userID
@@ -187,7 +189,6 @@ func (base *DB) DelelteBatch(ctx context.Context, userID string, briefs []string
 	WHERE short.user_id = data_table.user_id AND short.brief = data_table.brief;
 	`
 	_, err := base.master.ExecContext(ctx, bulck, userIDs, briefs)
-
 	if err != nil {
 		panic(err)
 	}
@@ -229,6 +230,7 @@ func (base *DB) Start(ctx context.Context) error {
 	// читаем контекст
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	err := base.master.PingContext(ctx)
+	fmt.Print("!!!!", err)
 	defer cancel()
 	return err
 }
