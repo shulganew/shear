@@ -12,7 +12,6 @@ import (
 
 func Auth(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-
 		// get password from context
 		pass := req.Context().Value(config.CtxPassKey{}).(string)
 

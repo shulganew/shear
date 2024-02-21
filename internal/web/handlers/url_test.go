@@ -71,7 +71,7 @@ func TestURL(t *testing.T) {
 			configApp.Response = config.DefaultHost
 
 			//init storage
-			handler := NewHandlerWeb(configApp, storeMock)
+			handler := NewHandlerGetURL(configApp, storeMock)
 
 			userID, err := uuid.NewV7()
 			if err != nil {

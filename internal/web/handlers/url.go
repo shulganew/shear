@@ -20,7 +20,7 @@ type HandlerURL struct {
 	conf       *config.Config
 }
 
-func NewHandlerWeb(conf *config.Config, stor service.StorageURL) *HandlerURL {
+func NewHandlerGetURL(conf *config.Config, stor service.StorageURL) *HandlerURL {
 
 	return &HandlerURL{serviceURL: service.NewService(stor), conf: conf}
 }

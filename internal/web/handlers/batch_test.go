@@ -63,7 +63,7 @@ func TestBatch(t *testing.T) {
 	stor := service.StorageURL(storage.NewMemory())
 	//init storage
 	apiBatch := NewHandlerBatch(configApp, stor)
-	webHand := NewHandlerWeb(configApp, stor)
+	webHand := NewHandlerGetURL(configApp, stor)
 
 	userID, err := uuid.NewV7()
 	if err != nil {
