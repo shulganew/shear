@@ -32,7 +32,6 @@ func InitBackup(ctx context.Context, storage StorageURL, file string) *Backup {
 }
 
 func (b Backup) Save(short entities.Short) error {
-
 	data, err := json.Marshal(short)
 	//Backup URL:
 	if err != nil {
@@ -80,7 +79,6 @@ func (b Backup) BackupAll(ctx context.Context, storage StorageURL) error {
 }
 
 func (b Backup) Load() ([]entities.Short, error) {
-
 	file, err := os.OpenFile(b.File, os.O_RDONLY, 0666)
 
 	if err != nil {

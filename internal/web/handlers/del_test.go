@@ -60,7 +60,6 @@ func TestDelBulk(t *testing.T) {
 	configApp.Response = config.DefaultHost
 	configApp.IsDB = false
 	configApp.IsBackup = false
-	configApp.BatchSize = 10
 	configApp.Pass = "MyPass"
 	memory := storage.NewMemory()
 	stor := service.StorageURL(memory)

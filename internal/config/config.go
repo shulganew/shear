@@ -34,12 +34,6 @@ type Config struct {
 	//User identity encription with cookie
 	Pass string
 
-	//System parameter, user for delete service
-	//It describe size of reading buffered body contentent slice in
-	//handler Delete /api/user/urls
-	//service.Delete
-	BatchSize int
-
 	// Use rofiling in project
 	Pprof bool
 }
@@ -54,7 +48,6 @@ func InitConfig() *Config {
 	userAuth := flag.String("s", "mysecret", "User identity encription with cookie (user_id)")
 	tempf := flag.String("f", "", "Location of dump file")
 	dsnf := flag.String("d", "", "Data Source Name for DataBase connection")
-	delSize := flag.Int("z", 20, "Size of butch ansync delete")
 	pprof := flag.Bool("p", false, "Visulaisation tool")
 	flag.Parse()
 	//check and parse URL
@@ -67,8 +60,7 @@ func InitConfig() *Config {
 	config.Response = answaddr + ":" + answport
 	zap.S().Infoln("Server address: ", config.Address)
 
-	//set batch size
-	config.BatchSize = *delSize
+
 
 	//save cookie pass
 	config.Pass = *userAuth

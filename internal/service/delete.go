@@ -26,7 +26,7 @@ type DelBatch struct {
 
 func (d *Deleter) AsyncDelete(userID string, shorts []string) {
 	d.waitDel.Add(1)
-	go WriteFinal(Generator(shorts, d.conf.BatchSize), userID, d.finalCh, d.waitDel)
+	go WriteFinal(Generator(shorts), userID, d.finalCh, d.waitDel)
 }
 
 // funcktions for anync mark delete users URL
@@ -43,9 +43,8 @@ func WriteFinal(input chan string, userID string, finalCh chan DelBatch, waitDel
 }
 
 // return channel with useres briefs for sending in final channel (fan-in)
-func Generator(input []string, batchsize int) chan string {
-
-	inputCh := make(chan string, batchsize)
+func Generator(input []string) chan string {
+	inputCh := make(chan string)
 	go func() {
 		defer close(inputCh)
 		for _, data := range input {
