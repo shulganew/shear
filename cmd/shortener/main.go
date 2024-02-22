@@ -42,13 +42,13 @@ func main() {
 
 	}
 
-	//Use fanIn pattern for storing data from delete requests
+	// Use fanIn pattern for storing data from delete requests
 	finalCh := make(chan service.DelBatch, 100)
 	defer close(finalCh)
 
 	var waitDel sync.WaitGroup
 
-	//Init application
+	// Init application
 	stor, backup, del := app.InitApp(ctx, *conf, db, finalCh, &waitDel)
 
 	go func(ctx context.Context, stor service.StorageURL, finalCh chan service.DelBatch, wg *sync.WaitGroup) {

@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_main(t *testing.T) {
+func TestMain(t *testing.T) {
 	tests := []struct {
 		name        string
 		request     string

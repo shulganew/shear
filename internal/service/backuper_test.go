@@ -3,30 +3,38 @@ package service
 import (
 	"context"
 	"testing"
+	"testing/fstest"
 
 	"github.com/golang/mock/gomock"
-	"github.com/google/uuid"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestShortener(t *testing.T) {
+func TestBackup(t *testing.T) {
 	tests := []struct {
 		name              string
+		fileData          string
 		request           string
 		responseBrief     string
 		responseExist     bool
 		responseIsDeleted bool
 	}{
 		{
-			name:              "base test POTS",
+			name:              "Test load backup from file",
 			request:           "http://yandex1.ru/",
 			responseBrief:     "dzafbfsx",
 			responseExist:     true,
 			responseIsDeleted: false,
 		},
 	}
+
+	fs := fstest.MapFS{
+		"hello.txt": {
+			Data: []byte("hello, world"),
+		},
+	}
+	backup := NewBackup(fs)
 
 	// init configApp
 	configApp := config.InitConfig()
@@ -57,49 +65,4 @@ func TestShortener(t *testing.T) {
 		})
 
 	}
-}
-func BenchmarkShortener(b *testing.B) {
-	b.Run("generate short", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			GenerateShorLink()
-		}
-	})
-
-	ctrl := gomock.NewController(b)
-	defer ctrl.Finish()
-
-	//crete mock storege
-	storeMock := mocks.NewMockStorageURL(ctrl)
-
-	//init storage
-	shortener := NewService(storeMock)
-
-	_ = storeMock.EXPECT().
-		GetOrigin(gomock.Any(), gomock.Any()).
-		AnyTimes().
-		Return("yandex.ru", true, false)
-
-	b.Run("get URL", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			shortener.GetAnsURL("http", "localhost:8080", GenerateShorLink())
-		}
-
-	})
-
-	pass := "mypassword"
-	b.Run("Encode and decode", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			// Init user's UUID.
-			b.StopTimer()
-			uuid, err := uuid.NewV7()
-			assert.NoError(b, err)
-			b.StartTimer()
-
-			secret, err := EncodeCookie(uuid.String(), pass)
-			assert.NoError(b, err)
-			_, err = DecodeCookie(secret, pass)
-			assert.NoError(b, err)
-		}
-	})
-
 }
