@@ -18,7 +18,6 @@ func (ed *ErrDuplicatedURL) Error() string {
 	return fmt.Sprintf("%s. Existed URL: [%s]. Error: [%v]", ed.Label, ed.Brief, ed.Err)
 }
 
-// Unwrap()
 func (ed *ErrDuplicatedURL) Unwrap() error {
 	return ed.Err
 }
@@ -37,8 +36,6 @@ type ErrDuplicatedShort struct {
 func (ed *ErrDuplicatedShort) Error() string {
 	return fmt.Sprintf("%s. Existed URL: [%s]. Error: [%v]", ed.Label, ed.Short.Brief, ed.Err)
 }
-
-// Unwrap()
 func (ed *ErrDuplicatedShort) Unwrap() error {
 	return ed.Err
 }

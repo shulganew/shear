@@ -60,8 +60,6 @@ func InitConfig() *Config {
 	config.Response = answaddr + ":" + answport
 	zap.S().Infoln("Server address: ", config.Address)
 
-
-
 	//save cookie pass
 	config.Pass = *userAuth
 
@@ -115,17 +113,4 @@ func InitConfig() *Config {
 
 	zap.S().Infoln("Configuration complite")
 	return &config
-}
-
-func (c *Config) SetConfig(startAddress, resultAddress string) {
-	c.Address = startAddress
-	c.Response = resultAddress
-}
-
-func (c *Config) GetStartAddr() string {
-	return c.Address
-}
-
-func (c *Config) GetResultAddr() string {
-	return c.Response
 }

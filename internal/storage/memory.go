@@ -34,7 +34,6 @@ func (m *Memory) GetOrigin(ctx context.Context, brief string) (origin string, ex
 		existed = true
 		isDeleted = m.StoreURLs[id].IsDeleted
 	}
-
 	return
 }
 
@@ -54,8 +53,16 @@ func (m *Memory) GetAll(ctx context.Context) []entities.Short {
 }
 
 func (m *Memory) GetUserAll(ctx context.Context, userID string) []entities.Short {
-	slices.DeleteFunc(m.StoreURLs, func(s entities.Short) bool { return s.UUID.String == userID })
-	return m.StoreURLs
+	shorts := make([]entities.Short, 0)
+	for _, short := range m.StoreURLs {
+		id, err := short.UUID.Value()
+		if err == nil {
+			if id == userID {
+				shorts = append(shorts, short)
+			}
+		}
+	}
+	return shorts
 }
 
 func (m *Memory) DelelteBatch(ctx context.Context, userID string, briefs []string) {
@@ -63,7 +70,6 @@ func (m *Memory) DelelteBatch(ctx context.Context, userID string, briefs []strin
 		id := slices.IndexFunc(m.StoreURLs, func(s entities.Short) bool { return s.Brief == brief && s.UUID.String == userID })
 		if id != -1 {
 			m.StoreURLs[id].IsDeleted = true
-
 		}
 	}
 }

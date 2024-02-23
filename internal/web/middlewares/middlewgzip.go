@@ -11,14 +11,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type gzipRequest struct {
-	Req *http.Request
-}
-
-func (r gzipRequest) newBody(body io.ReadCloser) {
-	r.Req.Body = body
-}
-
 type gzipWriter struct {
 	http.ResponseWriter
 	Writer io.Writer

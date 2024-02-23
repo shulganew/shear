@@ -28,10 +28,9 @@ func TestURL(t *testing.T) {
 		brief             string
 		responseExist     bool
 		responseIsDeleted bool
-		//want
 	}{
 		{
-			name:              "base test POTS",
+			name:              "Set URL",
 			request:           "http://localhost:8080",
 			body:              "http://yandex.ru/",
 			origin:            "http://yandex.ru/",
@@ -43,7 +42,7 @@ func TestURL(t *testing.T) {
 		},
 
 		{
-			name:              "base test GET",
+			name:              "Get URL",
 			request:           "http://localhost:8080",
 			body:              "http://yandex.ru/",
 			origin:            "http://yandex.ru/",
@@ -77,8 +76,6 @@ func TestURL(t *testing.T) {
 			if err != nil {
 				zap.S().Errorln("Error generate user uuid")
 			}
-
-			t.Log("=============GET===============")
 
 			_ = storeMock.EXPECT().
 				GetOrigin(gomock.Any(), tt.brief).

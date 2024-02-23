@@ -64,8 +64,6 @@ func TestAPI(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			t.Log("=============POTS===============")
 			t.Log("tt.request=", tt.body)
 
 			//add chi context
@@ -104,7 +102,6 @@ func TestAPI(t *testing.T) {
 			require.True(t, exist)
 
 			t.Log("brief url: ", originDB)
-
 			assert.Equal(t, originDB, tt.link)
 
 		})

@@ -6,9 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -24,25 +22,18 @@ import (
 	"go.uber.org/zap"
 )
 
-func TestBatch(t *testing.T) {
+func TestUsersUrls(t *testing.T) {
 	tests := []struct {
 		name        string
 		multipleURL string
-		reqestShort string
+		usersURLs   string
 		numURLs     int
 		statusCode  int
 	}{
 		{
 			name:        "base test POTS",
 			multipleURL: "http://localhost:8080/api/shorten/batch",
-			reqestShort: "http://localhost:8080/",
-			numURLs:     20,
-			statusCode:  http.StatusCreated,
-		},
-		{
-			name:        "base test POTS",
-			multipleURL: "http://localhost:8080/api/shorten/batch",
-			reqestShort: "http://localhost:8080/",
+			usersURLs:   "http://localhost:8080/api/user/urls",
 			numURLs:     20,
 			statusCode:  http.StatusCreated,
 		},
@@ -60,7 +51,8 @@ func TestBatch(t *testing.T) {
 	stor := service.StorageURL(storage.NewMemory())
 	//init storage
 	apiBatch := NewHandlerBatch(configApp, stor)
-	webHand := NewHandlerGetURL(configApp, stor)
+	// Get all users URLs.
+	apiUsersURLs := NewHandlerAuthUser(configApp, stor)
 
 	userID, err := uuid.NewV7()
 	if err != nil {
@@ -98,36 +90,36 @@ func TestBatch(t *testing.T) {
 
 			//Unmarshal body
 			var resp []entities.BatchResponse
-
 			err = json.NewDecoder(res.Body).Decode(&resp)
 			require.NoError(t, err)
 
 			// Check short URLS
-			for _, short := range resp {
 
-				//add chi context
-				rctx = chi.NewRouteContext()
-				URL, err := url.Parse(short.Answer)
-				require.NoError(t, err)
-				id := URL.Path
+			//add chi context
+			rctx = chi.NewRouteContext()
+			req = httptest.NewRequest(http.MethodGet, tt.usersURLs, nil)
+			ctx := context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID.String(), false))
+			req = req.WithContext(context.WithValue(ctx, chi.RouteCtxKey, rctx))
+			req.Header.Add("Content-Type", "application/json")
+			cookie = http.Cookie{Name: "user_id", Value: userID.String()}
+			req.AddCookie(&cookie)
 
-				rctx.URLParams.Add("id", strings.TrimPrefix(id, "/"))
-				req = httptest.NewRequest(http.MethodGet, short.Answer, nil)
-				req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
-				req.Header.Add("Content-Type", "plain/text")
-				cookie = http.Cookie{Name: "user_id", Value: userID.String()}
-				req.AddCookie(&cookie)
+			//create status recorder
+			resRecord = httptest.NewRecorder()
+			apiUsersURLs.GetUserURLs(resRecord, req)
+			//get result
+			res = resRecord.Result()
+			defer res.Body.Close()
 
-				//create status recorder
-				resRecord = httptest.NewRecorder()
-				webHand.GetURL(resRecord, req)
+			resAuth := []ResonseAuth{}
 
-				//get result
-				res := resRecord.Result()
-				defer res.Body.Close()
-				//check answer code
-				assert.Equal(t, http.StatusTemporaryRedirect, res.StatusCode)
-			}
+			err = json.NewDecoder(res.Body).Decode(&resAuth)
+			require.NoError(t, err)
+
+			//check answer code
+			assert.Equal(t, http.StatusOK, res.StatusCode)
+			assert.Equal(t, tt.numURLs, len(resAuth))
+
 		})
 	}
 }

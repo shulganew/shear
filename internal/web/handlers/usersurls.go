@@ -24,10 +24,6 @@ func NewHandlerAuthUser(conf *config.Config, stor service.StorageURL) *HandlerAu
 	return &HandlerAuth{serviceURL: service.NewService(stor), conf: conf}
 }
 
-func (u *HandlerAuth) GetServiceURL() service.Shortener {
-	return *u.serviceURL
-}
-
 // return all users shorts
 func (u HandlerAuth) GetUserURLs(res http.ResponseWriter, req *http.Request) {
 
@@ -42,8 +38,7 @@ func (u HandlerAuth) GetUserURLs(res http.ResponseWriter, req *http.Request) {
 	userID := ctxConfig.GetUserID()
 
 	//get Short URLs for userID
-	serv := u.GetServiceURL()
-	shorts := serv.GetUserAll(req.Context(), userID)
+	shorts := u.serviceURL.GetUserAll(req.Context(), userID)
 	zap.S().Infof("Found: %d saved URL for User with ID: %s", len(shorts), userID)
 
 	//if no data - 204
@@ -56,7 +51,6 @@ func (u HandlerAuth) GetUserURLs(res http.ResponseWriter, req *http.Request) {
 	resAuth := []ResonseAuth{}
 
 	for _, short := range shorts {
-
 		_, answerURL := u.serviceURL.GetAnsURL("http", u.conf.Response, short.Brief)
 		resAuth = append(resAuth, ResonseAuth{Brief: answerURL.String(), Origin: short.Origin})
 	}
