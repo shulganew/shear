@@ -4,13 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
-
+	_ "net/http/pprof"
 	"os"
 	"sync"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
-
-	_ "net/http/pprof"
 
 	"github.com/shulganew/shear.git/internal/app"
 	"github.com/shulganew/shear.git/internal/config"
@@ -21,7 +19,6 @@ import (
 )
 
 func main() {
-
 	app.InitLog()
 
 	ctx, cancel := app.InitContext()
@@ -72,5 +69,4 @@ func main() {
 	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, stor, db, del, finalCh, &waitDel)); err != nil {
 		panic(err)
 	}
-
 }

@@ -79,9 +79,9 @@ check 14 $?
               -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'> /dev/null
 check 15 $?              
 #16
-#shortenertestbeta -test.v -test.run=^TestIteration16$ -source-path=.
+shortenertestbeta -test.v -test.run=^TestIteration16$ -source-path=.
 #17
-#shortenertestbeta -test.v -test.run=^TestIteration17$ -source-path=.
+shortenertestbeta -test.v -test.run=^TestIteration17$ -source-path=.
 #18
 #         shortenertestbeta -test.v -test.run=^TestIteration18$ \
 #             -source-path=. \
