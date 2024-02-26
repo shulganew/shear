@@ -18,6 +18,12 @@ func NewDB(db *sql.DB) *Ping {
 }
 
 // Test DB connection.
+// @Summary      Test database
+// @Description  Ping service for database connection check
+// @Tags         api
+// @Success      200 "Available"
+// @Failure      500 "Handling error"
+// @Router       /ping [get]
 func (b *Ping) Ping(res http.ResponseWriter, req *http.Request) {
 	res.Header().Add("Content-Type", "text/plain")
 	if err := b.db.PingContext(req.Context()); err == nil {

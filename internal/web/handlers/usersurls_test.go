@@ -45,7 +45,7 @@ func TestUsersUrls(t *testing.T) {
 	// init configApp
 	configApp := &config.Config{}
 
-	// init config with difauls values
+	// init config with defaults values
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost
 	configApp.IsDB = false
@@ -114,7 +114,7 @@ func TestUsersUrls(t *testing.T) {
 			res = resRecord.Result()
 			defer res.Body.Close()
 
-			resAuth := []ResonseAuth{}
+			resAuth := []ResponseAuth{}
 
 			err = json.NewDecoder(res.Body).Decode(&resAuth)
 			require.NoError(t, err)

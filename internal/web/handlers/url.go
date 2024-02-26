@@ -28,6 +28,14 @@ func NewHandlerGetURL(conf *config.Config, stor service.StorageURL) *HandlerURL 
 }
 
 // GET and redirect by brief.
+// @Summary      Get origin URL by brief (short) URL
+// @Description  get short by id
+// @Tags         api
+// @Param        id   path  string  true  "brief URL"
+// @Success      307
+// @Failure      410
+// @Failure      404
+// @Router       /{id} [get]
 func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 	brief := chi.URLParam(req, "id")
 
@@ -55,6 +63,16 @@ func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 }
 
 // POTS and set generate short URL.
+// @Summary      Set origin URL
+// @Description  set URL in body POST
+// @Tags         api
+// @Accept       plain
+// @Produce      plain
+// @Success      201 {string}  string  "Created"
+// @Failure      401 "User unauthorized"
+// @Failure      404 "Conflict. URL existed."
+// @Failure      500 "Handling error"
+// @Router       / [post]
 func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 	readBody, err := io.ReadAll(req.Body)
 	if err != nil {

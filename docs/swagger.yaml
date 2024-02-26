@@ -1,0 +1,155 @@
+basePath: /
+definitions:
+  github_com_shulganew_shear_git_internal_entities.BatchResponse:
+    properties:
+      correlation_id:
+        type: string
+      short_url:
+        type: string
+    type: object
+  internal_web_handlers.ResponseAuth:
+    properties:
+      original_url:
+        type: string
+      short_url:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: shulganew@gmail.com
+  description: Shortener service.
+  title: Shortener API
+  version: "1.0"
+paths:
+  /:
+    post:
+      consumes:
+      - text/plain
+      description: set URL in body POST
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+        "401":
+          description: User unauthorized
+        "404":
+          description: Conflict. URL existed.
+        "500":
+          description: Handling error
+      summary: Set origin URL
+      tags:
+      - api
+  /{id}:
+    get:
+      description: get short by id
+      parameters:
+      - description: brief URL
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "307":
+          description: Temporary Redirect
+        "404":
+          description: Not Found
+        "410":
+          description: Gone
+      summary: Get origin URL by brief (short) URL
+      tags:
+      - api
+  /api/shorten:
+    post:
+      consumes:
+      - application/json
+      description: Add origin URL by JSON request, get brief URL in response.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "401":
+          description: User unauthorized
+        "500":
+          description: Handling error
+      summary: API add URL in JSON
+      tags:
+      - api
+  /api/shorten/batch:
+    delete:
+      consumes:
+      - text/plain
+      description: Delete array from request body of user's URLs in database, async
+      produces:
+      - text/plain
+      responses:
+        "202":
+          description: Accepted
+        "401":
+          description: User unauthorized
+        "500":
+          description: Handling error
+      summary: Delete user's URLs
+      tags:
+      - api
+    post:
+      consumes:
+      - application/json
+      description: Set json URLs
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            items:
+              $ref: '#/definitions/github_com_shulganew_shear_git_internal_entities.BatchResponse'
+            type: array
+        "400":
+          description: Error JSON Unmarshal
+        "401":
+          description: User unauthorized
+        "404":
+          description: Conflict. URL existed.
+        "500":
+          description: Handling error
+      summary: Set several user's URLs in body in JSON format
+      tags:
+      - api
+  /api/user/urls:
+    get:
+      consumes:
+      - application/json
+      description: Add origin URL by JSON request, get brief URL in response
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/internal_web_handlers.ResponseAuth'
+            type: array
+        "401":
+          description: User unauthorized
+        "500":
+          description: Handling error
+      summary: Get all user's origin URLs
+      tags:
+      - api
+  /ping:
+    get:
+      description: Ping service for database connection check
+      responses:
+        "200":
+          description: Available
+        "500":
+          description: Handling error
+      summary: Test database
+      tags:
+      - api
+swagger: "2.0"

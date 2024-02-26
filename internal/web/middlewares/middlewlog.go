@@ -42,7 +42,7 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 // Method
 // Delay
 // User Info for logging
-func MidlewLog(h http.Handler) http.Handler {
+func MiddlwLog(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		start := time.Now()

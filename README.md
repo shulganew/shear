@@ -1,5 +1,21 @@
 # Shortener with Yandex Practicum
 
+## Swagger
+
+```go
+go install github.com/swaggo/swag/cmd/swag@latest
+swag init --output ./swagger/
+swag init --output ./swagger/ --parseDependency --parseInternal  -g cmd/shortener/main.go
+```
+Add import to generated file for web API!!!
+```go
+_ "github.com/shulganew/shear.git/docs"
+```
+Details swagger install:
+
+[See web swagger install to project: ](https://github.com/swaggo/http-swagger)
+
+
 ## Godoc
 
 ```

@@ -12,14 +12,14 @@ import (
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/web/handlers"
 	"github.com/shulganew/shear.git/internal/web/middlewares"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-// Chi Router for application
+// Chi Router for application.
 func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete *service.Delete, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (r *chi.Mux) {
-
 	r = chi.NewRouter()
 
-	//send password for enctription to middlewares
+	// send password for encryption to middlewares
 	r.Use(func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -29,9 +29,8 @@ func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete
 	})
 
 	r.Route("/", func(r chi.Router) {
-
-		r.Use(middlewares.MidlewLog)
-		r.Use(middlewares.MidlewZip)
+		r.Use(middlewares.MiddlwLog)
+		r.Use(middlewares.MiddlwZip)
 		r.Use(middlewares.Auth)
 
 		// Set short from URL.
@@ -44,7 +43,7 @@ func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete
 		apiHand := handlers.NewHandlerAPI(conf, stor)
 		r.Post("/api/shorten", http.HandlerFunc(apiHand.GetBrief))
 
-		// Databes teset - ping.
+		// Database test - ping.
 		dbHand := handlers.NewDB(db)
 		r.Get("/ping", http.HandlerFunc(dbHand.Ping))
 
@@ -56,12 +55,12 @@ func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete
 		handCookieID := handlers.NewHandlerAuthUser(conf, stor)
 		r.Get("/api/user/urls", http.HandlerFunc(handCookieID.GetUserURLs))
 
-		// Batch delete shorts from handlers (bulk postgers delete).
+		// Batch delete shorts from handlers (bulk postgres delete).
 		delID := handlers.NewHandlerDelShorts(delete)
 		r.Delete("/api/user/urls", http.HandlerFunc(delID.DelUserURLs))
 
 		if conf.Pprof {
-			// Adding pprof
+			// Adding pprof.
 			r.Get("/debug/pprof/{}", http.HandlerFunc(pprof.Index))
 			r.Get("/debug/pprof/", http.HandlerFunc(pprof.Index))
 			r.Get("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
@@ -69,7 +68,11 @@ func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete
 			r.Get("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
 			r.Get("/debug/pprof/trace", http.HandlerFunc(pprof.Trace))
 		}
-	})
 
+		// Add swagger page.
+		r.Get("/swagger/*", httpSwagger.Handler(
+			httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+		))
+	})
 	return
 }

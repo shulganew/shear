@@ -32,6 +32,15 @@ func NewHandlerAPI(conf *config.Config, stor service.StorageURL) *HandlerAPI {
 	return &HandlerAPI{serviceURL: service.NewService(stor), conf: conf}
 }
 
+// @Summary      API add URL in JSON
+// @Description  Add origin URL by JSON request, get brief URL in response.
+// @Tags         api
+// @Accept       json
+// @Produce      json
+// @Success      201 "Created"
+// @Failure      401 "User unauthorized"
+// @Failure      500 "Handling error"
+// @Router       /api/shorten [post]
 func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 	var request Request
 	if err := json.NewDecoder(req.Body).Decode(&request); err != nil {

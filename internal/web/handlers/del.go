@@ -22,6 +22,15 @@ func NewHandlerDelShorts(serviceDel *service.Delete) *DelShorts {
 }
 
 // Delete User's URLs from json array in request (mark as deleted with saving in DB)
+// @Summary      Delete user's URLs
+// @Description  Delete array from request body of user's URLs in database, async
+// @Tags         api
+// @Accept       plain
+// @Produce      plain
+// @Success      202 "Accepted"
+// @Failure      401 "User unauthorized"
+// @Failure      500 "Handling error"
+// @Router       /api/shorten/batch [delete]
 func (d *DelShorts) DelUserURLs(res http.ResponseWriter, req *http.Request) {
 	// get UserID from cxt values
 	ctxConfig := req.Context().Value(config.CtxConfig{}).(config.CtxConfig)
@@ -37,14 +46,14 @@ func (d *DelShorts) DelUserURLs(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Can't read body. ", http.StatusInternalServerError)
 	}
 	// read body as buffer
-	var breifs []string
-	err = json.Unmarshal(body, &breifs)
+	var briefs []string
+	err = json.Unmarshal(body, &briefs)
 	if err != nil {
 		http.Error(res, "Can't parse JSON delete short's array. ", http.StatusInternalServerError)
 	}
 
 	// async delete Shorts from body
-	d.servDelete.AsyncDelete(userID, breifs)
+	d.servDelete.AsyncDelete(userID, briefs)
 
 	// set content type
 	res.Header().Add("Content-Type", "plain/text")

@@ -12,9 +12,10 @@ import (
 	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"
 )
-// Handler for API: 
+
+// Handler for API:
 //
-//  Post "/api/shorten/batch"
+//	Post "/api/shorten/batch"
 type HandlerBatch struct {
 	serviceURL *service.Shortener
 	conf       *config.Config
@@ -25,6 +26,17 @@ func NewHandlerBatch(conf *config.Config, stor service.StorageURL) *HandlerBatch
 	return &HandlerBatch{serviceURL: service.NewService(stor), conf: conf}
 }
 
+// @Summary      Set several user's URLs in body in JSON format
+// @Description  Set json URLs
+// @Tags         api
+// @Accept       json
+// @Produce      json
+// @Success      201 {object}  []entities.BatchResponse  "Created"
+// @Failure      400 "Error JSON Unmarshal"
+// @Failure      401 "User unauthorized"
+// @Failure      404 "Conflict. URL existed."
+// @Failure      500 "Handling error"
+// @Router       /api/shorten/batch [post]
 func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 	// find UserID in cookies
 	userID, err := req.Cookie("user_id")

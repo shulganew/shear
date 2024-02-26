@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type ResonseAuth struct {
+type ResponseAuth struct {
 	Brief  string `json:"short_url"`
 	Origin string `json:"original_url"`
 }
@@ -28,6 +28,15 @@ func NewHandlerAuthUser(conf *config.Config, stor service.StorageURL) *HandlerAu
 }
 
 // Return all users shorts.
+// @Summary      Get all user's origin URLs
+// @Description  Add origin URL by JSON request, get brief URL in response
+// @Tags         api
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} []ResponseAuth "OK"
+// @Failure      401 "User unauthorized"
+// @Failure      500 "Handling error"
+// @Router       /api/user/urls [get]
 func (u HandlerAuth) GetUserURLs(res http.ResponseWriter, req *http.Request) {
 	// get UserID from cxt values
 	ctxConfig := req.Context().Value(config.CtxConfig{}).(config.CtxConfig)
@@ -50,11 +59,11 @@ func (u HandlerAuth) GetUserURLs(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	resAuth := []ResonseAuth{}
+	resAuth := []ResponseAuth{}
 
 	for _, short := range shorts {
 		_, answerURL := u.serviceURL.GetAnsURL("http", u.conf.Response, short.Brief)
-		resAuth = append(resAuth, ResonseAuth{Brief: answerURL.String(), Origin: short.Origin})
+		resAuth = append(resAuth, ResponseAuth{Brief: answerURL.String(), Origin: short.Origin})
 	}
 
 	jsonURL, err := json.Marshal(resAuth)
