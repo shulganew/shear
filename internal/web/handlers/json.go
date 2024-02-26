@@ -16,24 +16,24 @@ type Request struct {
 	URL string `json:"url"`
 }
 
-type Resonse struct {
+type Response struct {
 	Brief string `json:"result"`
 }
 
+// Handler for API:
+//
+//	Post "/api/shorten"
 type HandlerAPI struct {
 	serviceURL *service.Shortener
 	conf       *config.Config
 }
 
 func NewHandlerAPI(conf *config.Config, stor service.StorageURL) *HandlerAPI {
-
 	return &HandlerAPI{serviceURL: service.NewService(stor), conf: conf}
 }
 
 func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
-
 	var request Request
-
 	if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
@@ -43,19 +43,19 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 	}
-	brief := service.GenerateShorLink()
+	brief := service.GenerateShortLink()
 	mainURL, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response, brief)
 
-	//find UserID in cookies
+	// find UserID in cookies
 	userID, err := req.Cookie("user_id")
 	if err != nil {
 		http.Error(res, "Can't find user in cookies", http.StatusUnauthorized)
 	}
 
-	//save map to storage
+	// save map to storage
 	err = u.serviceURL.SetURL(req.Context(), userID.Value, brief, (*origin).String())
 
-	//set content type
+	// set content type
 	res.Header().Add("Content-Type", "application/json")
 
 	if err != nil {
@@ -63,21 +63,21 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 		var tagErr *storage.ErrDuplicatedURL
 		if errors.As(err, &tagErr) {
 
-			//get correct answer URL
+			// get correct answer URL
 			answer, err := url.JoinPath(mainURL, tagErr.Brief)
 			if err != nil {
 				zap.S().Errorln("Error during JoinPath", err)
 			}
 
-			//send existed string from error
-			response := Resonse{answer}
+			// send existed string from error
+			response := Response{answer}
 			jsonBrokenURL, err := json.Marshal(response)
 			if err != nil {
 				http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
 			}
 			zap.S().Infoln("Server ansver with short URL in JSON (duplicated request): ", string(jsonBrokenURL))
 
-			//set status code 409
+			// set status code 409
 			res.WriteHeader(http.StatusConflict)
 			res.Write([]byte(jsonBrokenURL))
 			return
@@ -87,7 +87,7 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Error saving in Storage.", http.StatusInternalServerError)
 	}
 
-	response := Resonse{answerURL.String()}
+	response := Response{answerURL.String()}
 
 	jsonURL, err := json.Marshal(response)
 	if err != nil {
@@ -95,9 +95,7 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 	}
 	zap.S().Infoln("Server ansver with short URL in JSON: ", string(jsonURL))
 
-	//set status code 201
+	// set status code 201
 	res.WriteHeader(http.StatusCreated)
-
 	res.Write(jsonURL)
-
 }

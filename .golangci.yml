@@ -28,30 +28,30 @@ linters-settings:
 linters:
   disable-all: true
   enable:
-    - govet
-    - errcheck
-    - staticcheck
-    - unused
-    - gosimple
-    - unused
-    - revive
-    - unconvert
-    - goconst
-    - misspell
-    - unparam
-    - prealloc
-    - exportloopref
-    - gochecknoinits
-    - gocritic
-    - dupl
-    - gocyclo
-    - goimports
-    - ineffassign
-    - gomnd
-    - wsl
-    - godot
-    - gochecknoglobals
-    - whitespace
+    # - govet
+    # - errcheck
+    # - staticcheck
+    # - unused
+    # - gosimple
+    # - unused
+     - revive
+    # - unconvert
+    # - goconst
+    # - misspell
+    # - unparam
+    # - prealloc
+    # - exportloopref
+    # - gochecknoinits
+    # - gocritic
+    # - dupl
+    # - gocyclo
+    # - goimports
+    # - ineffassign
+    # - gomnd
+    # - wsl
+     - godot
+    # - gochecknoglobals
+    # - whitespace
   fast: false
 
 

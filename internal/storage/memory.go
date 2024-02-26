@@ -7,16 +7,18 @@ import (
 	"github.com/shulganew/shear.git/internal/entities"
 )
 
+// In-memory storage.
 type Memory struct {
 	StoreURLs []entities.Short
 }
 
+// Storage constructor.
 func NewMemory() *Memory {
 	return &Memory{StoreURLs: make([]entities.Short, 0)}
 }
 
 func (m *Memory) Set(ctx context.Context, userID, brief, origin string) (err error) {
-	//init storage
+	// init storage
 	short := entities.NewShort(len(m.StoreURLs), userID, brief, origin, "")
 	m.StoreURLs = append(m.StoreURLs, *short)
 	return
@@ -65,7 +67,7 @@ func (m *Memory) GetUserAll(ctx context.Context, userID string) []entities.Short
 	return shorts
 }
 
-func (m *Memory) DelelteBatch(ctx context.Context, userID string, briefs []string) {
+func (m *Memory) DeleteBatch(ctx context.Context, userID string, briefs []string) {
 	for _, brief := range briefs {
 		id := slices.IndexFunc(m.StoreURLs, func(s entities.Short) bool { return s.Brief == brief && s.UUID.String == userID })
 		if id != -1 {

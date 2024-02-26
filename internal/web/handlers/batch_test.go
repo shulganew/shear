@@ -58,7 +58,7 @@ func TestBatch(t *testing.T) {
 	configApp.IsDB = false
 	configApp.IsBackup = false
 	stor := service.StorageURL(storage.NewMemory())
-	//init storage
+	// init storage
 	apiBatch := NewHandlerBatch(configApp, stor)
 	webHand := NewHandlerGetURL(configApp, stor)
 
@@ -76,7 +76,7 @@ func TestBatch(t *testing.T) {
 			body, err := json.Marshal(&insertURLS)
 			require.NoError(t, err)
 
-			//add chi context
+			// add chi context
 			rctx := chi.NewRouteContext()
 			t.Log("URL: ", tt.multipleURL)
 			req := httptest.NewRequest(http.MethodPost, tt.multipleURL, bytes.NewReader(body))
@@ -85,27 +85,27 @@ func TestBatch(t *testing.T) {
 			cookie := http.Cookie{Name: "user_id", Value: userID.String()}
 			req.AddCookie(&cookie)
 
-			//create status recorder
+			// create status recorder
 			resRecord := httptest.NewRecorder()
 			apiBatch.BatchSet(resRecord, req)
 
-			//get result
+			// get result
 			res := resRecord.Result()
 			defer res.Body.Close()
-			//check answer code
+			// check answer code
 			t.Log("StatusCode test: ", tt.statusCode, " server: ", res.StatusCode)
 			assert.Equal(t, tt.statusCode, res.StatusCode)
 
-			//Unmarshal body
+			// unmarshal body
 			var resp []entities.BatchResponse
 
 			err = json.NewDecoder(res.Body).Decode(&resp)
 			require.NoError(t, err)
 
-			// Check short URLS
+			// check short URLS
 			for _, short := range resp {
 
-				//add chi context
+				// add chi context
 				rctx = chi.NewRouteContext()
 				URL, err := url.Parse(short.Answer)
 				require.NoError(t, err)
@@ -118,14 +118,14 @@ func TestBatch(t *testing.T) {
 				cookie = http.Cookie{Name: "user_id", Value: userID.String()}
 				req.AddCookie(&cookie)
 
-				//create status recorder
+				// create status recorder
 				resRecord = httptest.NewRecorder()
 				webHand.GetURL(resRecord, req)
 
-				//get result
+				// get result
 				res := resRecord.Result()
 				defer res.Body.Close()
-				//check answer code
+				// check answer code
 				assert.Equal(t, http.StatusTemporaryRedirect, res.StatusCode)
 			}
 		})

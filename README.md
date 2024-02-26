@@ -1,6 +1,15 @@
 # Shortener with Yandex Practicum
 
+## Godoc
 
+```
+go install -v golang.org/x/tools/cmd/godoc@latest
+#####godoc#####
+export PATH="$GOPATH/bin:$PATH"
+godoc -http=:8085
+```
+Show internal packages
+http://localhost:8085/pkg/?m=all
 
 ## Profiling
 pprof is a tool for visualization and analysis of profiling data
@@ -66,7 +75,7 @@ echo %SERVER_ADDRESS%
 # Git
 ```
 git push -u origin iter5
-git checkout -b iter1
+git switch iter1
 
 git add .
 git commit -m "refactor del handler"

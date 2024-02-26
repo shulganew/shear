@@ -16,16 +16,14 @@ import (
 	"go.uber.org/zap"
 )
 
+// Length of short URL random sequence length.
 const ShortLength = 8
 
-// generate sort URL
-// save short URL
-// get logn URL
 type Shortener struct {
 	storeURLs StorageURL
 }
 
-// intarface for universal data storage
+// Interface for universal data storage, witch contain short and full URL.
 type StorageURL interface {
 	Set(ctx context.Context, userID string, brief, origin string) error
 	SetAll(ctx context.Context, short []entities.Short) error
@@ -33,10 +31,10 @@ type StorageURL interface {
 	GetBrief(ctx context.Context, origin string) (string, bool, bool)
 	GetAll(ctx context.Context) []entities.Short
 	GetUserAll(ctx context.Context, userID string) []entities.Short
-	DelelteBatch(ctx context.Context, userID string, briefs []string)
+	DeleteBatch(ctx context.Context, userID string, briefs []string)
 }
 
-// return service
+// Service constructor.
 func NewService(storage StorageURL) *Shortener {
 	return &Shortener{storeURLs: storage}
 }
@@ -69,26 +67,23 @@ func (s *Shortener) GetUserAll(ctx context.Context, userID string) (short []enti
 	return s.storeURLs.GetUserAll(ctx, userID)
 }
 
-func (s *Shortener) DelelteBatchArray(ctx context.Context, delBatchs []DelBatch) {
-
+// Delete
+func (s *Shortener) DeleteBatchArray(ctx context.Context, delBatchs []DelBatch) {
 	for _, del := range delBatchs {
-		s.storeURLs.DelelteBatch(ctx, del.UserID, del.Briefs)
+		s.storeURLs.DeleteBatch(ctx, del.UserID, del.Briefs)
 	}
-
 }
 
-func (s *Shortener) DelelteBatch(ctx context.Context, delBatch DelBatch) {
-
-	s.storeURLs.DelelteBatch(ctx, delBatch.UserID, delBatch.Briefs)
-
+func (s *Shortener) DeleteBatch(ctx context.Context, delBatch DelBatch) {
+	s.storeURLs.DeleteBatch(ctx, delBatch.UserID, delBatch.Briefs)
 }
 
-// return anwwer url: "shema + respose server addres from config + brief"
-func (s *Shortener) GetAnsURL(shema, resultaddr string, brief string) (mainURL string, answerURL *url.URL) {
-	//main URL = Shema + hostname + port (from result add -flag cmd -b)
-	mainURL = shema + "://" + resultaddr
+// return answer url: "schema + response server address from config + brief"
+func (s *Shortener) GetAnsURL(schema, resultaddr string, brief string) (mainURL string, answerURL *url.URL) {
+	// main URL = Schema + hostname + port (from result add -flag cmd -b)
+	mainURL = schema + "://" + resultaddr
 
-	//join full long URL
+	// join full long URL
 	longStrURL, err := url.JoinPath(mainURL, brief)
 	if err != nil {
 		zap.S().Errorln("Error during JoinPath", err)
@@ -97,12 +92,11 @@ func (s *Shortener) GetAnsURL(shema, resultaddr string, brief string) (mainURL s
 	if err != nil {
 		zap.S().Errorln("Error during Parse URL", err)
 	}
-
 	return
 }
 
-// generate short link
-func GenerateShorLink() string {
+// Generate short link.
+func GenerateShortLink() string {
 	b := []byte{97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90}
 	s := make([]byte, ShortLength)
 	for i := 0; i < ShortLength; i++ {
@@ -111,10 +105,9 @@ func GenerateShorLink() string {
 	return string(s)
 }
 
-//Crypto functions
-
+// Crypto function for getting crypted user id from cookies.
 func GetCodedUserID(req *http.Request, pass string) (userID string, ok bool) {
-	//find UserID in cookies
+	// find UserID in cookies
 	cookie, err := req.Cookie("user_id")
 	if err != nil {
 		return "", false
@@ -125,7 +118,7 @@ func GetCodedUserID(req *http.Request, pass string) (userID string, ok bool) {
 		return "", false
 	}
 
-	//check correct UUID
+	// check correct UUID
 	_, err = uuid.Parse(userID)
 	if err != nil {
 		return "", false
@@ -134,9 +127,9 @@ func GetCodedUserID(req *http.Request, pass string) (userID string, ok bool) {
 
 }
 
+// Crypto function - decode secret string with password.
 func DecodeCookie(secret string, password string) (uuid string, err error) {
-
-	nonce, aesgcm, err := GetCryptData(password)
+	nonce, aesgcm, err := getCryptData(password)
 	if err != nil {
 		zap.S().Errorln("Encription Error: get enctypt data")
 		return
@@ -152,48 +145,43 @@ func DecodeCookie(secret string, password string) (uuid string, err error) {
 
 	decrypted, err := aesgcm.Open(nil, nonce, binary, nil)
 	if err != nil {
-		zap.S().Errorln("Encription Error: Open seal")
+		zap.S().Errorln("Encryption Error: Open seal")
 		return
 	}
 	return string(decrypted), nil
-
 }
 
+// Crypto function - Encode secret string with password.
 func EncodeCookie(uuid string, password string) (secret string, err error) {
-
 	binary := []byte(uuid)
-
-	nonce, aesgcm, err := GetCryptData(password)
+	nonce, aesgcm, err := getCryptData(password)
 	if err != nil {
 		zap.S().Errorln("Encription Error: get enctypt data")
 		return
 	}
 
 	coded := aesgcm.Seal(nil, nonce, binary, nil)
-
 	return base64.StdEncoding.EncodeToString(coded), nil
-
 }
 
-func GetCryptData(password string) (nonce []byte, aesgcm cipher.AEAD, err error) {
-
+// Get nonce and cipher from string.
+func getCryptData(password string) (nonce []byte, aesgcm cipher.AEAD, err error) {
 	key := sha256.Sum256([]byte(password))
 
 	aesblock, err := aes.NewCipher(key[:32])
 	if err != nil {
-		zap.S().Errorln("Encription Error: aesblock")
+		zap.S().Errorln("Encryption Error: aesblock")
 		return
 	}
 
 	aesgcm, err = cipher.NewGCM(aesblock)
 	if err != nil {
-		zap.S().Errorln("Encription Error: aesgcm")
+		zap.S().Errorln("Encryption Error: aesgcm")
 		return
 	}
 
-	lenth := aesgcm.NonceSize()
-	nonceSize := len(key) - lenth
+	length := aesgcm.NonceSize()
+	nonceSize := len(key) - length
 	nonce = key[nonceSize:]
 	return
-
 }

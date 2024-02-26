@@ -12,7 +12,9 @@ import (
 	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"
 )
-
+// Handler for API: 
+//
+//  Post "/api/shorten/batch"
 type HandlerBatch struct {
 	serviceURL *service.Shortener
 	conf       *config.Config
@@ -24,12 +26,12 @@ func NewHandlerBatch(conf *config.Config, stor service.StorageURL) *HandlerBatch
 }
 
 func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
-	//find UserID in cookies
+	// find UserID in cookies
 	userID, err := req.Cookie("user_id")
 	if err != nil {
 		http.Error(res, "Can't find user in cookies", http.StatusUnauthorized)
 	}
-	//handle bach requests
+	// handle bach requests
 	var requests []entities.BatchRequest
 	if err := json.NewDecoder(req.Body).Decode(&requests); err != nil {
 		zap.S().Errorln("Get batch: ", err)
@@ -45,12 +47,12 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 		}
-		//get short brief and full answer URL
-		brief := service.GenerateShorLink()
+		// get short brief and full answer URL
+		brief := service.GenerateShortLink()
 		_, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response, brief)
-		//get batch for answer
+		// get batch for answer
 		batch := entities.BatchResponse{SessionID: r.SessionID, Answer: answerURL.String()}
-		//add batches
+		// add batches
 		batches = append(batches, batch)
 
 		if err != nil {
@@ -60,16 +62,16 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 		shorts = append(shorts, *shortSession)
 
 	}
-	//save to storage
+	// save to storage
 	err = u.serviceURL.SetAll(req.Context(), shorts)
 
-	//check duplicated strings
+	// check duplicated strings
 	var tagErr *storage.ErrDuplicatedShort
 	if err != nil {
 		if errors.As(err, &tagErr) {
-			//set status code 409 Conflict
+			// set status code 409 Conflict
 			res.WriteHeader(http.StatusConflict)
-			//send existed URL to response
+			// send existed URL to response
 			broken := []entities.BatchResponse{}
 			batch := entities.BatchResponse{SessionID: tagErr.Short.SessionID, Answer: tagErr.Short.Brief}
 			broken = append(broken, batch)
@@ -78,23 +80,23 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 				http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
 			}
 
-			//set content type
+			// set content type
 			res.Header().Add("Content-Type", "application/json")
 			zap.S().Infoln("Broken: ", string(jsonBrokenBatch))
 			res.Write(jsonBrokenBatch)
 			return
 		}
 	}
-	//create Ok answer
+	// create Ok answer
 	jsonBatch, err := json.Marshal(batches)
 	if err != nil {
 		http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
 	}
 
 	zap.S().Infoln("Batch saved size: ", len(batches))
-	//set content type
+	// set content type
 	res.Header().Add("Content-Type", "application/json")
-	//set status code 201
+	// set status code 201
 	res.WriteHeader(http.StatusCreated)
 	res.Write(jsonBatch)
 }

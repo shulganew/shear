@@ -63,7 +63,7 @@ func TestDelBulk(t *testing.T) {
 	configApp.Pass = "MyPass"
 	memory := storage.NewMemory()
 	stor := service.StorageURL(memory)
-	//init storage
+	// init storage
 	apiBatch := NewHandlerBatch(configApp, stor)
 	handGet := NewHandlerGetURL(configApp, stor)
 	finalCh := make(chan service.DelBatch, 100)
@@ -91,7 +91,7 @@ func TestDelBulk(t *testing.T) {
 				body, err := json.Marshal(&insertURLS)
 				require.NoError(t, err)
 
-				//add chi context
+				// add chi context
 				rctx := chi.NewRouteContext()
 				t.Log("URL: ", tt.multipleURL)
 				req := httptest.NewRequest(http.MethodPost, tt.multipleURL, bytes.NewReader(body))
@@ -100,14 +100,14 @@ func TestDelBulk(t *testing.T) {
 				cookie := http.Cookie{Name: "user_id", Value: userSet[i].userID}
 				req.AddCookie(&cookie)
 
-				//create status recorder
+				// create status recorder
 				resRecord := httptest.NewRecorder()
 				apiBatch.BatchSet(resRecord, req)
 
 				// 2. Reas body for result and check server answer
 				res := resRecord.Result()
 				defer res.Body.Close()
-				//check answer code
+				// check answer code
 				t.Log("StatusCode test: ", http.StatusCreated, " server: ", res.StatusCode)
 				assert.Equal(t, http.StatusCreated, res.StatusCode)
 
@@ -132,7 +132,7 @@ func TestDelBulk(t *testing.T) {
 
 				t.Log("BODY: ", string(body))
 				require.NoError(t, err)
-				//add chi context
+				// add chi context
 				rctx := chi.NewRouteContext()
 				t.Log("URL: ", tt.delURL)
 
@@ -143,12 +143,12 @@ func TestDelBulk(t *testing.T) {
 				req.Header.Add("Content-Type", "application/json")
 				cookie := http.Cookie{Name: "user_id", Value: userSet[i].userID}
 				req.AddCookie(&cookie)
-				//create status recorder
+				// create status recorder
 				resRecord := httptest.NewRecorder()
 				handDel.DelUserURLs(resRecord, req)
 				res := resRecord.Result()
 				defer res.Body.Close()
-				//check answer code
+				// check answer code
 				t.Log("StatusCode test: ", http.StatusAccepted, " server: ", res.StatusCode)
 				assert.Equal(t, http.StatusAccepted, res.StatusCode)
 				// 5. Wait, then check if ULR field change to is_delete == true
@@ -167,15 +167,15 @@ func TestDelBulk(t *testing.T) {
 					cookie := http.Cookie{Name: "user_id", Value: userSet[i].userID}
 					req.AddCookie(&cookie)
 
-					//create status recorder
+					// create status recorder
 					resRecord := httptest.NewRecorder()
 					// Add midleware manualy
 					getHandler := middlewares.Auth(http.HandlerFunc(handGet.GetURL))
 					getHandler.ServeHTTP(resRecord, req)
-					//get result
+					// get result
 					res := resRecord.Result()
 					defer res.Body.Close()
-					//check answer code
+					// check answer code
 					t.Log("StatusCode test: ", http.StatusTemporaryRedirect, " server: ", res.StatusCode)
 					assert.Equal(t, http.StatusTemporaryRedirect, res.StatusCode)
 				}

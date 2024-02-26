@@ -35,16 +35,16 @@ func (m *MockStorageURL) EXPECT() *MockStorageURLMockRecorder {
 	return m.recorder
 }
 
-// DelelteBatch mocks base method.
-func (m *MockStorageURL) DelelteBatch(ctx context.Context, userID string, briefs []string) {
+// DeleteBatch mocks base method.
+func (m *MockStorageURL) DeleteBatch(ctx context.Context, userID string, briefs []string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "DelelteBatch", ctx, userID, briefs)
+	m.ctrl.Call(m, "DeleteBatch", ctx, userID, briefs)
 }
 
-// DelelteBatch indicates an expected call of DelelteBatch.
-func (mr *MockStorageURLMockRecorder) DelelteBatch(ctx, userID, briefs interface{}) *gomock.Call {
+// DeleteBatch indicates an expected call of DeleteBatch.
+func (mr *MockStorageURLMockRecorder) DeleteBatch(ctx, userID, briefs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DelelteBatch", reflect.TypeOf((*MockStorageURL)(nil).DelelteBatch), ctx, userID, briefs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBatch", reflect.TypeOf((*MockStorageURL)(nil).DeleteBatch), ctx, userID, briefs)
 }
 
 // GetAll mocks base method.

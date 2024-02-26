@@ -1,3 +1,4 @@
+// Package entities represent a Model layer of app model. It has main shorterer entities and DTO objects for JSON marshal.
 package entities
 
 type BatchRequest struct {

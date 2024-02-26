@@ -1,3 +1,4 @@
+// Package implements storage layer of a Shortener for database and memory storage.
 package storage
 
 import (
@@ -13,6 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Database with connection filed and set of Repo messages, implements shortener interface.
 type DB struct {
 	master *sql.DB
 }
@@ -31,15 +33,14 @@ func (base *DB) Set(ctx context.Context, userID, brief, origin string) error {
 		// if URL exist in DataBase
 		if errors.As(err, &pgErr) && pgerrcode.UniqueViolation == pgErr.Code {
 
-			//get brief string
+			// get brief string
 			if brief, ok, _ := base.GetBrief(ctx, origin); ok {
 
-				//check if marked as deleted - recreate!
+				// check if marked as deleted - recreate!
 				if base.isDeleted(ctx, brief) {
 					base.Recover(ctx, userID, brief)
 					return nil
 				}
-
 				zap.S().Infoln("Found duplicated URL: ", origin)
 				return NewErrDuplicatedURL(brief, origin, pgErr)
 			}
@@ -47,8 +48,7 @@ func (base *DB) Set(ctx context.Context, userID, brief, origin string) error {
 
 		// if URL exist in DataBase
 		if err == sql.ErrNoRows {
-			//insert - no rows returned
-
+			// insert - no rows returned
 			return nil
 		}
 		return err
@@ -57,9 +57,7 @@ func (base *DB) Set(ctx context.Context, userID, brief, origin string) error {
 }
 
 func (base *DB) GetOrigin(ctx context.Context, brief string) (origin string, existed bool, isDeleted bool) {
-
 	row := base.master.QueryRowContext(ctx, "SELECT id, user_id, brief, origin, is_deleted FROM short WHERE brief=$1", brief)
-
 	var short entities.Short
 	err := row.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin, &short.IsDeleted)
 	if err != nil {
@@ -68,13 +66,11 @@ func (base *DB) GetOrigin(ctx context.Context, brief string) (origin string, exi
 		}
 		panic(err)
 	}
-
 	return short.Origin, true, short.IsDeleted
 }
 
 func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, existed bool, isDeleted bool) {
 	row := base.master.QueryRowContext(ctx, "SELECT id, user_id, brief, origin, is_deleted FROM short WHERE origin=$1", origin)
-
 	var short entities.Short
 	err := row.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin, &short.IsDeleted)
 
@@ -140,7 +136,6 @@ func (base *DB) GetUserAll(ctx context.Context, userID string) []entities.Short 
 }
 
 func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
-
 	tx, err := base.master.Begin()
 	if err != nil {
 		panic(err)
@@ -157,7 +152,7 @@ func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
 			var pgErr *pgconn.PgError
 			// if URL exist in DataBase
 			if errors.As(err, &pgErr) && pgerrcode.UniqueViolation == pgErr.Code {
-				//get brief string
+				// get brief string
 				if brief, ok, _ := base.GetBrief(ctx, short.Origin); ok {
 
 					return NewErrDuplicatedShort(short.SessionID, brief, short.Origin, pgErr)
@@ -175,8 +170,8 @@ func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
 	return nil
 }
 
-func (base *DB) DelelteBatch(ctx context.Context, userID string, briefs []string) {
-	//prerare bulck request to database
+func (base *DB) DeleteBatch(ctx context.Context, userID string, briefs []string) {
+	// prepare bulk request to database
 	fmt.Println(briefs)
 	userIDs := make([]string, len(briefs))
 	for i := range briefs {
@@ -216,21 +211,10 @@ func (base *DB) Recover(ctx context.Context, userID string, brief string) {
 
 }
 
-// Init Database
-func InitDB(ctx context.Context, dsn string) (db *sql.DB, err error) {
-	db, err = sql.Open("pgx", dsn)
-	if err != nil {
-		return nil, err
-	}
-	return
-}
-
+// Connection to database with ping checking timeout (3 sec).
 func (base *DB) Start(ctx context.Context) error {
-	// ждем 3 секунды - если не смогли стартовать - возвращаем ошибку
-	// читаем контекст
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	err := base.master.PingContext(ctx)
-	fmt.Print("!!!!", err)
 	defer cancel()
 	return err
 }

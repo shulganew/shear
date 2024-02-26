@@ -6,7 +6,7 @@ import (
 	"github.com/shulganew/shear.git/internal/entities"
 )
 
-// Error use when ID unknown
+// Error use when ID unknown.
 type ErrDuplicatedURL struct {
 	Label  string
 	Brief  string
@@ -23,10 +23,10 @@ func (ed *ErrDuplicatedURL) Unwrap() error {
 }
 
 func NewErrDuplicatedURL(brief string, origin string, err error) *ErrDuplicatedURL {
-	return &ErrDuplicatedURL{Label: "URL alredy existed. ", Origin: origin, Brief: brief, Err: err}
+	return &ErrDuplicatedURL{Label: "URL already existed. ", Origin: origin, Brief: brief, Err: err}
 }
 
-// Error use when ID exit, creates object short
+// Error use when ID exit, creates object short.
 type ErrDuplicatedShort struct {
 	Label string
 	Short entities.Short

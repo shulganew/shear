@@ -41,19 +41,22 @@ func TestUsersUrls(t *testing.T) {
 
 	// init configApp
 	app.InitLog()
+
 	// init configApp
 	configApp := &config.Config{}
+
 	// init config with difauls values
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost
 	configApp.IsDB = false
 	configApp.IsBackup = false
 	stor := service.StorageURL(storage.NewMemory())
-	//init storage
+
+	// init storage
 	apiBatch := NewHandlerBatch(configApp, stor)
+
 	// Get all users URLs.
 	apiUsersURLs := NewHandlerAuthUser(configApp, stor)
-
 	userID, err := uuid.NewV7()
 	if err != nil {
 		zap.S().Errorln("Error generate user uuid")
@@ -68,7 +71,7 @@ func TestUsersUrls(t *testing.T) {
 			body, err := json.Marshal(&insertURLS)
 			require.NoError(t, err)
 
-			//add chi context
+			// add chi context
 			rctx := chi.NewRouteContext()
 			t.Log("URL: ", tt.multipleURL)
 			req := httptest.NewRequest(http.MethodPost, tt.multipleURL, bytes.NewReader(body))
@@ -77,25 +80,25 @@ func TestUsersUrls(t *testing.T) {
 			cookie := http.Cookie{Name: "user_id", Value: userID.String()}
 			req.AddCookie(&cookie)
 
-			//create status recorder
+			// create status recorder
 			resRecord := httptest.NewRecorder()
 			apiBatch.BatchSet(resRecord, req)
 
-			//get result
+			// get result
 			res := resRecord.Result()
 			defer res.Body.Close()
 			//check answer code
 			t.Log("StatusCode test: ", tt.statusCode, " server: ", res.StatusCode)
 			assert.Equal(t, tt.statusCode, res.StatusCode)
 
-			//Unmarshal body
+			// unmarshal body
 			var resp []entities.BatchResponse
 			err = json.NewDecoder(res.Body).Decode(&resp)
 			require.NoError(t, err)
 
-			// Check short URLS
+			// check short URLS
 
-			//add chi context
+			// add chi context
 			rctx = chi.NewRouteContext()
 			req = httptest.NewRequest(http.MethodGet, tt.usersURLs, nil)
 			ctx := context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID.String(), false))
@@ -104,10 +107,10 @@ func TestUsersUrls(t *testing.T) {
 			cookie = http.Cookie{Name: "user_id", Value: userID.String()}
 			req.AddCookie(&cookie)
 
-			//create status recorder
+			// create status recorder
 			resRecord = httptest.NewRecorder()
 			apiUsersURLs.GetUserURLs(resRecord, req)
-			//get result
+			// get result
 			res = resRecord.Result()
 			defer res.Body.Close()
 
@@ -116,10 +119,9 @@ func TestUsersUrls(t *testing.T) {
 			err = json.NewDecoder(res.Body).Decode(&resAuth)
 			require.NoError(t, err)
 
-			//check answer code
+			// check answer code
 			assert.Equal(t, http.StatusOK, res.StatusCode)
 			assert.Equal(t, tt.numURLs, len(resAuth))
-
 		})
 	}
 }

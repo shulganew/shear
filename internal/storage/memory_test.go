@@ -25,7 +25,7 @@ func TestMem(t *testing.T) {
 		for j := 0; j < 10; j++ {
 			URLstr, err := url.JoinPath("http://", "yandex"+strconv.Itoa(i*10+j), ".ru")
 			require.NoError(t, err)
-			brief := service.GenerateShorLink()
+			brief := service.GenerateShortLink()
 			mem.Set(ctx, userID.String(), brief, URLstr)
 		}
 	}
@@ -42,7 +42,7 @@ func TestMem(t *testing.T) {
 		for _, userID := range usersID {
 			shorts := mem.GetUserAll(ctx, userID.String())
 			briefs := []string{shorts[0].Brief, shorts[2].Brief, shorts[4].Brief}
-			mem.DelelteBatch(ctx, userID.String(), briefs)
+			mem.DeleteBatch(ctx, userID.String(), briefs)
 		}
 
 		shorts = mem.GetAll(ctx)

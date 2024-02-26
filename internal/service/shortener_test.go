@@ -61,17 +61,17 @@ func TestShortener(t *testing.T) {
 func BenchmarkShortener(b *testing.B) {
 	b.Run("generate short", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			GenerateShorLink()
+			GenerateShortLink()
 		}
 	})
 
 	ctrl := gomock.NewController(b)
 	defer ctrl.Finish()
 
-	//crete mock storege
+	// crete mock storege
 	storeMock := mocks.NewMockStorageURL(ctrl)
 
-	//init storage
+	// init storage
 	shortener := NewService(storeMock)
 
 	_ = storeMock.EXPECT().
@@ -81,7 +81,7 @@ func BenchmarkShortener(b *testing.B) {
 
 	b.Run("get URL", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			shortener.GetAnsURL("http", "localhost:8080", GenerateShorLink())
+			shortener.GetAnsURL("http", "localhost:8080", GenerateShortLink())
 		}
 
 	})

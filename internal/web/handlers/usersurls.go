@@ -14,6 +14,9 @@ type ResonseAuth struct {
 	Origin string `json:"original_url"`
 }
 
+// Handler for API:
+//
+//	Get "/api/user/urls"
 type HandlerAuth struct {
 	serviceURL *service.Shortener
 	conf       *config.Config
@@ -24,10 +27,9 @@ func NewHandlerAuthUser(conf *config.Config, stor service.StorageURL) *HandlerAu
 	return &HandlerAuth{serviceURL: service.NewService(stor), conf: conf}
 }
 
-// return all users shorts
+// Return all users shorts.
 func (u HandlerAuth) GetUserURLs(res http.ResponseWriter, req *http.Request) {
-
-	//get UserID from cxt values
+	// get UserID from cxt values
 	ctxConfig := req.Context().Value(config.CtxConfig{}).(config.CtxConfig)
 
 	if ctxConfig.IsNewUser() {
@@ -37,11 +39,11 @@ func (u HandlerAuth) GetUserURLs(res http.ResponseWriter, req *http.Request) {
 
 	userID := ctxConfig.GetUserID()
 
-	//get Short URLs for userID
+	// get Short URLs for userID
 	shorts := u.serviceURL.GetUserAll(req.Context(), userID)
 	zap.S().Infof("Found: %d saved URL for User with ID: %s", len(shorts), userID)
 
-	//if no data - 204
+	// if no data - 204
 	if len(shorts) == 0 {
 		res.WriteHeader(http.StatusNoContent)
 		res.Write([]byte("Cookie not set"))
@@ -64,9 +66,7 @@ func (u HandlerAuth) GetUserURLs(res http.ResponseWriter, req *http.Request) {
 	// set content type
 	res.Header().Add("Content-Type", "application/json")
 
-	//set status code 200
+	// set status code 200
 	res.WriteHeader(http.StatusOK)
-
 	res.Write(jsonURL)
-
 }

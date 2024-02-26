@@ -1,3 +1,10 @@
+// Package service represent a Business layer of app model. Contains:
+//
+// • shortener - base service for handling of short URLs (brief URLS) and base URLs (origin URLS);
+//
+// • backuper - service backup config by timer or/and graceful shutdown.
+//
+// • delete - service for batch aggregation and bulk update for delete user's URLs.
 package service
 
 import (
@@ -11,48 +18,35 @@ import (
 	"go.uber.org/zap"
 )
 
-// make backup every 10 seconds
-const Timer = 10
-
+const Timer = 10 // make backup every 10 seconds
+// Contain file for backup app data and backups methods.
 type Backup struct {
 	File string
-	//IsActive bool
 }
 
 func NewBackup(file string) *Backup {
 	return &Backup{File: file}
 }
 
-// Activate backup
-func InitBackup(ctx context.Context, storage StorageURL, file string) *Backup {
-	backup := &Backup{File: file}
-	//Time machine
-	timeBackup(ctx, storage, *backup)
-	return backup
-}
-
+// Write Short entity to file: (service.Backup).File
 func (b Backup) Save(short entities.Short) error {
 	data, err := json.Marshal(short)
-	//Backup URL:
 	if err != nil {
 		zap.S().Error("Error Marshal Backup: ", err)
 	}
-	//save data fo file
-	file, error := os.OpenFile(b.File, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+	file, error := os.OpenFile(b.File, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666) // open file for  data save
 	if error != nil {
 		return error
 	}
 	defer file.Close()
-	//append next line characte
-	data = append(data, []byte("\n")...)
-
+	data = append(data, []byte("\n")...) // append next line character
 	file.Write(data)
 	return nil
 }
 
+// Backup all URL data form storage to file: (service.Backup).File
 func (b Backup) BackupAll(ctx context.Context, storage StorageURL) error {
-
-	//save data fo file
+	// save data fo file
 	file, error := os.OpenFile(b.File, os.O_WRONLY|os.O_CREATE, 0666)
 	if error != nil {
 		return error
@@ -64,12 +58,11 @@ func (b Backup) BackupAll(ctx context.Context, storage StorageURL) error {
 	for _, short := range shorts {
 
 		shortj, err := json.Marshal(short)
-		//Backup URL:
 		if err != nil {
 			zap.S().Error("Error Marshal Backup: ", err)
 		}
 
-		//append next line characte
+		// append next line characte
 		shortj = append(shortj, []byte("\n")...)
 		data = append(data, shortj...)
 	}
@@ -78,6 +71,7 @@ func (b Backup) BackupAll(ctx context.Context, storage StorageURL) error {
 	return nil
 }
 
+// Load data to storage from backup file.
 func (b Backup) Load() ([]entities.Short, error) {
 	file, err := os.OpenFile(b.File, os.O_RDONLY, 0666)
 
@@ -105,17 +99,17 @@ func (b Backup) Load() ([]entities.Short, error) {
 		shorts = append(shorts, short)
 	}
 	zap.S().Infoln("Load dump from file done. Restore # of elements: ", len(shorts))
-
 	return shorts, nil
 }
 
+// Backup all data from storage to file (service.Backup).File during graceful shutdown.
 func Shutdown(storage StorageURL, b Backup) {
-	//current context doesn't exist, use background context
+	// current context doesn't exist, use background context
 	b.BackupAll(context.Background(), storage)
 }
 
-func timeBackup(ctx context.Context, storage StorageURL, b Backup) {
-
+// Activate backup by timer, backup data every 10 minutes from storage to (service.Backup).File.
+func TimeBackup(ctx context.Context, storage StorageURL, b Backup) {
 	backup := time.NewTicker(Timer * time.Minute)
 	go func() {
 		for {
@@ -124,5 +118,4 @@ func timeBackup(ctx context.Context, storage StorageURL, b Backup) {
 
 		}
 	}()
-
 }

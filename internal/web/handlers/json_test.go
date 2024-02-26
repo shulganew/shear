@@ -54,7 +54,7 @@ func TestAPI(t *testing.T) {
 	configApp.Response = config.DefaultHost
 
 	stor := service.StorageURL(storage.NewMemory())
-	//init storage
+	// init storage
 	apiHand := NewHandlerAPI(configApp, stor)
 	serviceURL := service.NewService(stor)
 
@@ -66,7 +66,7 @@ func TestAPI(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Log("tt.request=", tt.body)
 
-			//add chi context
+			// add chi context
 			rctx := chi.NewRouteContext()
 
 			req := httptest.NewRequest(http.MethodPost, tt.requestURL, strings.NewReader(tt.body))
@@ -74,25 +74,24 @@ func TestAPI(t *testing.T) {
 			req.Header.Add("Content-Type", "application/json")
 			cookie := http.Cookie{Name: "user_id", Value: userID.String()}
 			req.AddCookie(&cookie)
-			//create status recorder
+			// create status recorder
 			resRecord := httptest.NewRecorder()
 
 			apiHand.GetBrief(resRecord, req)
 
-			//get result
+			// get result
 			res := resRecord.Result()
 			defer res.Body.Close()
-			//check answer code
+			// check answer code
 			t.Log("StatusCode test: ", tt.statusCode, " server: ", res.StatusCode)
 			assert.Equal(t, tt.statusCode, res.StatusCode)
 
-			//Unmarshal body
-			var response Resonse
-
+			// unmarshal body
+			var response Response
 			err := json.NewDecoder(res.Body).Decode(&response)
 			require.NoError(t, err)
 
-			//responseURL = hostname+brief
+			// responseURL = hostname+brief
 			responseURL, err := url.Parse(response.Brief)
 			require.NoError(t, err)
 			t.Log(responseURL)
@@ -103,7 +102,6 @@ func TestAPI(t *testing.T) {
 
 			t.Log("brief url: ", originDB)
 			assert.Equal(t, originDB, tt.link)
-
 		})
 	}
 }
