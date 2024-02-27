@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"net/http"
 
@@ -72,7 +73,7 @@ func (u HandlerAuth) GetUserURLs(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		http.Error(res, "Error during Marshal User's URLs", http.StatusInternalServerError)
 	}
-	zap.S().Infoln("Server ansver with user's short URLs in JSON: ", string(jsonURL))
+	zap.S().Infoln("Server answer with user's short URLs in JSON: ", binary.Size(jsonURL))
 
 	// set content type
 	res.Header().Add("Content-Type", "application/json")
