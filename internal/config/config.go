@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Default host.
 const DefaultHost string = "localhost:8080"
 
 // Struct for store main app config.
@@ -23,8 +24,8 @@ type Config struct {
 	Pprof      bool   // use profiling in project
 }
 
+// Read base config from flags and env.
 func InitConfig() *Config {
-
 	config := Config{}
 	// Read command line argue.
 	startAddress := flag.String("a", "localhost:8080", "start server address and port")
@@ -32,7 +33,7 @@ func InitConfig() *Config {
 	userAuth := flag.String("s", "mysecret", "User identity encryption with cookie (user_id)")
 	tempf := flag.String("f", "", "Location of dump file")
 	dsnf := flag.String("d", "", "Data Source Name for DataBase connection")
-	pprof := flag.Bool("p", false, "Visulaisation tool")
+	pprof := flag.Bool("p", false, "Visualization tool")
 	flag.Parse()
 
 	// Check and parse URL.

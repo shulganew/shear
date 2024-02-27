@@ -19,12 +19,14 @@ type DB struct {
 	master *sql.DB
 }
 
+// Constructor of Database obj.
 func NewDB(ctx context.Context, master *sql.DB) (*DB, error) {
 	db := DB{master: master}
 	err := db.Start(ctx)
 	return &db, err
 }
 
+// Set short and original URL to storage.
 func (base *DB) Set(ctx context.Context, userID, brief, origin string) error {
 	err := base.master.QueryRowContext(ctx, "INSERT INTO short (user_id, brief, origin, is_deleted) VALUES ($1, $2, $3, $4) ", userID, brief, origin, false).Scan()
 	if err != nil {
@@ -56,85 +58,7 @@ func (base *DB) Set(ctx context.Context, userID, brief, origin string) error {
 	return nil
 }
 
-func (base *DB) GetOrigin(ctx context.Context, brief string) (origin string, existed bool, isDeleted bool) {
-	row := base.master.QueryRowContext(ctx, "SELECT id, user_id, brief, origin, is_deleted FROM short WHERE brief=$1", brief)
-	var short entities.Short
-	err := row.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin, &short.IsDeleted)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return "", false, false
-		}
-		panic(err)
-	}
-	return short.Origin, true, short.IsDeleted
-}
-
-func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, existed bool, isDeleted bool) {
-	row := base.master.QueryRowContext(ctx, "SELECT id, user_id, brief, origin, is_deleted FROM short WHERE origin=$1", origin)
-	var short entities.Short
-	err := row.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin, &short.IsDeleted)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return "", false, false
-		}
-		panic(err)
-	}
-
-	return short.Brief, true, short.IsDeleted
-}
-
-func (base *DB) GetAll(ctx context.Context) []entities.Short {
-	rows, err := base.master.QueryContext(ctx, "SELECT id, user_id, brief, origin from short")
-	if err != nil {
-		panic(err)
-	}
-
-	defer rows.Close()
-
-	shorts := []entities.Short{}
-	for rows.Next() {
-		var short entities.Short
-		err = rows.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin)
-		if err != nil {
-			panic(err)
-		}
-
-		shorts = append(shorts, short)
-	}
-
-	err = rows.Err()
-	if err != nil {
-		panic(err)
-	}
-
-	return shorts
-}
-
-func (base *DB) GetUserAll(ctx context.Context, userID string) []entities.Short {
-	rows, err := base.master.QueryContext(ctx, "SELECT id, user_id, brief, origin FROM short WHERE user_id=$1", userID)
-	if err != nil {
-		panic(err)
-	}
-	defer rows.Close()
-
-	shorts := []entities.Short{}
-	for rows.Next() {
-		var short entities.Short
-		err = rows.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin)
-		if err != nil {
-			panic(err)
-		}
-
-		shorts = append(shorts, short)
-	}
-	err = rows.Err()
-	if err != nil {
-		panic(err)
-	}
-	return shorts
-}
-
+// Set all user's short and original URLs from Short slice.
 func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
 	tx, err := base.master.Begin()
 	if err != nil {
@@ -170,6 +94,90 @@ func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
 	return nil
 }
 
+// Get original URL from storage.
+func (base *DB) GetOrigin(ctx context.Context, brief string) (origin string, existed bool, isDeleted bool) {
+	row := base.master.QueryRowContext(ctx, "SELECT id, user_id, brief, origin, is_deleted FROM short WHERE brief=$1", brief)
+	var short entities.Short
+	err := row.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin, &short.IsDeleted)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", false, false
+		}
+		panic(err)
+	}
+	return short.Origin, true, short.IsDeleted
+}
+
+// Get short URL from storage.
+func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, existed bool, isDeleted bool) {
+	row := base.master.QueryRowContext(ctx, "SELECT id, user_id, brief, origin, is_deleted FROM short WHERE origin=$1", origin)
+	var short entities.Short
+	err := row.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin, &short.IsDeleted)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", false, false
+		}
+		panic(err)
+	}
+
+	return short.Brief, true, short.IsDeleted
+}
+
+// Get all short and original URLs in Short slice.
+func (base *DB) GetAll(ctx context.Context) []entities.Short {
+	rows, err := base.master.QueryContext(ctx, "SELECT id, user_id, brief, origin from short")
+	if err != nil {
+		panic(err)
+	}
+
+	defer rows.Close()
+
+	shorts := []entities.Short{}
+	for rows.Next() {
+		var short entities.Short
+		err = rows.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin)
+		if err != nil {
+			panic(err)
+		}
+
+		shorts = append(shorts, short)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	return shorts
+}
+
+// Get all user's short and original URLs in Short slice.
+func (base *DB) GetUserAll(ctx context.Context, userID string) []entities.Short {
+	rows, err := base.master.QueryContext(ctx, "SELECT id, user_id, brief, origin FROM short WHERE user_id=$1", userID)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	shorts := []entities.Short{}
+	for rows.Next() {
+		var short entities.Short
+		err = rows.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin)
+		if err != nil {
+			panic(err)
+		}
+
+		shorts = append(shorts, short)
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+	return shorts
+}
+
+// Mark all user's URLs by short URL in briefs slice.
 func (base *DB) DeleteBatch(ctx context.Context, userID string, briefs []string) {
 	// prepare bulk request to database
 	fmt.Println(briefs)
@@ -189,6 +197,7 @@ func (base *DB) DeleteBatch(ctx context.Context, userID string, briefs []string)
 	}
 }
 
+// Check if URL mark as deleted by short URL.
 func (base *DB) isDeleted(ctx context.Context, brief string) bool {
 	row := base.master.QueryRowContext(ctx, "SELECT is_deleted FROM short WHERE brief=$1", brief)
 
@@ -202,9 +211,9 @@ func (base *DB) isDeleted(ctx context.Context, brief string) bool {
 	return isDeleted
 }
 
+// Undelete user's URL.
 func (base *DB) Recover(ctx context.Context, userID string, brief string) {
 	_, err := base.master.ExecContext(ctx, "UPDATE short SET is_deleted=FALSE, user_id=$1 WHERE brief=$2", userID, brief)
-	zap.S().Infoln("Recover!!!", userID, brief)
 	if err != nil {
 		panic(err)
 	}

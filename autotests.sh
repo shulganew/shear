@@ -83,5 +83,5 @@ shortenertestbeta -test.v -test.run=^TestIteration16$ -source-path=.
 #17
 shortenertestbeta -test.v -test.run=^TestIteration17$ -source-path=.
 #18
-#         shortenertestbeta -test.v -test.run=^TestIteration18$ \
-#             -source-path=. \
+         shortenertestbeta -test.v -test.run=^TestIteration18$ \
+             -source-path=. \

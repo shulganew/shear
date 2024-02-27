@@ -19,10 +19,11 @@ import (
 //
 // Get  "/{id}"
 type HandlerURL struct {
-	serviceURL *service.Shortener
+	serviceURL *service.Shorten
 	conf       *config.Config
 }
 
+// Service constructor.
 func NewHandlerGetURL(conf *config.Config, stor service.StorageURL) *HandlerURL {
 	return &HandlerURL{serviceURL: service.NewService(stor), conf: conf}
 }
@@ -84,7 +85,7 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Wrong URL in body, parse error", http.StatusInternalServerError)
 	}
 	zap.S().Infoln("redirectURL ", redirectURL)
-	brief := service.GenerateShortLink()
+	brief := service.GenerateShortLinkByte()
 	mainURL, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.Response, brief)
 
 	// set content type

@@ -17,10 +17,11 @@ import (
 //
 //	Post "/api/shorten/batch"
 type HandlerBatch struct {
-	serviceURL *service.Shortener
+	serviceURL *service.Shorten
 	conf       *config.Config
 }
 
+// Service constructor.
 func NewHandlerBatch(conf *config.Config, stor service.StorageURL) *HandlerBatch {
 
 	return &HandlerBatch{serviceURL: service.NewService(stor), conf: conf}
@@ -60,7 +61,7 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 			http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 		}
 		// get short brief and full answer URL
-		brief := service.GenerateShortLink()
+		brief := service.GenerateShortLinkByte()
 		_, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response, brief)
 		// get batch for answer
 		batch := entities.BatchResponse{SessionID: r.SessionID, Answer: answerURL.String()}

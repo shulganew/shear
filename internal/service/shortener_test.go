@@ -61,7 +61,7 @@ func TestShortener(t *testing.T) {
 func BenchmarkShortener(b *testing.B) {
 	b.Run("generate short", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			GenerateShortLink()
+			GenerateShortLinkByte()
 		}
 	})
 
@@ -81,7 +81,7 @@ func BenchmarkShortener(b *testing.B) {
 
 	b.Run("get URL", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
-			shortener.GetAnsURL("http", "localhost:8080", GenerateShortLink())
+			shortener.GetAnsURL("http", "localhost:8080", GenerateShortLinkByte())
 		}
 
 	})

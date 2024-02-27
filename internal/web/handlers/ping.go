@@ -12,6 +12,7 @@ type Ping struct {
 	db *sql.DB
 }
 
+// Service constructor.
 func NewDB(db *sql.DB) *Ping {
 
 	return &Ping{db: db}

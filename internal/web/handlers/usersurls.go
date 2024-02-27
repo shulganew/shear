@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// DTO object for JSON response.
 type ResponseAuth struct {
 	Brief  string `json:"short_url"`
 	Origin string `json:"original_url"`
@@ -18,10 +19,11 @@ type ResponseAuth struct {
 //
 //	Get "/api/user/urls"
 type HandlerAuth struct {
-	serviceURL *service.Shortener
+	serviceURL *service.Shorten
 	conf       *config.Config
 }
 
+// Service constructor.
 func NewHandlerAuthUser(conf *config.Config, stor service.StorageURL) *HandlerAuth {
 
 	return &HandlerAuth{serviceURL: service.NewService(stor), conf: conf}

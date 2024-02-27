@@ -12,10 +12,12 @@ import (
 	"go.uber.org/zap"
 )
 
+// DTO JSON request.
 type Request struct {
 	URL string `json:"url"`
 }
 
+// DTO JSON response.
 type Response struct {
 	Brief string `json:"result"`
 }
@@ -24,10 +26,11 @@ type Response struct {
 //
 //	Post "/api/shorten"
 type HandlerAPI struct {
-	serviceURL *service.Shortener
+	serviceURL *service.Shorten
 	conf       *config.Config
 }
 
+// Service constructor.
 func NewHandlerAPI(conf *config.Config, stor service.StorageURL) *HandlerAPI {
 	return &HandlerAPI{serviceURL: service.NewService(stor), conf: conf}
 }
@@ -52,7 +55,7 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 	}
-	brief := service.GenerateShortLink()
+	brief := service.GenerateShortLinkByte()
 	mainURL, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response, brief)
 
 	// find UserID in cookies

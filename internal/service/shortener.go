@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/shulganew/shear.git/internal/entities"
@@ -19,7 +20,8 @@ import (
 // Length of short URL random sequence length.
 const ShortLength = 8
 
-type Shortener struct {
+// Base service shortener struct for manipulating with URLs.
+type Shorten struct {
 	storeURLs StorageURL
 }
 
@@ -35,11 +37,12 @@ type StorageURL interface {
 }
 
 // Service constructor.
-func NewService(storage StorageURL) *Shortener {
-	return &Shortener{storeURLs: storage}
+func NewService(storage StorageURL) *Shorten {
+	return &Shorten{storeURLs: storage}
 }
 
-func (s *Shortener) SetURL(ctx context.Context, userID, brief, origin string) (err error) {
+// Set user's URL to storage: original and short.
+func (s *Shorten) SetURL(ctx context.Context, userID, brief, origin string) (err error) {
 	err = s.storeURLs.Set(ctx, userID, brief, origin)
 	if err != nil {
 		return err
@@ -47,7 +50,8 @@ func (s *Shortener) SetURL(ctx context.Context, userID, brief, origin string) (e
 	return nil
 }
 
-func (s *Shortener) SetAll(ctx context.Context, short []entities.Short) (err error) {
+// Set user's URLs short object array.
+func (s *Shorten) SetAll(ctx context.Context, short []entities.Short) (err error) {
 	err = s.storeURLs.SetAll(ctx, short)
 	if err != nil {
 		return fmt.Errorf("error during save URL to Store: %w", err)
@@ -55,31 +59,35 @@ func (s *Shortener) SetAll(ctx context.Context, short []entities.Short) (err err
 	return nil
 }
 
-func (s *Shortener) GetOrigin(ctx context.Context, brief string) (origin string, exist bool, isDeleted bool) {
+// Return original URL by short URL.
+func (s *Shorten) GetOrigin(ctx context.Context, brief string) (origin string, exist bool, isDeleted bool) {
 	return s.storeURLs.GetOrigin(ctx, brief)
 }
 
-func (s *Shortener) GetBrief(ctx context.Context, origin string) (brief string, exist bool, isDeleted bool) {
+// Return short URL by original URL.
+func (s *Shorten) GetBrief(ctx context.Context, origin string) (brief string, exist bool, isDeleted bool) {
 	return s.storeURLs.GetBrief(ctx, origin)
 }
 
-func (s *Shortener) GetUserAll(ctx context.Context, userID string) (short []entities.Short) {
+// Get all user's URLs in Short object.
+func (s *Shorten) GetUserAll(ctx context.Context, userID string) (short []entities.Short) {
 	return s.storeURLs.GetUserAll(ctx, userID)
 }
 
-// Delete
-func (s *Shortener) DeleteBatchArray(ctx context.Context, delBatchs []DelBatch) {
+// Batch delete by set of user's short URLs.
+func (s *Shorten) DeleteBatchArray(ctx context.Context, delBatchs []DelBatch) {
 	for _, del := range delBatchs {
 		s.storeURLs.DeleteBatch(ctx, del.UserID, del.Briefs)
 	}
 }
 
-func (s *Shortener) DeleteBatch(ctx context.Context, delBatch DelBatch) {
+// Batch delete by user's short URLs.
+func (s *Shorten) DeleteBatch(ctx context.Context, delBatch DelBatch) {
 	s.storeURLs.DeleteBatch(ctx, delBatch.UserID, delBatch.Briefs)
 }
 
-// return answer url: "schema + response server address from config + brief"
-func (s *Shortener) GetAnsURL(schema, resultaddr string, brief string) (mainURL string, answerURL *url.URL) {
+// Return answer url: "schema + response server address from config + brief".
+func (s *Shorten) GetAnsURL(schema, resultaddr string, brief string) (mainURL string, answerURL *url.URL) {
 	// main URL = Schema + hostname + port (from result add -flag cmd -b)
 	mainURL = schema + "://" + resultaddr
 
@@ -96,13 +104,26 @@ func (s *Shortener) GetAnsURL(schema, resultaddr string, brief string) (mainURL 
 }
 
 // Generate short link.
-func GenerateShortLink() string {
+func GenerateShortLinkByte() string {
 	b := []byte{97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90}
 	s := make([]byte, ShortLength)
 	for i := 0; i < ShortLength; i++ {
 		s[i] = b[rand.Intn(len(b))]
 	}
 	return string(s)
+}
+
+// Generate short link.
+//
+// Deprecated: FunctionName is deprecated.
+func GenerateShortLink() string {
+	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	sb := strings.Builder{}
+	sb.Grow(ShortLength)
+	for i := 0; i < ShortLength; i++ {
+		sb.WriteByte(charset[rand.Intn(len(charset))])
+	}
+	return sb.String()
 }
 
 // Crypto function for getting crypted user id from cookies.

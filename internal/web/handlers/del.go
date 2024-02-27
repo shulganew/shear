@@ -16,6 +16,7 @@ type DelShorts struct {
 	servDelete *service.Delete
 }
 
+// Service constructor.
 func NewHandlerDelShorts(serviceDel *service.Delete) *DelShorts {
 
 	return &DelShorts{servDelete: serviceDel}

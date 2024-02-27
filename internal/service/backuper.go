@@ -18,12 +18,15 @@ import (
 	"go.uber.org/zap"
 )
 
-const Timer = 10 // make backup every 10 seconds
+// Make backup every 10 seconds.
+const Timer = 10
+
 // Contain file for backup app data and backups methods.
 type Backup struct {
 	File string
 }
 
+// Backup constructor.
 func NewBackup(file string) *Backup {
 	return &Backup{File: file}
 }

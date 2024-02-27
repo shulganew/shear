@@ -25,7 +25,7 @@ func TestMem(t *testing.T) {
 		for j := 0; j < 10; j++ {
 			URLstr, err := url.JoinPath("http://", "yandex"+strconv.Itoa(i*10+j), ".ru")
 			require.NoError(t, err)
-			brief := service.GenerateShortLink()
+			brief := service.GenerateShortLinkByte()
 			mem.Set(ctx, userID.String(), brief, URLstr)
 		}
 	}
