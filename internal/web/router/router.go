@@ -16,7 +16,7 @@ import (
 )
 
 // Chi Router for application.
-func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete *service.Delete, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (r *chi.Mux) {
+func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete *service.Delete, waitDel *sync.WaitGroup) (r *chi.Mux) {
 	r = chi.NewRouter()
 
 	// send password for encryption to middlewares

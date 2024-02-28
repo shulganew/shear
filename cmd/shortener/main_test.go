@@ -129,10 +129,10 @@ func TestMain(t *testing.T) {
 				t.Log("=============GET===============")
 
 				//get brief from storage
-				brief, error, _ := serviceURL.GetBrief(context.Background(), tt.body)
+				brief, err, _ := serviceURL.GetBrief(context.Background(), tt.body)
 
 				t.Log("brief: ", brief)
-				require.NotNil(t, error)
+				require.NotNil(t, err)
 
 				//
 				requestURL, _ := url.JoinPath(tt.request, brief)

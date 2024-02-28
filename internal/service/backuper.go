@@ -31,7 +31,9 @@ func NewBackup(file string) *Backup {
 	return &Backup{File: file}
 }
 
-// Write Short entity to file: (service.Backup).File
+// Write Short entity to file:
+//
+//	(service.Backup).File
 func (b Backup) Save(short entities.Short) error {
 	data, err := json.Marshal(short)
 	if err != nil {
@@ -47,7 +49,9 @@ func (b Backup) Save(short entities.Short) error {
 	return nil
 }
 
-// Backup all URL data form storage to file: (service.Backup).File
+// Backup all URL data form storage to file:
+//
+//	(service.Backup).File
 func (b Backup) BackupAll(ctx context.Context, storage StorageURL) error {
 	// save data fo file
 	file, error := os.OpenFile(b.File, os.O_WRONLY|os.O_CREATE, 0666)

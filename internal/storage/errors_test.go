@@ -13,9 +13,9 @@ func TestErrors(t *testing.T) {
 		origin := "yandex.ru"
 		brief := "qwertu"
 		duplicated := errors.New("By duplicated error")
-		error := NewErrDuplicatedURL(brief, origin, duplicated)
-		require.True(t, errors.Is(error, duplicated))
-		require.NotEmpty(t, error.Error())
+		err := NewErrDuplicatedURL(brief, origin, duplicated)
+		require.True(t, errors.Is(err, duplicated))
+		require.NotEmpty(t, err.Error())
 	})
 
 	t.Run("Check duplicated short error", func(t *testing.T) {
@@ -23,8 +23,8 @@ func TestErrors(t *testing.T) {
 		brief := "qwertu"
 		session := "125453"
 		duplicated := errors.New("By duplicated error")
-		error := NewErrDuplicatedShort(session, brief, origin, duplicated)
-		require.True(t, errors.Is(error, duplicated))
-		require.NotEmpty(t, error.Error())
+		err := NewErrDuplicatedShort(session, brief, origin, duplicated)
+		require.True(t, errors.Is(err, duplicated))
+		require.NotEmpty(t, err.Error())
 	})
 }

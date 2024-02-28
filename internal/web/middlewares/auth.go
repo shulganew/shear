@@ -12,7 +12,7 @@ import (
 
 // Middleware function check user's authorization.
 //
-// Verify encrypted cookie, check or add if not existed context context variable config.CtxConfig user_id(uuid) and new_user(bool)
+// Verify encrypted cookie, check or add if not existed context context variable config.CtxConfig user_id(uuid) and new_user(bool).
 func Auth(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// get password from context

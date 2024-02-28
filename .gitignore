@@ -24,5 +24,8 @@ vendor/
 #linker
 golangci-lint
 
+#test coverage
+profile.cov
+
 #my autotest // removed
 #autotests.sh

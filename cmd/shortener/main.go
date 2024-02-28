@@ -73,7 +73,7 @@ func main() {
 	}(ctx, stor, finalCh, &waitDel)
 
 	// Start web server.
-	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, stor, db, del, finalCh, &waitDel)); err != nil {
+	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, stor, db, del, &waitDel)); err != nil {
 		panic(err)
 	}
 }
