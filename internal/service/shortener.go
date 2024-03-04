@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
@@ -97,6 +98,23 @@ func (s *Shorten) GetAnsURL(schema, resultaddr string, brief string) (mainURL st
 		zap.S().Errorln("Error during JoinPath", err)
 	}
 	answerURL, err = url.Parse(longStrURL)
+	if err != nil {
+		zap.S().Errorln("Error during Parse URL", err)
+	}
+	return
+}
+
+// Return answer url: "schema + response server address from config + brief".
+func (s *Shorten) GetAnsURLFast(schema, resultaddr string, brief string) (mainURL string, answerURL *url.URL) {
+	// main URL = Schema + hostname + port (from result add -flag cmd -b)
+	var sb bytes.Buffer
+	sb.WriteString(schema)
+	sb.WriteString("://")
+	sb.WriteString(resultaddr)
+	mainURL = sb.String()
+	sb.WriteString("/")
+	sb.WriteString(brief)
+	answerURL, err := url.Parse(sb.String())
 	if err != nil {
 		zap.S().Errorln("Error during Parse URL", err)
 	}

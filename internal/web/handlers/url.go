@@ -86,7 +86,7 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 	}
 	zap.S().Infoln("redirectURL ", redirectURL)
 	brief := service.GenerateShortLinkByte()
-	mainURL, answerURL := u.serviceURL.GetAnsURL(redirectURL.Scheme, u.conf.Response, brief)
+	mainURL, answerURL := u.serviceURL.GetAnsURLFast(redirectURL.Scheme, u.conf.Response, brief)
 
 	// set content type
 	res.Header().Add("Content-Type", "text/plain")

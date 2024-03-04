@@ -56,7 +56,7 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 	}
 	brief := service.GenerateShortLinkByte()
-	mainURL, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response, brief)
+	mainURL, answerURL := u.serviceURL.GetAnsURLFast(origin.Scheme, u.conf.Response, brief)
 
 	// find UserID in cookies
 	userID, err := req.Cookie("user_id")

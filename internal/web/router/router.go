@@ -4,10 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
-	"net/http/pprof"
 	"sync"
 
-	_ "net/http/pprof"
+	"net/http/pprof"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/config"

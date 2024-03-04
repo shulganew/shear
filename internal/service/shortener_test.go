@@ -81,6 +81,13 @@ func BenchmarkShortener(b *testing.B) {
 
 	})
 
+	b.Run("get URL Fast", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			shortener.GetAnsURLFast("http", "localhost:8080", GenerateShortLinkByte())
+		}
+
+	})
+
 	pass := "mypassword"
 	b.Run("Encode and decode", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {

@@ -62,7 +62,7 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 		}
 		// get short brief and full answer URL
 		brief := service.GenerateShortLinkByte()
-		_, answerURL := u.serviceURL.GetAnsURL(origin.Scheme, u.conf.Response, brief)
+		_, answerURL := u.serviceURL.GetAnsURLFast(origin.Scheme, u.conf.Response, brief)
 		// get batch for answer
 		batch := entities.BatchResponse{SessionID: r.SessionID, Answer: answerURL.String()}
 		// add batches

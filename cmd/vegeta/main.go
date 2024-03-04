@@ -17,7 +17,7 @@ import (
 )
 
 const userID = "lsjnN107/XV2f27GIedhnl3eRKQPwspek3FoFK3AcYkRPxlhY9hN3DGxG9jQSBlZLo51mg=="
-const testDuration = 5 * time.Second
+const testDuration = 30 * time.Second
 const numOfURLs = 5
 
 // Load hendler.
@@ -158,11 +158,31 @@ func DelUsersUrls() vegeta.Targeter {
 	}
 }
 
+// Load hendler.
+//
+//	/api/shorten [post]
+func JSON() vegeta.Targeter {
+	return func(tgt *vegeta.Target) error {
+		// Array of short URLs for Users delete.
+		tgt.Method = http.MethodPost
+		tgt.URL = "http://localhost:8080/api/shorten"
+		header := http.Header{}
+		header.Set("Cookie", "user_id="+userID)
+		header.Set("Content-type", "application/json")
+		tgt.Header = header
+		rand := rand.Intn(200000)
+		payload := "{ \"url\": \"http://ya" + strconv.Itoa(rand) + "\" }"
+		tgt.Body = []byte(payload)
+		return nil
+	}
+}
+
 func main() {
 	targeters := make([]vegeta.Targeter, 0)
 	targeters = append(targeters, SetURL())
 	targeters = append(targeters, UsersUrls())
 	targeters = append(targeters, DelUsersUrls())
+	targeters = append(targeters, JSON())
 
 	var s sync.WaitGroup
 	for _, target := range targeters {

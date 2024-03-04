@@ -68,8 +68,12 @@ curl -sK -v http://localhost:8080/debug/pprof/heap > profiles/result.pprof
 go tool pprof -http=":9090" -seconds=30 profiles/result.pprof 
 
 pprof -top -diff_base=profiles/base.pprof profiles/result.pprof
+pprof -top profiles/result.pprof
 ```
-
+Save as image:
+```
+go tool pprof -png profiles/result.pprof > profiles/result.png
+```
 
 ## benchmark
 ```
