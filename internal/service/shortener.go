@@ -148,7 +148,7 @@ func GetCodedUserID(req *http.Request, pass string) (userID string, ok bool) {
 
 }
 
-// Crypto function - decode secret string with password.
+// DecodeCookie is crypto function - decode secret string with password.
 func DecodeCookie(secret string, password string) (uuid string, err error) {
 	nonce, aesgcm, err := getCryptData(password)
 	if err != nil {

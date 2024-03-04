@@ -33,11 +33,13 @@ pprof is a tool for visualization and analysis of profiling data
 ```go
 go install github.com/google/pprof@latest
 ```
+
 ### WEB
 ```go
 http://127.0.0.1:8080/debug/pprof/
 go tool pprof -http=":9090" -seconds=30 http://localhost:8080/debug/pprof/profile 
 ```
+
 ### Consloe
 ```go
 go tool pprof -seconds=30 http://localhost:8080/debug/pprof/profile
@@ -46,10 +48,18 @@ go tool pprof -seconds=30 http://localhost:8080/debug/pprof/profile
 list foo
 top foo
 ```
+
+### Benchmark shortener API with Vegeta
+https://github.com/tsenart/vegeta
+[Vegeta project: ](https://github.com/tsenart/vegeta)
+```
+echo "GET http://localhost:8080" | vegeta attack -duration=5s -rate=5 | vegeta report --type=text
+```
 ### Memory (use URL)
 ```
-go tool pprof -http=":9090" -seconds=30 http://localhost:8080/debug/pprof/heap 
+go tool pprof -http=":9090" -seconds=30 http://localhost:8080/debug/pprof/heap
 ```
+
 ### Memory (use local file)
 ```
 curl -sK -v http://localhost:8080/debug/pprof/heap > profiles/base.pprof

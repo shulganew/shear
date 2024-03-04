@@ -7,6 +7,8 @@ import (
 	"net/http/pprof"
 	"sync"
 
+	_ "net/http/pprof"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
@@ -61,8 +63,7 @@ func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete
 
 		if conf.Pprof {
 			// Adding pprof.
-			r.Get("/debug/pprof/{}", http.HandlerFunc(pprof.Index))
-			r.Get("/debug/pprof/", http.HandlerFunc(pprof.Index))
+			r.Get("/debug/pprof/*", http.HandlerFunc(pprof.Index))
 			r.Get("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
 			r.Get("/debug/pprof/profile", http.HandlerFunc(pprof.Profile))
 			r.Get("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))

@@ -59,11 +59,6 @@ func TestShortener(t *testing.T) {
 	}
 }
 func BenchmarkShortener(b *testing.B) {
-	b.Run("generate short", func(b *testing.B) {
-		for i := 0; i < b.N; i++ {
-			GenerateShortLinkByte()
-		}
-	})
 
 	ctrl := gomock.NewController(b)
 	defer ctrl.Finish()
@@ -99,6 +94,21 @@ func BenchmarkShortener(b *testing.B) {
 			assert.NoError(b, err)
 			_, err = DecodeCookie(secret, pass)
 			assert.NoError(b, err)
+		}
+	})
+
+}
+
+func BenchmarkGenerateShort(b *testing.B) {
+	b.Run("generate short string", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			GenerateShortLink()
+		}
+	})
+
+	b.Run("generate short byte", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			GenerateShortLinkByte()
 		}
 	})
 

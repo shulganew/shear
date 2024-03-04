@@ -1,3 +1,4 @@
+// Package validators has a function for URL validations.
 package validators
 
 import (

@@ -136,7 +136,7 @@ func ExampleHandlerAPI_GetBrief() {
 	fmt.Println("  Body       :\n", resp)
 	fmt.Println()
 
-	//Response example:
+	// Response example:
 	//
 	// {"result":"https://localhost:8080/XsVEJmMy"}
 }

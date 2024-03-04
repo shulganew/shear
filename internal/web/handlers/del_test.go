@@ -127,7 +127,6 @@ func TestDelBulk(t *testing.T) {
 
 			// 4.Make buch apdate
 			for i := 0; i < tt.numUsers; i++ {
-
 				body, err := json.Marshal(&userSet[i].delShorts)
 
 				t.Log("BODY: ", string(body))
