@@ -73,11 +73,41 @@ pprof -top profiles/result.pprof
 Save as image:
 ```
 go tool pprof -png profiles/result.pprof > profiles/result.png
+go tool pprof -svg profiles/result.pprof > profiles/result.svg
 ```
 
 ## benchmark
 ```
 go test -bench  . ./internal/service/
+go test -bench=. -benchmem ./internal/service/
+go test -bench=. -cpuprofile ./internal/service/
+```
+Профиль использования процессорного времени.
+```
+go test -bench=. -cpuprofile profiles/cpu.out ./internal/service/
+```
+```
+$ go tool pprof ./profiles/cpu.out
+File: service.test
+Type: cpu
+Time: Mar 5, 2024 at 10:44am (MSK)
+Duration: 12.23s, Total samples = 14.15s (115.70%)
+Entering interactive mode (type "help" for commands, "o" for options)
+(pprof) web
+(pprof)
+```
+Профиль использования памяти.
+```
+
+go test -bench=. -memprofile profiles/memory.out ./internal/service/
+$ go tool pprof ./profiles/memory.out
+File: service.test
+Type: cpu
+Time: Mar 5, 2024 at 10:44am (MSK)
+Duration: 12.23s, Total samples = 14.15s (115.70%)
+Entering interactive mode (type "help" for commands, "o" for options)
+(pprof) web
+(pprof)
 ```
 
 ## cmd commands for test purposes
