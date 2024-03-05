@@ -10,21 +10,21 @@ import (
 	"go.uber.org/zap"
 )
 
+// Middleware function check user's authorization.
+//
+// Verify encrypted cookie, check or add if not existed context context variable config.CtxConfig user_id(uuid) and new_user(bool).
 func Auth(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-
-		//get password from context
+		// get password from context
 		pass := req.Context().Value(config.CtxPassKey{}).(string)
-
 		isNewUser := false
-
 		userID, ok := service.GetCodedUserID(req, pass)
 
 		if ok {
-			//cookie user_id is set
+			// cookie user_id is set
 			cookies := req.Cookies()
 
-			//clean cookie data
+			// clean cookie data
 			req.Header["Cookie"] = make([]string, 0)
 			for _, cookie := range cookies {
 
@@ -32,42 +32,38 @@ func Auth(h http.Handler) http.Handler {
 					cookie.Value = userID
 				}
 				req.AddCookie(cookie)
-
 			}
-
 		} else {
-			//cookie not set or not decoded
-			//create new user uuid
+			// cookie not set or not decoded
+			// create new user uuid
 			userID, err := uuid.NewV7()
 			if err != nil {
 				zap.S().Errorln("Error generate user uuid")
 				http.Error(res, err.Error(), http.StatusInternalServerError)
 			}
 
-			//encode coockie for client
+			// encode cookie for client
 			coded, err := service.EncodeCookie(userID.String(), pass)
 			if err != nil {
 				zap.S().Errorln("Error encode uuid")
 				http.Error(res, err.Error(), http.StatusInternalServerError)
 			}
-			//set to response
+			// set to response
 			codedCookie := http.Cookie{Name: "user_id", Value: coded}
 			http.SetCookie(res, &codedCookie)
 
-			//set to request
+			// set to request
 			cookie := http.Cookie{Name: "user_id", Value: userID.String()}
 			req.AddCookie(&cookie)
-			//mark new user for handlers
+
+			// mark new user for handlers
 			newUser := http.Cookie{Name: "new_user", Value: "true"}
 			req.AddCookie(&newUser)
-
 			isNewUser = true
 
 		}
-
 		ctx := context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID, isNewUser))
 		h.ServeHTTP(res, req.WithContext(ctx))
-
 	})
 
 }

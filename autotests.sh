@@ -2,6 +2,11 @@
 export PATH="/home/igor/Desktop/code/go-autotests-0.10.2/bin:$PATH"
 unset DATABASE_DSN
 rm -f /tmp/short-url-db.json
+
+DATABASE_DSN="postgresql://postgres:postgres@postgres/praktikum"
+GOOSE_DRIVER=postgres GOOSE_DBSTRING="postgresql://postgres:postgres@postgres/praktikum" goose -dir ./migrations  up
+PGPASSWORD=postgres psql -h postgres -U postgres -d praktikum -c "truncate TABLE short cascade"
+
 function check(){
 	res=""
 	if [ $2 -ne 0 ]; then res=$(echo "$1: {$res} Error! $2"); echo "ERROR!  Iter:" $res;exit 1; else res=$(echo "$1: ${res} PASS "); fi
@@ -46,22 +51,22 @@ check 9 $?
           shortenertestbeta -test.v -test.run=^TestIteration10$ \
               -binary-path=cmd/shortener/shortener \
               -source-path=. \
-              -database-dsn='postgres://short:1@postgres:5432/praktikum?sslmode=disable' 
+              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' 
 check 10 $?
 #11
           shortenertestbeta -test.v -test.run=^TestIteration11$ \
               -binary-path=cmd/shortener/shortener \
-              -database-dsn='postgres://short:1@postgres:5432/praktikum?sslmode=disable' > /dev/null
+              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' > /dev/null
 check 11 $?
 #12
           shortenertestbeta -test.v -test.run=^TestIteration12$ \
               -binary-path=cmd/shortener/shortener \
-              -database-dsn='postgres://short:1@postgres:5432/praktikum?sslmode=disable' > /dev/null
+              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' > /dev/null
 check 12 $?
 #13
           shortenertestbeta -test.v -test.run=^TestIteration13$ \
               -binary-path=cmd/shortener/shortener \
-              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable' > /dev/null
+              -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
 check 13 $?
 #14
           shortenertestbeta -test.v -test.run=^TestIteration14$ \
@@ -74,9 +79,9 @@ check 14 $?
               -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'> /dev/null
 check 15 $?              
 #16
-#shortenertestbeta -test.v -test.run=^TestIteration16$ -source-path=.
+shortenertestbeta -test.v -test.run=^TestIteration16$ -source-path=.
 #17
-#shortenertestbeta -test.v -test.run=^TestIteration17$ -source-path=.
+shortenertestbeta -test.v -test.run=^TestIteration17$ -source-path=.
 #18
-#         shortenertestbeta -test.v -test.run=^TestIteration18$ \
-#             -source-path=. \
+         shortenertestbeta -test.v -test.run=^TestIteration18$ \
+             -source-path=. \

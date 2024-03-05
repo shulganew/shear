@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_main(t *testing.T) {
+func TestMain(t *testing.T) {
 	tests := []struct {
 		name        string
 		request     string
@@ -61,8 +61,8 @@ func Test_main(t *testing.T) {
 	stor := service.StorageURL(storage.NewMemory())
 
 	//init storage
-	handler := handlers.NewHandlerWeb(configApp, stor)
-	serviceURL := handler.GetServiceURL()
+	handler := handlers.NewHandlerGetURL(configApp, stor)
+	serviceURL := service.NewService(stor)
 
 	userID, err := uuid.NewV7()
 	if err != nil {
@@ -125,16 +125,14 @@ func Test_main(t *testing.T) {
 				//check request url and body url the same
 				assert.Equal(t, responseURLDb, bodyURL)
 
-				//go test -v ./...
-
 			} else if tt.method == http.MethodGet {
 				t.Log("=============GET===============")
 
 				//get brief from storage
-				brief, error, _ := serviceURL.GetBrief(context.Background(), tt.body)
+				brief, err, _ := serviceURL.GetBrief(context.Background(), tt.body)
 
 				t.Log("brief: ", brief)
-				require.NotNil(t, error)
+				require.NotNil(t, err)
 
 				//
 				requestURL, _ := url.JoinPath(tt.request, brief)

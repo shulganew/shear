@@ -28,10 +28,9 @@ func TestURL(t *testing.T) {
 		brief             string
 		responseExist     bool
 		responseIsDeleted bool
-		//want
 	}{
 		{
-			name:              "base test POTS",
+			name:              "Set URL",
 			request:           "http://localhost:8080",
 			body:              "http://yandex.ru/",
 			origin:            "http://yandex.ru/",
@@ -43,7 +42,7 @@ func TestURL(t *testing.T) {
 		},
 
 		{
-			name:              "base test GET",
+			name:              "Get URL",
 			request:           "http://localhost:8080",
 			body:              "http://yandex.ru/",
 			origin:            "http://yandex.ru/",
@@ -57,11 +56,10 @@ func TestURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			//crete mock storege
+			// crete mock storege
 			storeMock := mocks.NewMockStorageURL(ctrl)
 
 			// init configApp
@@ -71,15 +69,13 @@ func TestURL(t *testing.T) {
 			configApp.Address = config.DefaultHost
 			configApp.Response = config.DefaultHost
 
-			//init storage
-			handler := NewHandlerWeb(configApp, storeMock)
+			// init storage
+			handler := NewHandlerGetURL(configApp, storeMock)
 
 			userID, err := uuid.NewV7()
 			if err != nil {
 				zap.S().Errorln("Error generate user uuid")
 			}
-
-			t.Log("=============GET===============")
 
 			_ = storeMock.EXPECT().
 				GetOrigin(gomock.Any(), tt.brief).
@@ -93,29 +89,27 @@ func TestURL(t *testing.T) {
 			rctx := chi.NewRouteContext()
 			rctx.URLParams.Add("id", tt.brief)
 
-			//use context for chi router - add id
+			// use context for chi router - add id
 			req := httptest.NewRequest(http.MethodGet, requestURL, nil)
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
 			cookie := http.Cookie{Name: "user_id", Value: userID.String()}
 			req.AddCookie(&cookie)
 
-			//create status recorder
+			// create status recorder
 			resRecord := httptest.NewRecorder()
 			handler.GetURL(resRecord, req)
 
-			//get result
+			// get result
 			res := resRecord.Result()
 			defer res.Body.Close()
-			//check answer code
+			// check answer code
 			t.Log("StatusCode test: ", tt.statusCode, " server: ", res.StatusCode)
 			assert.Equal(t, tt.statusCode, res.StatusCode)
 
-			//check Content type
+			// check Content type
 			t.Log("Content-Type exp: ", tt.contentType, " act: ", res.Header.Get("Content-Type"))
 			assert.Equal(t, tt.contentType, res.Header.Get("Content-Type"))
-
 		})
-
 	}
 }

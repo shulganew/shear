@@ -6,6 +6,10 @@ on:
     branches:
       - main
 
+env:
+  GOOSE_DRIVER: postgres
+  GOOSE_DBSTRING: "postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
+
 jobs:
 
   branchtest:
@@ -60,6 +64,11 @@ jobs:
         run: |
           cd cmd/shortener
           go build -buildvcs=false -o shortener
+
+      - name: Install Goose package and make migration
+        run: |
+          go install github.com/pressly/goose/v3/cmd/goose@latest
+          goose -dir ./migrations up
 
       - name: "Code increment #1"
         if: |

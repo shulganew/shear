@@ -1,5 +1,85 @@
 # Shortener with Yandex Practicum
 
+## Swagger
+
+```go
+go install github.com/swaggo/swag/cmd/swag@latest
+swag init --output ./swagger/
+swag init --output ./swagger/ --parseDependency --parseInternal  -g cmd/shortener/main.go
+```
+Add import to generated file for web API!!!
+```go
+_ "github.com/shulganew/shear.git/docs"
+```
+Details swagger install:
+
+[See web swagger install to project: ](https://github.com/swaggo/http-swagger)
+
+
+## Godoc
+
+```
+go install -v golang.org/x/tools/cmd/godoc@latest
+#####godoc#####
+export PATH="$GOPATH/bin:$PATH"
+godoc -http=:8085
+```
+Show internal packages
+http://localhost:8085/pkg/?m=all
+
+## Profiling
+pprof is a tool for visualization and analysis of profiling data
+### Install
+```go
+go install github.com/google/pprof@latest
+```
+
+### WEB
+```go
+http://127.0.0.1:8080/debug/pprof/
+go tool pprof -http=":9090" -seconds=30 http://localhost:8080/debug/pprof/profile 
+```
+
+### Consloe
+```go
+go tool pprof -seconds=30 http://localhost:8080/debug/pprof/profile
+```
+```cmd
+list foo
+top foo
+```
+
+### Benchmark shortener API with Vegeta
+https://github.com/tsenart/vegeta
+[Vegeta project: ](https://github.com/tsenart/vegeta)
+```
+echo "GET http://localhost:8080" | vegeta attack -duration=5s -rate=5 | vegeta report --type=text
+```
+### Memory (use URL)
+```
+go tool pprof -http=":9090" -seconds=30 http://localhost:8080/debug/pprof/heap
+```
+
+### Memory (use local file)
+```
+curl -sK -v http://localhost:8080/debug/pprof/heap > profiles/base.pprof
+go tool pprof -http=":9090" -seconds=30 profiles/base.pprof 
+curl -sK -v http://localhost:8080/debug/pprof/heap > profiles/result.pprof
+go tool pprof -http=":9090" -seconds=30 profiles/result.pprof 
+
+pprof -top -diff_base=profiles/base.pprof profiles/result.pprof
+pprof -top profiles/result.pprof
+```
+Save as image:
+```
+go tool pprof -png profiles/result.pprof > profiles/result.png
+```
+
+## benchmark
+```
+go test -bench  . ./internal/service/
+```
+
 ## cmd commands for test purposes
 ### GET and POST handles
 ```bash
@@ -25,7 +105,7 @@ echo %SERVER_ADDRESS%
 # Git
 ```
 git push -u origin iter5
-git checkout -b iter1
+git switch iter1
 
 git add .
 git commit -m "refactor del handler"
@@ -68,6 +148,12 @@ shortenertestbeta -test.v -test.run=^TestIteration7$ -binary-path=cmd/shortener/
 go build -o ./cmd/shortener/shortener ./cmd/shortener/main.go
 
 ## my links to useful sites
+
+## Test cover
+```
+go test -v -coverpkg=./... -coverprofile=profile.cov ./...
+go tool cover -func profile.cov
+```
 
 # Use autotest local 
 https://github.com/nektos/act
@@ -116,6 +202,28 @@ mockgen -source=internal/service/shortener.go \
     -package=mocks
 ```
 
+## Запуск Postgres в контейнере
+
+Для запуска и остановки Postgres в контейнере выполнятьются скрипты создания и миграции базы в make-файле:
+* Инициализация
+```bash
+make pg
+```
+* Миграция goose
+```bash
+https://github.com/pressly/goose
+GOOSE_DRIVER=postgres
+GOOSE_DBSTRING="postgresql://market:1@localhost/market"
+GOOSE_DRIVER=postgres GOOSE_DBSTRING="postgresql://market:1@localhost/market" goose up
+GOOSE_DRIVER=postgres GOOSE_DBSTRING="postgresql://postgres:postgres@postgres/praktikum" goose -dir ./migrations  up
+export GOOSE_DRIVER=postgres
+export GOOSE_DBSTRING="postgresql://postgres:postgres@postgres/praktikum"
+```
+
+* Остановка и удаление контейнера
+```bash
+make pg-stop
+```
 
 # go-musthave-shortener-tpl
 
