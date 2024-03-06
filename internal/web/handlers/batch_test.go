@@ -57,10 +57,10 @@ func TestBatch(t *testing.T) {
 	configApp.Response = config.DefaultHost
 	configApp.IsDB = false
 	configApp.IsBackup = false
-	stor := service.StorageURL(storage.NewMemory())
+	short := service.NewService(storage.NewMemory())
 	// init storage
-	apiBatch := NewHandlerBatch(configApp, stor)
-	webHand := NewHandlerGetURL(configApp, stor)
+	apiBatch := NewHandlerBatch(configApp, short)
+	webHand := NewHandlerGetURL(configApp, short)
 
 	userID, err := uuid.NewV7()
 	if err != nil {

@@ -8,15 +8,14 @@ import (
 
 // Main struct for aggregation and delete user's URL in goroutine.
 type Delete struct {
-	storeURLs StorageURL
-	finalCh   chan DelBatch
-	waitDel   *sync.WaitGroup
-	conf      *config.Config
+	finalCh chan DelBatch
+	waitDel *sync.WaitGroup
+	conf    *config.Config
 }
 
 // Constructor, create Delete service.
-func NewDelete(storage *StorageURL, finalCh chan DelBatch, waitDel *sync.WaitGroup, conf *config.Config) *Delete {
-	return &Delete{storeURLs: *storage, finalCh: finalCh, waitDel: waitDel, conf: conf}
+func NewDelete(finalCh chan DelBatch, waitDel *sync.WaitGroup, conf *config.Config) *Delete {
+	return &Delete{finalCh: finalCh, waitDel: waitDel, conf: conf}
 }
 
 // Struct for working with concurrent requests for delete update with channels - fanIn pattern.

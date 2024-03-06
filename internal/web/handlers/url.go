@@ -24,8 +24,8 @@ type HandlerURL struct {
 }
 
 // Service constructor.
-func NewHandlerGetURL(conf *config.Config, stor service.StorageURL) *HandlerURL {
-	return &HandlerURL{serviceURL: service.NewService(stor), conf: conf}
+func NewHandlerGetURL(conf *config.Config, short *service.Shorten) *HandlerURL {
+	return &HandlerURL{serviceURL: short, conf: conf}
 }
 
 // GET and redirect by brief.

@@ -52,27 +52,27 @@ func main() {
 	var waitDel sync.WaitGroup
 
 	// Init application.
-	stor, backup, del := app.InitApp(ctx, *conf, db, finalCh, &waitDel)
+	short, backup, del := app.InitApp(ctx, *conf, db, finalCh, &waitDel)
 
-	go func(ctx context.Context, stor service.StorageURL, finalCh chan service.DelBatch, wg *sync.WaitGroup) {
-		serviceURL := service.NewService(stor)
+	go func(ctx context.Context, short *service.Shorten, backup *service.Backup, finalCh chan service.DelBatch, wg *sync.WaitGroup) {
+		
 		for {
 			select {
 			case <-ctx.Done():
 				zap.S().Infoln("Waiting of update delete...")
 				wg.Wait()
 				if conf.IsBackup {
-					service.Shutdown(stor, *backup)
+					service.Shutdown(short, *backup)
 				}
 				os.Exit(0)
 			case delBatch := <-finalCh:
-				serviceURL.DeleteBatch(ctx, delBatch)
+				short.DeleteBatch(ctx, delBatch)
 			}
 		}
-	}(ctx, stor, finalCh, &waitDel)
+	}(ctx, short, backup, finalCh, &waitDel)
 
 	// Start web server.
-	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, stor, db, del, &waitDel)); err != nil {
+	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, short, db, del, &waitDel)); err != nil {
 		panic(err)
 	}
 }

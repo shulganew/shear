@@ -56,6 +56,9 @@ import (
 	"fmt"
 	"strings"
 
+	"4d63.com/gochecknoglobals/checknoglobals"
+	"github.com/butuzov/ireturn/analyzer"
+	"github.com/kyoh86/exportloopref"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/multichecker"
 	"golang.org/x/tools/go/analysis/passes/appends"
@@ -105,21 +108,50 @@ import (
 	"golang.org/x/tools/go/analysis/passes/unusedresult"
 	"golang.org/x/tools/go/analysis/passes/unusedwrite"
 	"golang.org/x/tools/go/analysis/passes/usesgenerics"
+	"honnef.co/go/tools/quickfix"
 	"honnef.co/go/tools/staticcheck"
 )
 
 func main() {
-	analyzers := make([]*analysis.Analyzer, 0)
+	var analyzers []*analysis.Analyzer
+
+	// Analysis package, passes group.
 	passes := []*analysis.Analyzer{appends.Analyzer, asmdecl.Analyzer, httpmux.Analyzer, assign.Analyzer, atomic.Analyzer, atomicalign.Analyzer, bools.Analyzer, buildssa.Analyzer, buildtag.Analyzer, cgocall.Analyzer, composite.Analyzer, copylock.Analyzer, ctrlflow.Analyzer, deepequalerrors.Analyzer, defers.Analyzer, directive.Analyzer, errorsas.Analyzer, fieldalignment.Analyzer, findcall.Analyzer, framepointer.Analyzer, httpresponse.Analyzer, ifaceassert.Analyzer, inspect.Analyzer, loopclosure.Analyzer, lostcancel.Analyzer, nilfunc.Analyzer, nilness.Analyzer, pkgfact.Analyzer, printf.Analyzer, reflectvaluecompare.Analyzer, shadow.Analyzer, shift.Analyzer, sigchanyzer.Analyzer, slog.Analyzer, sortslice.Analyzer, stdmethods.Analyzer, stringintconv.Analyzer, structtag.Analyzer, testinggoroutine.Analyzer, tests.Analyzer, timeformat.Analyzer, unmarshal.Analyzer, unreachable.Analyzer, unsafeptr.Analyzer, unusedresult.Analyzer, unusedwrite.Analyzer, usesgenerics.Analyzer}
-	fmt.Println("Analizers from go/analysis/passes: ", len(passes))
+
+	// Staticcheck package, SA* group.
 	var analyserSA []*analysis.Analyzer
 	for _, v := range staticcheck.Analyzers {
 		if strings.HasPrefix(v.Analyzer.Name, "SA") {
 			analyserSA = append(analyserSA, v.Analyzer)
 		}
 	}
+
+	// Staticcheck package, QF* group.
+	check := map[string]bool{
+		"QF1006": true,
+		"QF1010": true,
+		"QF1007": true,
+	}
+	var quick []*analysis.Analyzer
+	for _, v := range quickfix.Analyzers {
+		if check[v.Analyzer.Name] {
+			quick = append(quick, v.Analyzer)
+		}
+	}
+
+	var pub []*analysis.Analyzer
+	// Public Analizers.
+	pub = append(pub, exportloopref.Analyzer)
+	pub = append(pub, checknoglobals.Analyzer())
+	pub = append(pub, analyzer.NewAnalyzer())
+
+	fmt.Println("Analizers from go/analysis/passes: ", len(passes))
 	fmt.Println("Staticcheck analyzers SA*: ", len(analyserSA))
+	fmt.Println("Analizers quick checks: ", len(quick))
+	fmt.Println("Analizers public checks: ", len(pub))
 	analyzers = append(analyzers, passes...)
 	analyzers = append(analyzers, analyserSA...)
+	analyzers = append(analyzers, quick...)
+	analyzers = append(analyzers, pub...)
 	multichecker.Main(analyzers...)
 }

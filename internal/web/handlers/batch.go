@@ -22,9 +22,9 @@ type HandlerBatch struct {
 }
 
 // Service constructor.
-func NewHandlerBatch(conf *config.Config, stor service.StorageURL) *HandlerBatch {
+func NewHandlerBatch(conf *config.Config, short *service.Shorten) *HandlerBatch {
 
-	return &HandlerBatch{serviceURL: service.NewService(stor), conf: conf}
+	return &HandlerBatch{serviceURL: short, conf: conf}
 }
 
 // @Summary      Set several user's URLs in body in JSON format

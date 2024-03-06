@@ -61,15 +61,15 @@ func TestDelBulk(t *testing.T) {
 	configApp.IsDB = false
 	configApp.IsBackup = false
 	configApp.Pass = "MyPass"
-	memory := storage.NewMemory()
-	stor := service.StorageURL(memory)
+	stor := storage.NewMemory()
+	short := service.NewService(stor)
 	// init storage
-	apiBatch := NewHandlerBatch(configApp, stor)
-	handGet := NewHandlerGetURL(configApp, stor)
+	apiBatch := NewHandlerBatch(configApp, short)
+	handGet := NewHandlerGetURL(configApp, short)
 	finalCh := make(chan service.DelBatch, 100)
 	defer close(finalCh)
 	var waitDel sync.WaitGroup
-	del := service.NewDelete(&stor, finalCh, &waitDel, configApp)
+	del := service.NewDelete(finalCh, &waitDel, configApp)
 	handDel := NewHandlerDelShorts(del)
 
 	for _, tt := range tests {

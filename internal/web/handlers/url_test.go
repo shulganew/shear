@@ -11,6 +11,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
 	"github.com/shulganew/shear.git/internal/config"
+	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/service/mocks"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
@@ -70,7 +71,7 @@ func TestURL(t *testing.T) {
 			configApp.Response = config.DefaultHost
 
 			// init storage
-			handler := NewHandlerGetURL(configApp, storeMock)
+			handler := NewHandlerGetURL(configApp, service.NewService(storeMock))
 
 			userID, err := uuid.NewV7()
 			if err != nil {

@@ -25,9 +25,9 @@ type HandlerAuth struct {
 }
 
 // Service constructor.
-func NewHandlerAuthUser(conf *config.Config, stor service.StorageURL) *HandlerAuth {
+func NewHandlerAuthUser(conf *config.Config, short *service.Shorten) *HandlerAuth {
 
-	return &HandlerAuth{serviceURL: service.NewService(stor), conf: conf}
+	return &HandlerAuth{serviceURL: short, conf: conf}
 }
 
 // Return all users shorts.

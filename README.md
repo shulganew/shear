@@ -1,5 +1,12 @@
 # Shortener with Yandex Practicum
 
+## Custom Analyzers
+```
+https://golangci-lint.run/usage/linters/
+https://github.com/kyoh86/exportloopref
+https://github.com/leighmcculloch/gochecknoglobals
+https://github.com/butuzov/ireturn
+```
 ## Swagger
 
 ```go

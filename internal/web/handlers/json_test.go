@@ -53,10 +53,9 @@ func TestAPI(t *testing.T) {
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost
 
-	stor := service.StorageURL(storage.NewMemory())
+	short := service.NewService(storage.NewMemory())
 	// init storage
-	apiHand := NewHandlerAPI(configApp, stor)
-	serviceURL := service.NewService(stor)
+	apiHand := NewHandlerAPI(configApp, short)
 
 	userID, err := uuid.NewV7()
 	if err != nil {
@@ -97,7 +96,7 @@ func TestAPI(t *testing.T) {
 			t.Log(responseURL)
 			brief := strings.TrimLeft(responseURL.Path, "/")
 
-			originDB, exist, _ := serviceURL.GetOrigin(req.Context(), brief)
+			originDB, exist, _ := short.GetOrigin(req.Context(), brief)
 			require.True(t, exist)
 
 			t.Log("brief url: ", originDB)

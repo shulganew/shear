@@ -31,8 +31,8 @@ type HandlerAPI struct {
 }
 
 // Service constructor.
-func NewHandlerAPI(conf *config.Config, stor service.StorageURL) *HandlerAPI {
-	return &HandlerAPI{serviceURL: service.NewService(stor), conf: conf}
+func NewHandlerAPI(conf *config.Config, short *service.Shorten) *HandlerAPI {
+	return &HandlerAPI{serviceURL: short, conf: conf}
 }
 
 // @Summary      API add URL in JSON
@@ -74,7 +74,6 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 
 		var tagErr *storage.ErrDuplicatedURL
 		if errors.As(err, &tagErr) {
-
 			// get correct answer URL
 			var answer string
 			answer, err = url.JoinPath(mainURL, tagErr.Brief)

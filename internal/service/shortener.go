@@ -70,6 +70,11 @@ func (s *Shorten) GetBrief(ctx context.Context, origin string) (brief string, ex
 	return s.storeURLs.GetBrief(ctx, origin)
 }
 
+// Get all URLs in Short object.
+func (s *Shorten) GetAll(ctx context.Context) (short []entities.Short) {
+	return s.storeURLs.GetAll(ctx)
+}
+
 // Get all user's URLs in Short object.
 func (s *Shorten) GetUserAll(ctx context.Context, userID string) (short []entities.Short) {
 	return s.storeURLs.GetUserAll(ctx, userID)
