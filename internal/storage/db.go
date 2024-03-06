@@ -71,7 +71,7 @@ func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
 	}
 
 	for _, short := range shorts {
-		_, err := prep.ExecContext(ctx, short.UUID, short.Brief, short.Origin)
+		_, err = prep.ExecContext(ctx, short.UUID, short.Brief, short.Origin)
 		if err != nil {
 			var pgErr *pgconn.PgError
 			// if URL exist in DataBase

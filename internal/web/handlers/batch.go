@@ -46,7 +46,7 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 	}
 	// handle bach requests
 	var requests []entities.BatchRequest
-	if err := json.NewDecoder(req.Body).Decode(&requests); err != nil {
+	if err = json.NewDecoder(req.Body).Decode(&requests); err != nil {
 		zap.S().Errorln("Get batch: ", err)
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
@@ -55,8 +55,8 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 	batches := []entities.BatchResponse{}
 	shorts := []entities.Short{}
 	for i, r := range requests {
-
-		origin, err := url.Parse(string(r.Origin))
+		var origin *url.URL
+		origin, err = url.Parse(string(r.Origin))
 		if err != nil {
 			http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 		}
@@ -88,7 +88,8 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 			broken := []entities.BatchResponse{}
 			batch := entities.BatchResponse{SessionID: tagErr.Short.SessionID, Answer: tagErr.Short.Brief}
 			broken = append(broken, batch)
-			jsonBrokenBatch, err := json.Marshal(broken)
+			var jsonBrokenBatch []byte
+			jsonBrokenBatch, err = json.Marshal(broken)
 			if err != nil {
 				http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
 			}

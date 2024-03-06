@@ -107,7 +107,8 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusConflict)
 
 			//send existed string from error
-			answer, err := url.JoinPath(mainURL, tagErr.Brief)
+			var answer string
+			answer, err = url.JoinPath(mainURL, tagErr.Brief)
 			if err != nil {
 				zap.S().Errorln("Error during JoinPath", err)
 			}

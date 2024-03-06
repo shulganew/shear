@@ -76,14 +76,16 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 		if errors.As(err, &tagErr) {
 
 			// get correct answer URL
-			answer, err := url.JoinPath(mainURL, tagErr.Brief)
+			var answer string
+			answer, err = url.JoinPath(mainURL, tagErr.Brief)
 			if err != nil {
 				zap.S().Errorln("Error during JoinPath", err)
 			}
 
 			// send existed string from error
 			response := Response{answer}
-			jsonBrokenURL, err := json.Marshal(response)
+			var jsonBrokenURL []byte
+			jsonBrokenURL, err = json.Marshal(response)
 			if err != nil {
 				http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
 			}

@@ -24,8 +24,8 @@ func TestURL(t *testing.T) {
 		origin            string
 		method            string
 		contentType       string
-		statusCode        int
 		brief             string
+		statusCode        int
 		responseExist     bool
 		responseIsDeleted bool
 	}{

@@ -184,6 +184,11 @@ go build -o ./cmd/shortener/shortener ./cmd/shortener/main.go
 go test -v -coverpkg=./... -coverprofile=profile.cov ./...
 go tool cover -func profile.cov
 ```
+```
+go test -v -coverpkg=./... -coverprofile=profile.cov ./...
+cat profile.cov | grep -v "mock\|vegeta" > nomocksmigrations.cov
+go tool cover -func nomocksmigrations.cov
+```
 
 # Use autotest local 
 https://github.com/nektos/act

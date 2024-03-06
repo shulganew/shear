@@ -84,8 +84,8 @@ func TestDelBulk(t *testing.T) {
 				}
 
 				var insertURLS []entities.BatchRequest
-				for i := 0; i < tt.numURLs; i++ {
-					insertURLS = append(insertURLS, entities.BatchRequest{SessionID: strconv.Itoa(i), Origin: "http://yandex" + strconv.Itoa(i) + ".ru"})
+				for j := 0; j < tt.numURLs; j++ {
+					insertURLS = append(insertURLS, entities.BatchRequest{SessionID: strconv.Itoa(j), Origin: "http://yandex" + strconv.Itoa(j) + ".ru"})
 				}
 
 				body, err := json.Marshal(&insertURLS)

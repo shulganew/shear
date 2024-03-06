@@ -8,10 +8,10 @@ import (
 
 // Error use when ID unknown.
 type ErrDuplicatedURL struct {
+	Err    error
 	Label  string
 	Brief  string
 	Origin string
-	Err    error
 }
 
 // Error constructor.
@@ -31,9 +31,9 @@ func (ed *ErrDuplicatedURL) Unwrap() error {
 
 // Error use when ID exit, creates object short.
 type ErrDuplicatedShort struct {
+	Err   error
 	Label string
 	Short entities.Short
-	Err   error
 }
 
 // Error constructor.

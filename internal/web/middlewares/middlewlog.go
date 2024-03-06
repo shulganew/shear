@@ -9,10 +9,10 @@ import (
 
 type (
 	responseData struct {
-		status   int
-		size     int
 		answer   string
 		redirect string
+		status   int
+		size     int
 	}
 
 	loggingResponseWriter struct {
