@@ -55,7 +55,7 @@ func main() {
 	short, backup, del := app.InitApp(ctx, *conf, db, finalCh, &waitDel)
 
 	go func(ctx context.Context, short *service.Shorten, backup *service.Backup, finalCh chan service.DelBatch, wg *sync.WaitGroup) {
-		
+
 		for {
 			select {
 			case <-ctx.Done():

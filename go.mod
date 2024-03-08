@@ -3,6 +3,8 @@ module github.com/shulganew/shear.git
 go 1.21.3
 
 require (
+	4d63.com/gochecknoglobals v0.2.1
+	github.com/butuzov/ireturn v0.3.0
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-resty/resty/v2 v2.11.0
 	github.com/golang/mock v1.6.0
@@ -20,10 +22,8 @@ require (
 )
 
 require (
-	4d63.com/gochecknoglobals v0.2.1 // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/bmizerany/perks v0.0.0-20230307044200-03f9df79da1e // indirect
-	github.com/butuzov/ireturn v0.3.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-gk v0.0.0-20200319235926-a69029f61654 // indirect
 	github.com/go-openapi/jsonpointer v0.20.2 // indirect

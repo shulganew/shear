@@ -7,6 +7,12 @@ https://github.com/kyoh86/exportloopref
 https://github.com/leighmcculloch/gochecknoglobals
 https://github.com/butuzov/ireturn
 ```
+
+Build and use
+```
+go build -o ./cmd/staticlint/mycheck ./cmd/staticlint/main.go
+./cmd/staticlint/mycheck ./cmd/... ./internal/...
+```
 ## Swagger
 
 ```go
