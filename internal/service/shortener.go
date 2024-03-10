@@ -34,7 +34,7 @@ type StorageURL interface {
 	GetBrief(ctx context.Context, origin string) (string, bool, bool)
 	GetAll(ctx context.Context) []entities.Short
 	GetUserAll(ctx context.Context, userID string) []entities.Short
-	DeleteBatch(ctx context.Context, userID string, briefs []string)
+	DeleteBatch(ctx context.Context, userID string, briefs []string) error
 }
 
 // Service constructor.
@@ -110,7 +110,7 @@ func (s *Shorten) GetAnsURL(schema, resultaddr string, brief string) (mainURL st
 }
 
 // Return answer url: "schema + response server address from config + brief".
-func (s *Shorten) GetAnsURLFast(schema, resultaddr string, brief string) (mainURL string, answerURL *url.URL) {
+func (s *Shorten) GetAnsURLFast(schema, resultaddr string, brief string) (mainURL string, answerURL *url.URL, err error) {
 	// main URL = Schema + hostname + port (from result add -flag cmd -b)
 	var sb bytes.Buffer
 	sb.WriteString(schema)
@@ -119,9 +119,9 @@ func (s *Shorten) GetAnsURLFast(schema, resultaddr string, brief string) (mainUR
 	mainURL = sb.String()
 	sb.WriteString("/")
 	sb.WriteString(brief)
-	answerURL, err := url.Parse(sb.String())
+	answerURL, err = url.Parse(sb.String())
 	if err != nil {
-		zap.S().Errorln("Error during Parse URL", err)
+		return "", nil, err
 	}
 	return
 }

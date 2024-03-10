@@ -198,9 +198,7 @@ go test -v -coverpkg=./... -coverprofile=profile.cov ./...
 go tool cover -func profile.cov
 ```
 ```
-go test -v -coverpkg=./... -coverprofile=profile.cov ./...
-cat profile.cov | grep -v "mock\|vegeta" > nomocksmigrations.cov
-go tool cover -func nomocksmigrations.cov
+go test -v -coverpkg=./... -coverprofile=profile.cov ./...;cat profile.cov | grep -v "mock\|vegeta" > nomocksmigrations.cov;go tool cover -func nomocksmigrations.cov
 ```
 
 # Use autotest local 

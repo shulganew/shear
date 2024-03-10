@@ -33,14 +33,20 @@ func docgen(analyzers ...*analysis.Analyzer) {
 		alist.WriteString("\n\n")
 	}
 
-	// add comments to file
-
+	// add comments slashes to all lines
 	doc := strings.Replace(alist.String(), "\n", "\n // ", -1)
+
 
 	file, err := os.OpenFile("./doc.go", os.O_CREATE|os.O_RDWR, 0775)
 	if err != nil {
 		panic(err)
 	}
+	defer func() {
+		if err := file.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
 	file.Write([]byte(doc))
 	file.Write([]byte("\n"))
 	file.Write([]byte("package main"))

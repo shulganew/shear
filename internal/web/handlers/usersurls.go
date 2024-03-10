@@ -65,7 +65,10 @@ func (u HandlerAuth) GetUserURLs(res http.ResponseWriter, req *http.Request) {
 	resAuth := []ResponseAuth{}
 
 	for _, short := range shorts {
-		_, answerURL := u.serviceURL.GetAnsURLFast("http", u.conf.Response, short.Brief)
+		_, answerURL, err := u.serviceURL.GetAnsURLFast("http", u.conf.Response, short.Brief)
+		if err != nil {
+			http.Error(res, "Error parse URL", http.StatusInternalServerError)
+		}
 		resAuth = append(resAuth, ResponseAuth{Brief: answerURL.String(), Origin: short.Origin})
 	}
 

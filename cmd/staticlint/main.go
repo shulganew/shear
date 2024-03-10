@@ -123,7 +123,7 @@ func main() {
 		fmt.Println("Analizers public checks: ", len(pub))
 		multichecker.Main(analyzers...)
 	} else {
-		// Generate doc_gen
+		// Generate doc.go.
 		fmt.Println("Generate user's documentation: ")
 		docgen(analyzers...)
 	}

@@ -36,9 +36,11 @@ func (m *MockStorageURL) EXPECT() *MockStorageURLMockRecorder {
 }
 
 // DeleteBatch mocks base method.
-func (m *MockStorageURL) DeleteBatch(ctx context.Context, userID string, briefs []string) {
+func (m *MockStorageURL) DeleteBatch(ctx context.Context, userID string, briefs []string) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "DeleteBatch", ctx, userID, briefs)
+	ret := m.ctrl.Call(m, "DeleteBatch", ctx, userID, briefs)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // DeleteBatch indicates an expected call of DeleteBatch.

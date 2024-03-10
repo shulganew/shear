@@ -21,7 +21,7 @@ TEMP_FILE=$(random tempfile)
 shortenertestbeta -test.v -test.run=^TestIteration1$ -binary-path=cmd/shortener/shortener
 check 1 $?
 #2
-shortenertestbeta -test.v -test.run=^TestIteration2$ -source-path=. > /dev/null
+shortenertestbeta -test.v -test.run=^TestIteration2$ -source-path=. 
 check 2 $?
 #3
 shortenertestbeta -test.v -test.run=^TestIteration3$ -source-path=. > /dev/null

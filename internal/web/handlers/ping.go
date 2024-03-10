@@ -3,6 +3,8 @@ package handlers
 import (
 	"database/sql"
 	"net/http"
+
+	"go.uber.org/zap"
 )
 
 // Handler for testing db connection.
@@ -31,6 +33,7 @@ func (b *Ping) Ping(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusOK)
 		res.Write([]byte("<h1>Connected to Data Base!</h1>"))
 	} else {
+		zap.S().Errorln(err)
 		res.WriteHeader(http.StatusInternalServerError)
 	}
 }

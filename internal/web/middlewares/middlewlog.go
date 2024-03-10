@@ -59,7 +59,7 @@ func MiddlwLog(h http.Handler) http.Handler {
 		}
 		h.ServeHTTP(&lw, r)
 
-		//delay
+		// delay
 		duration := time.Since(start)
 
 		zap.S().Infoln(
