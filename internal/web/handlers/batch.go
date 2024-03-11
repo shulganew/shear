@@ -62,7 +62,8 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 		}
 		// get short brief and full answer URL
 		brief := service.GenerateShortLinkByte()
-		_, answerURL, err := u.serviceURL.GetAnsURLFast(origin.Scheme, u.conf.Response, brief)
+		var answerURL *url.URL
+		_, answerURL, err = u.serviceURL.GetAnsURLFast(origin.Scheme, u.conf.Response, brief)
 		if err != nil {
 			http.Error(res, "Error parse URL", http.StatusInternalServerError)
 			return

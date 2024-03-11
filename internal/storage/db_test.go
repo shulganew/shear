@@ -62,8 +62,8 @@ func TestDBGetAll(t *testing.T) {
 func TestDBGetUserAll(t *testing.T) {
 	tests := []struct {
 		name   string
-		rows   [][]driver.Value
 		userID string
+		rows   [][]driver.Value
 	}{
 		{
 			name:   "Base SQL test: GetUserAll",
@@ -310,9 +310,9 @@ func TestDBSet(t *testing.T) {
 
 func TestDBIsDeleted(t *testing.T) {
 	tests := []struct {
+		row     driver.Value
 		name    string
 		brief   string
-		row     driver.Value
 		existed bool
 	}{
 		{

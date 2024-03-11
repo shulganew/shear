@@ -1,5 +1,10 @@
 # Shortener with Yandex Practicum
 
+## LD flags
+```
+-ldflags "-X main.buildVersion=v1.0.0 -X 'main.buildDate=$(date +'%Y/%m/%d %H:%M:%S')' -X main.buildCommit=LTS version"
+go run -ldflags "-X main.buildVersion=v1.0.0 -X 'main.buildDate=$(date +'%Y/%m/%d %H:%M:%S')' -X 'main.buildCommit=LTS version'" ./cmd/shortener/... 
+```
 ## Custom Analyzers
 ```
 https://golangci-lint.run/usage/linters/
@@ -10,7 +15,7 @@ https://github.com/butuzov/ireturn
 
 Build and use
 ```
-go build -o ./cmd/staticlint/mycheck ./cmd/staticlint/main.go
+go build -o ./cmd/staticlint/mycheck ./cmd/staticlint/...
 ./cmd/staticlint/mycheck ./cmd/... ./internal/...
 ```
 ## Swagger

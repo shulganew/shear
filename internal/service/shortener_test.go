@@ -20,10 +20,10 @@ func TestShortenerURL(t *testing.T) {
 		name              string
 		request           string
 		responseBrief     string
+		bathch            []string
+		shorts            []entities.Short
 		responseExist     bool
 		responseIsDeleted bool
-		shorts            []entities.Short
-		bathch            []string
 	}{
 		{
 			name:              "base test POTS",

@@ -18,6 +18,12 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	buildVersion string
+	buildDate    string
+	buildCommit  string
+)
+
 // @Title Shortener API
 // @Description Shortener service.
 // @Version 1.0
@@ -27,6 +33,7 @@ import (
 // @BasePath /
 // @Host localhost:8080
 func main() {
+	app.Intro(buildVersion, buildDate, buildCommit)
 	app.InitLog()
 	ctx, cancel := app.InitContext()
 	defer cancel()
@@ -55,7 +62,6 @@ func main() {
 	short, backup, del := app.InitApp(ctx, *conf, db, finalCh, &waitDel)
 
 	go func(ctx context.Context, short *service.Shorten, backup *service.Backup, finalCh chan service.DelBatch, wg *sync.WaitGroup) {
-
 		for {
 			select {
 			case <-ctx.Done():

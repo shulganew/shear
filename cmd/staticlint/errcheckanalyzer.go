@@ -131,10 +131,8 @@ func main() {
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
-	fmt.Println("Files totoal: ", len(pass.Files), pass.Analyzer.Name)
 	for _, file := range pass.Files {
 		filename := pass.Fset.Position(file.Pos()).Filename
-		fmt.Println("Files: ", filename)
 		if !strings.HasSuffix(filename, ".go") {
 			continue
 		}
