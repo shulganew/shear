@@ -115,11 +115,12 @@ func TestShortenerDelButhc(t *testing.T) {
 			_ = storeMock.EXPECT().
 				DeleteBatch(context.Background(), userID.String(), tt.bathch).
 				Times(2).
-				Return()
+				Return(nil)
 
 			// Test GetALL.
 			shortserv := NewService(storeMock)
-			shortserv.DeleteBatch(context.Background(), dbatch)
+			err = shortserv.DeleteBatch(context.Background(), dbatch)
+			assert.NoError(t, err)
 			dbarray := []DelBatch{dbatch}
 			shortserv.DeleteBatchArray(context.Background(), dbarray)
 		})

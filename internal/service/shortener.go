@@ -88,8 +88,9 @@ func (s *Shorten) DeleteBatchArray(ctx context.Context, delBatchs []DelBatch) {
 }
 
 // Batch delete by user's short URLs.
-func (s *Shorten) DeleteBatch(ctx context.Context, delBatch DelBatch) {
-	s.storeURLs.DeleteBatch(ctx, delBatch.UserID, delBatch.Briefs)
+func (s *Shorten) DeleteBatch(ctx context.Context, delBatch DelBatch) (err error) {
+	err = s.storeURLs.DeleteBatch(ctx, delBatch.UserID, delBatch.Briefs)
+	return
 }
 
 // Return answer url: "schema + response server address from config + brief".
