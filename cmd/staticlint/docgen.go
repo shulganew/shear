@@ -36,7 +36,6 @@ func docgen(analyzers ...*analysis.Analyzer) {
 	// add comments slashes to all lines
 	doc := strings.Replace(alist.String(), "\n", "\n // ", -1)
 
-
 	file, err := os.OpenFile("./doc.go", os.O_CREATE|os.O_RDWR, 0775)
 	if err != nil {
 		panic(err)
