@@ -37,3 +37,4 @@ func (b *Ping) Ping(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(http.StatusInternalServerError)
 	}
 }
+

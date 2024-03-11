@@ -13,14 +13,33 @@ import (
 )
 
 func TestAPIPing(t *testing.T) {
+	tests := []struct {
+		name string
+		ping bool
+		//want
+	}{
+		{
+			name: "DB ping test available",
+			ping: true,
+		},
+
+		{
+			name: "DB ping test not available",
+			ping: false,
+		},
+	}
 	app.InitLog()
 
-	t.Run("db ping", func(t *testing.T) {
+	for _, tt := range tests {
+		t.Log(tt.name)
+
 		sql, smock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
 		if err != nil {
 			t.Errorf("An error '%s' was not expected when opening a stub database connection", err)
 		}
-		smock.ExpectPing()
+		if tt.ping {
+			smock.ExpectPing()
+		}
 		pingSrv := NewDB(sql)
 
 		// add chi context
@@ -37,8 +56,13 @@ func TestAPIPing(t *testing.T) {
 		// get result
 		res := resRecord.Result()
 		defer res.Body.Close()
-		// check answer code
-		t.Log("StatusCode test: ", http.StatusOK, " server: ", res.StatusCode)
-		assert.Equal(t, http.StatusOK, res.StatusCode)
-	})
+		if tt.ping {
+			// check answer code
+			t.Log("StatusCode test: ", http.StatusOK, " server: ", res.StatusCode)
+			assert.Equal(t, http.StatusOK, res.StatusCode)
+		} else {
+			t.Log("StatusCode test: ", http.StatusOK, " server: ", res.StatusCode)
+			assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+		}
+	}
 }

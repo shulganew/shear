@@ -54,6 +54,7 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 	origin, err := url.Parse(string(request.URL))
 	if err != nil {
 		http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
+		return
 	}
 	brief := service.GenerateShortLinkByte()
 	mainURL, answerURL, err := u.serviceURL.GetAnsURLFast(origin.Scheme, u.conf.Response, brief)
@@ -66,6 +67,7 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 	userID, err := req.Cookie("user_id")
 	if err != nil {
 		http.Error(res, "Can't find user in cookies", http.StatusUnauthorized)
+		return
 	}
 
 	// save map to storage
@@ -82,7 +84,8 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 			var answer string
 			answer, err = url.JoinPath(mainURL, tagErr.Brief)
 			if err != nil {
-				zap.S().Errorln("Error during JoinPath", err)
+				http.Error(res, "Error during JoinPath", http.StatusInternalServerError)
+				return
 			}
 
 			// send existed string from error

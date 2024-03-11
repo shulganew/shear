@@ -131,8 +131,10 @@ func main() {
 }
 
 func run(pass *analysis.Pass) (interface{}, error) {
+	fmt.Println("Files totoal: ", len(pass.Files), pass.Analyzer.Name)
 	for _, file := range pass.Files {
 		filename := pass.Fset.Position(file.Pos()).Filename
+		fmt.Println("Files: ", filename)
 		if !strings.HasSuffix(filename, ".go") {
 			continue
 		}
@@ -153,7 +155,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 									if sl, ok := mnode.(*ast.SelectorExpr); ok {
 										if ind, ok := sl.X.(*ast.Ident); ok {
 											if ind.Name == "os" && sl.Sel.Name == "Exit" {
-												pass.Reportf(sl.Pos(), "strait call in the main method prohibited")
+												pass.Reportf(sl.Pos(), "strait call os.Exit in the main method prohibited")
 											}
 										}
 									}

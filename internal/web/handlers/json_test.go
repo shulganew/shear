@@ -27,6 +27,7 @@ func TestAPI(t *testing.T) {
 		body       string
 		link       string
 		statusCode int
+		isCookie   bool
 		//want
 	}{
 		{
@@ -35,14 +36,33 @@ func TestAPI(t *testing.T) {
 			body:       `{"url": "https://practicum.yandex.ru"}`,
 			link:       "https://practicum.yandex.ru",
 			statusCode: http.StatusCreated,
+			isCookie:   true,
 		},
 
 		{
-			name:       "base test POTS",
+			name:       "base test No Cookie",
 			requestURL: "http://localhost:8080/api/shorten",
 			body:       `{"url": "https://practicum.yandex.ru"}`,
 			link:       "https://practicum.yandex.ru",
-			statusCode: http.StatusCreated,
+			statusCode: http.StatusUnauthorized,
+			isCookie:   false,
+		},
+
+		{
+			name:       "base test Broken JSON",
+			requestURL: "http://localhost:8080/api/shorten",
+			body:       `{"ul": "https://practicum.yandex.ru"}`,
+			link:       "https://practicum.yandex.ru",
+			statusCode: http.StatusInternalServerError,
+			isCookie:   false,
+		},
+		{
+			name:       "base test Borken URL",
+			requestURL: "http://localhost:8080/api/shorten",
+			body:       `{"ul": "https://practicum.yandex.ru"}`,
+			link:       "https://practicum.yandex.ru",
+			statusCode: http.StatusInternalServerError,
+			isCookie:   false,
 		},
 	}
 
@@ -71,8 +91,11 @@ func TestAPI(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, tt.requestURL, strings.NewReader(tt.body))
 			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 			req.Header.Add("Content-Type", "application/json")
-			cookie := http.Cookie{Name: "user_id", Value: userID.String()}
-			req.AddCookie(&cookie)
+			if tt.isCookie {
+				cookie := http.Cookie{Name: "user_id", Value: userID.String()}
+				req.AddCookie(&cookie)
+			}
+
 			// create status recorder
 			resRecord := httptest.NewRecorder()
 
@@ -81,10 +104,17 @@ func TestAPI(t *testing.T) {
 			// get result
 			res := resRecord.Result()
 			defer res.Body.Close()
+
+			if !tt.isCookie {
+				// check answer code
+				t.Log("StatusCode test: ", tt.statusCode, " server: ", res.StatusCode)
+				assert.Equal(t, tt.statusCode, res.StatusCode)
+				return
+			}
+
 			// check answer code
 			t.Log("StatusCode test: ", tt.statusCode, " server: ", res.StatusCode)
 			assert.Equal(t, tt.statusCode, res.StatusCode)
-
 			// unmarshal body
 			var response Response
 			err := json.NewDecoder(res.Body).Decode(&response)

@@ -51,5 +51,4 @@ func docgen(analyzers ...*analysis.Analyzer) {
 	file.Write([]byte("\n"))
 	file.Write([]byte("package main"))
 	file.Close()
-
 }
