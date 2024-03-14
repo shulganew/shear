@@ -17,7 +17,7 @@ import (
 )
 
 // Chi Router for application.
-func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete *service.Delete, waitDel *sync.WaitGroup) (r *chi.Mux) {
+func RouteShear(conf *config.Config, short *service.Shorten, db *sql.DB, delete *service.Delete, waitDel *sync.WaitGroup) (r *chi.Mux) {
 	r = chi.NewRouter()
 
 	// send password for encryption to middlewares
@@ -35,13 +35,13 @@ func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete
 		r.Use(middlewares.Auth)
 
 		// Set short from URL.
-		webHand := handlers.NewHandlerGetURL(conf, stor)
+		webHand := handlers.NewHandlerGetURL(conf, short)
 		r.Post("/", http.HandlerFunc(webHand.SetURL))
 		// Get URL by short.
 		r.Get("/{id}", http.HandlerFunc(webHand.GetURL))
 
 		// JSON API for shortener.
-		apiHand := handlers.NewHandlerAPI(conf, stor)
+		apiHand := handlers.NewHandlerAPI(conf, short)
 		r.Post("/api/shorten", http.HandlerFunc(apiHand.GetBrief))
 
 		// Database test - ping.
@@ -49,11 +49,11 @@ func RouteShear(conf *config.Config, stor service.StorageURL, db *sql.DB, delete
 		r.Get("/ping", http.HandlerFunc(dbHand.Ping))
 
 		// DB Postgres Batch request (multiple JSON)
-		batchHand := handlers.NewHandlerBatch(conf, stor)
+		batchHand := handlers.NewHandlerBatch(conf, short)
 		r.Post("/api/shorten/batch", http.HandlerFunc(batchHand.BatchSet))
 
 		// Get all users URLs.
-		handCookieID := handlers.NewHandlerAuthUser(conf, stor)
+		handCookieID := handlers.NewHandlerAuthUser(conf, short)
 		r.Get("/api/user/urls", http.HandlerFunc(handCookieID.GetUserURLs))
 
 		// Batch delete shorts from handlers (bulk postgres delete).

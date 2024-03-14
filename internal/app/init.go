@@ -12,6 +12,7 @@ package app
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"os"
 	"os/signal"
 	"sync"
@@ -25,7 +26,7 @@ import (
 )
 
 // Function InitApp initialize Database, Backup and create Delete service.
-func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (service.StorageURL, *service.Backup, *service.Delete) {
+func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (*service.Shorten, *service.Backup, *service.Delete) {
 	var stor service.StorageURL
 	var err error
 	// load storage
@@ -46,11 +47,13 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan s
 		zap.S().Infoln("Use memory storage")
 	}
 
+	short := service.NewService(stor)
+
 	var backup *service.Backup
 
 	// define backup file
 	if conf.IsBackup {
-		backup = InitBackup(ctx, stor, conf.BackupPath)
+		backup = InitBackup(ctx, short, conf.BackupPath)
 		zap.S().Infoln("Backup activated, path: ", conf.BackupPath)
 
 		// load all dump links
@@ -63,9 +66,9 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan s
 		stor.SetAll(ctx, shorts)
 	}
 
-	del := service.NewDelete(&stor, finalCh, waitDel, &conf)
+	del := service.NewDelete(finalCh, waitDel, &conf)
 	zap.S().Infoln("Application init complete")
-	return stor, backup, del
+	return short, backup, del
 }
 
 // Init context from graceful shutdown. Send to all function for return by
@@ -81,6 +84,13 @@ func InitContext() (ctx context.Context, cancel context.CancelFunc) {
 
 	}()
 	return
+}
+
+// Print app version data on startup.
+func Intro(version string, date string, commit string) {
+	fmt.Println("Build version: ", version)
+	fmt.Println("Build date: ", date)
+	fmt.Println("Build commit: ", commit)
 }
 
 // Initialization of a zap logger.
@@ -107,9 +117,9 @@ func InitDB(ctx context.Context, dsn string) (db *sql.DB, err error) {
 }
 
 // Activate backup
-func InitBackup(ctx context.Context, storage service.StorageURL, file string) *service.Backup {
+func InitBackup(ctx context.Context, short *service.Shorten, file string) *service.Backup {
 	backup := &service.Backup{File: file}
 	// Time machine.
-	service.TimeBackup(ctx, storage, *backup)
+	service.TimeBackup(ctx, short, *backup)
 	return backup
 }

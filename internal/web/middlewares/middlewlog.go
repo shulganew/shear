@@ -9,10 +9,10 @@ import (
 
 type (
 	responseData struct {
-		status   int
-		size     int
 		answer   string
 		redirect string
+		status   int
+		size     int
 	}
 
 	loggingResponseWriter struct {
@@ -59,7 +59,7 @@ func MiddlwLog(h http.Handler) http.Handler {
 		}
 		h.ServeHTTP(&lw, r)
 
-		//delay
+		// delay
 		duration := time.Since(start)
 
 		zap.S().Infoln(

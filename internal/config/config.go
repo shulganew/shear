@@ -16,11 +16,11 @@ const DefaultHost string = "localhost:8080"
 type Config struct {
 	Address    string // flag -a
 	Response   string //env var, or flag -b if env not exist
-	IsBackup   bool   // is backup enable
 	BackupPath string // file location Path for backup
-	IsDB       bool   // is db enable
 	DSN        string // dsn connection string
 	Pass       string // user identity encryption with cookie
+	IsBackup   bool   // is backup enable
+	IsDB       bool   // is db enable
 	Pprof      bool   // use profiling in project
 }
 

@@ -24,8 +24,8 @@ type HandlerURL struct {
 }
 
 // Service constructor.
-func NewHandlerGetURL(conf *config.Config, stor service.StorageURL) *HandlerURL {
-	return &HandlerURL{serviceURL: service.NewService(stor), conf: conf}
+func NewHandlerGetURL(conf *config.Config, short *service.Shorten) *HandlerURL {
+	return &HandlerURL{serviceURL: short, conf: conf}
 }
 
 // GET and redirect by brief.
@@ -86,7 +86,11 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 	}
 	zap.S().Infoln("redirectURL ", redirectURL)
 	brief := service.GenerateShortLinkByte()
-	mainURL, answerURL := u.serviceURL.GetAnsURLFast(redirectURL.Scheme, u.conf.Response, brief)
+	mainURL, answerURL, err := u.serviceURL.GetAnsURLFast(redirectURL.Scheme, u.conf.Response, brief)
+	if err != nil {
+		http.Error(res, "Error parse URL", http.StatusInternalServerError)
+		return
+	}
 
 	// set content type
 	res.Header().Add("Content-Type", "text/plain")
@@ -107,7 +111,8 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusConflict)
 
 			//send existed string from error
-			answer, err := url.JoinPath(mainURL, tagErr.Brief)
+			var answer string
+			answer, err = url.JoinPath(mainURL, tagErr.Brief)
 			if err != nil {
 				zap.S().Errorln("Error during JoinPath", err)
 			}

@@ -52,14 +52,14 @@ func (b Backup) Save(short entities.Short) error {
 // Backup all URL data form storage to file:
 //
 //	(service.Backup).File
-func (b Backup) BackupAll(ctx context.Context, storage StorageURL) error {
+func (b Backup) BackupAll(ctx context.Context, short *Shorten) error {
 	// save data fo file
 	file, error := os.OpenFile(b.File, os.O_WRONLY|os.O_CREATE, 0666)
 	if error != nil {
 		return error
 	}
 	defer file.Close()
-	shorts := storage.GetAll(ctx)
+	shorts := short.GetAll(ctx)
 
 	var data []byte
 	for _, short := range shorts {
@@ -110,18 +110,18 @@ func (b Backup) Load() ([]entities.Short, error) {
 }
 
 // Backup all data from storage to file (service.Backup).File during graceful shutdown.
-func Shutdown(storage StorageURL, b Backup) {
+func Shutdown(short *Shorten, b Backup) {
 	// current context doesn't exist, use background context
-	b.BackupAll(context.Background(), storage)
+	b.BackupAll(context.Background(), short)
 }
 
 // Activate backup by timer, backup data every 10 minutes from storage to (service.Backup).File.
-func TimeBackup(ctx context.Context, storage StorageURL, b Backup) {
+func TimeBackup(ctx context.Context, short *Shorten, b Backup) {
 	backup := time.NewTicker(Timer * time.Minute)
 	go func() {
 		for {
 			<-backup.C
-			b.BackupAll(ctx, storage)
+			b.BackupAll(ctx, short)
 
 		}
 	}()

@@ -1,5 +1,23 @@
 # Shortener with Yandex Practicum
 
+## LD flags
+```
+-ldflags "-X main.buildVersion=v1.0.0 -X 'main.buildDate=$(date +'%Y/%m/%d %H:%M:%S')' -X main.buildCommit=LTS version"
+go run -ldflags "-X main.buildVersion=v1.0.0 -X 'main.buildDate=$(date +'%Y/%m/%d %H:%M:%S')' -X 'main.buildCommit=LTS version'" ./cmd/shortener/... 
+```
+## Custom Analyzers
+```
+https://golangci-lint.run/usage/linters/
+https://github.com/kyoh86/exportloopref
+https://github.com/leighmcculloch/gochecknoglobals
+https://github.com/butuzov/ireturn
+```
+
+Build and use
+```
+go build -o ./cmd/staticlint/mycheck ./cmd/staticlint/...
+./cmd/staticlint/mycheck ./cmd/... ./internal/...
+```
 ## Swagger
 
 ```go
@@ -73,11 +91,41 @@ pprof -top profiles/result.pprof
 Save as image:
 ```
 go tool pprof -png profiles/result.pprof > profiles/result.png
+go tool pprof -svg profiles/result.pprof > profiles/result.svg
 ```
 
 ## benchmark
 ```
 go test -bench  . ./internal/service/
+go test -bench=. -benchmem ./internal/service/
+go test -bench=. -cpuprofile ./internal/service/
+```
+Профиль использования процессорного времени.
+```
+go test -bench=. -cpuprofile profiles/cpu.out ./internal/service/
+```
+```
+$ go tool pprof ./profiles/cpu.out
+File: service.test
+Type: cpu
+Time: Mar 5, 2024 at 10:44am (MSK)
+Duration: 12.23s, Total samples = 14.15s (115.70%)
+Entering interactive mode (type "help" for commands, "o" for options)
+(pprof) web
+(pprof)
+```
+Профиль использования памяти.
+```
+
+go test -bench=. -memprofile profiles/memory.out ./internal/service/
+$ go tool pprof ./profiles/memory.out
+File: service.test
+Type: cpu
+Time: Mar 5, 2024 at 10:44am (MSK)
+Duration: 12.23s, Total samples = 14.15s (115.70%)
+Entering interactive mode (type "help" for commands, "o" for options)
+(pprof) web
+(pprof)
 ```
 
 ## cmd commands for test purposes
@@ -153,6 +201,9 @@ go build -o ./cmd/shortener/shortener ./cmd/shortener/main.go
 ```
 go test -v -coverpkg=./... -coverprofile=profile.cov ./...
 go tool cover -func profile.cov
+```
+```
+go test -v -coverpkg=./... -coverprofile=profile.cov ./...;cat profile.cov | grep -v "mock\|vegeta" > nomocksmigrations.cov;go tool cover -func nomocksmigrations.cov
 ```
 
 # Use autotest local 

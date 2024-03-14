@@ -40,7 +40,7 @@ func TestMem(t *testing.T) {
 		}
 
 		for _, userID := range usersID {
-			shorts := mem.GetUserAll(ctx, userID.String())
+			shorts = mem.GetUserAll(ctx, userID.String())
 			briefs := []string{shorts[0].Brief, shorts[2].Brief, shorts[4].Brief}
 			mem.DeleteBatch(ctx, userID.String(), briefs)
 		}

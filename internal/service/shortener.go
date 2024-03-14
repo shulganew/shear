@@ -34,7 +34,7 @@ type StorageURL interface {
 	GetBrief(ctx context.Context, origin string) (string, bool, bool)
 	GetAll(ctx context.Context) []entities.Short
 	GetUserAll(ctx context.Context, userID string) []entities.Short
-	DeleteBatch(ctx context.Context, userID string, briefs []string)
+	DeleteBatch(ctx context.Context, userID string, briefs []string) error
 }
 
 // Service constructor.
@@ -70,6 +70,11 @@ func (s *Shorten) GetBrief(ctx context.Context, origin string) (brief string, ex
 	return s.storeURLs.GetBrief(ctx, origin)
 }
 
+// Get all URLs in Short object.
+func (s *Shorten) GetAll(ctx context.Context) (short []entities.Short) {
+	return s.storeURLs.GetAll(ctx)
+}
+
 // Get all user's URLs in Short object.
 func (s *Shorten) GetUserAll(ctx context.Context, userID string) (short []entities.Short) {
 	return s.storeURLs.GetUserAll(ctx, userID)
@@ -83,8 +88,9 @@ func (s *Shorten) DeleteBatchArray(ctx context.Context, delBatchs []DelBatch) {
 }
 
 // Batch delete by user's short URLs.
-func (s *Shorten) DeleteBatch(ctx context.Context, delBatch DelBatch) {
-	s.storeURLs.DeleteBatch(ctx, delBatch.UserID, delBatch.Briefs)
+func (s *Shorten) DeleteBatch(ctx context.Context, delBatch DelBatch) (err error) {
+	err = s.storeURLs.DeleteBatch(ctx, delBatch.UserID, delBatch.Briefs)
+	return
 }
 
 // Return answer url: "schema + response server address from config + brief".
@@ -105,7 +111,7 @@ func (s *Shorten) GetAnsURL(schema, resultaddr string, brief string) (mainURL st
 }
 
 // Return answer url: "schema + response server address from config + brief".
-func (s *Shorten) GetAnsURLFast(schema, resultaddr string, brief string) (mainURL string, answerURL *url.URL) {
+func (s *Shorten) GetAnsURLFast(schema, resultaddr string, brief string) (mainURL string, answerURL *url.URL, err error) {
 	// main URL = Schema + hostname + port (from result add -flag cmd -b)
 	var sb bytes.Buffer
 	sb.WriteString(schema)
@@ -114,9 +120,9 @@ func (s *Shorten) GetAnsURLFast(schema, resultaddr string, brief string) (mainUR
 	mainURL = sb.String()
 	sb.WriteString("/")
 	sb.WriteString(brief)
-	answerURL, err := url.Parse(sb.String())
+	answerURL, err = url.Parse(sb.String())
 	if err != nil {
-		zap.S().Errorln("Error during Parse URL", err)
+		return "", nil, err
 	}
 	return
 }

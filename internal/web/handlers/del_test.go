@@ -61,15 +61,15 @@ func TestDelBulk(t *testing.T) {
 	configApp.IsDB = false
 	configApp.IsBackup = false
 	configApp.Pass = "MyPass"
-	memory := storage.NewMemory()
-	stor := service.StorageURL(memory)
+	stor := storage.NewMemory()
+	short := service.NewService(stor)
 	// init storage
-	apiBatch := NewHandlerBatch(configApp, stor)
-	handGet := NewHandlerGetURL(configApp, stor)
+	apiBatch := NewHandlerBatch(configApp, short)
+	handGet := NewHandlerGetURL(configApp, short)
 	finalCh := make(chan service.DelBatch, 100)
 	defer close(finalCh)
 	var waitDel sync.WaitGroup
-	del := service.NewDelete(&stor, finalCh, &waitDel, configApp)
+	del := service.NewDelete(finalCh, &waitDel, configApp)
 	handDel := NewHandlerDelShorts(del)
 
 	for _, tt := range tests {
@@ -84,8 +84,8 @@ func TestDelBulk(t *testing.T) {
 				}
 
 				var insertURLS []entities.BatchRequest
-				for i := 0; i < tt.numURLs; i++ {
-					insertURLS = append(insertURLS, entities.BatchRequest{SessionID: strconv.Itoa(i), Origin: "http://yandex" + strconv.Itoa(i) + ".ru"})
+				for j := 0; j < tt.numURLs; j++ {
+					insertURLS = append(insertURLS, entities.BatchRequest{SessionID: strconv.Itoa(j), Origin: "http://yandex" + strconv.Itoa(j) + ".ru"})
 				}
 
 				body, err := json.Marshal(&insertURLS)

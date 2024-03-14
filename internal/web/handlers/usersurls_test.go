@@ -50,13 +50,13 @@ func TestUsersUrls(t *testing.T) {
 	configApp.Response = config.DefaultHost
 	configApp.IsDB = false
 	configApp.IsBackup = false
-	stor := service.StorageURL(storage.NewMemory())
+	short := service.NewService(storage.NewMemory())
 
 	// init storage
-	apiBatch := NewHandlerBatch(configApp, stor)
+	apiBatch := NewHandlerBatch(configApp, short)
 
 	// Get all users URLs.
-	apiUsersURLs := NewHandlerAuthUser(configApp, stor)
+	apiUsersURLs := NewHandlerAuthUser(configApp, short)
 	userID, err := uuid.NewV7()
 	if err != nil {
 		zap.S().Errorln("Error generate user uuid")

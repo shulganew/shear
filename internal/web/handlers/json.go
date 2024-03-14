@@ -31,8 +31,8 @@ type HandlerAPI struct {
 }
 
 // Service constructor.
-func NewHandlerAPI(conf *config.Config, stor service.StorageURL) *HandlerAPI {
-	return &HandlerAPI{serviceURL: service.NewService(stor), conf: conf}
+func NewHandlerAPI(conf *config.Config, short *service.Shorten) *HandlerAPI {
+	return &HandlerAPI{serviceURL: short, conf: conf}
 }
 
 // @Summary      API add URL in JSON
@@ -54,14 +54,20 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 	origin, err := url.Parse(string(request.URL))
 	if err != nil {
 		http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
+		return
 	}
 	brief := service.GenerateShortLinkByte()
-	mainURL, answerURL := u.serviceURL.GetAnsURLFast(origin.Scheme, u.conf.Response, brief)
+	mainURL, answerURL, err := u.serviceURL.GetAnsURLFast(origin.Scheme, u.conf.Response, brief)
+	if err != nil {
+		http.Error(res, "Error parse URL", http.StatusInternalServerError)
+		return
+	}
 
 	// find UserID in cookies
 	userID, err := req.Cookie("user_id")
 	if err != nil {
 		http.Error(res, "Can't find user in cookies", http.StatusUnauthorized)
+		return
 	}
 
 	// save map to storage
@@ -74,16 +80,18 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 
 		var tagErr *storage.ErrDuplicatedURL
 		if errors.As(err, &tagErr) {
-
 			// get correct answer URL
-			answer, err := url.JoinPath(mainURL, tagErr.Brief)
+			var answer string
+			answer, err = url.JoinPath(mainURL, tagErr.Brief)
 			if err != nil {
-				zap.S().Errorln("Error during JoinPath", err)
+				http.Error(res, "Error during JoinPath", http.StatusInternalServerError)
+				return
 			}
 
 			// send existed string from error
 			response := Response{answer}
-			jsonBrokenURL, err := json.Marshal(response)
+			var jsonBrokenURL []byte
+			jsonBrokenURL, err = json.Marshal(response)
 			if err != nil {
 				http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
 			}

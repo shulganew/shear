@@ -22,9 +22,9 @@ type HandlerBatch struct {
 }
 
 // Service constructor.
-func NewHandlerBatch(conf *config.Config, stor service.StorageURL) *HandlerBatch {
+func NewHandlerBatch(conf *config.Config, short *service.Shorten) *HandlerBatch {
 
-	return &HandlerBatch{serviceURL: service.NewService(stor), conf: conf}
+	return &HandlerBatch{serviceURL: short, conf: conf}
 }
 
 // @Summary      Set several user's URLs in body in JSON format
@@ -46,7 +46,7 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 	}
 	// handle bach requests
 	var requests []entities.BatchRequest
-	if err := json.NewDecoder(req.Body).Decode(&requests); err != nil {
+	if err = json.NewDecoder(req.Body).Decode(&requests); err != nil {
 		zap.S().Errorln("Get batch: ", err)
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
@@ -55,22 +55,23 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 	batches := []entities.BatchResponse{}
 	shorts := []entities.Short{}
 	for i, r := range requests {
-
-		origin, err := url.Parse(string(r.Origin))
+		var origin *url.URL
+		origin, err = url.Parse(string(r.Origin))
 		if err != nil {
 			http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
 		}
 		// get short brief and full answer URL
 		brief := service.GenerateShortLinkByte()
-		_, answerURL := u.serviceURL.GetAnsURLFast(origin.Scheme, u.conf.Response, brief)
+		var answerURL *url.URL
+		_, answerURL, err = u.serviceURL.GetAnsURLFast(origin.Scheme, u.conf.Response, brief)
+		if err != nil {
+			http.Error(res, "Error parse URL", http.StatusInternalServerError)
+			return
+		}
 		// get batch for answer
 		batch := entities.BatchResponse{SessionID: r.SessionID, Answer: answerURL.String()}
 		// add batches
 		batches = append(batches, batch)
-
-		if err != nil {
-			zap.S().Errorln("Brocken sessionID", batch.SessionID)
-		}
 		shortSession := entities.NewShort(i, userID.Value, brief, (*origin).String(), batch.SessionID)
 		shorts = append(shorts, *shortSession)
 
@@ -88,9 +89,11 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 			broken := []entities.BatchResponse{}
 			batch := entities.BatchResponse{SessionID: tagErr.Short.SessionID, Answer: tagErr.Short.Brief}
 			broken = append(broken, batch)
-			jsonBrokenBatch, err := json.Marshal(broken)
+			var jsonBrokenBatch []byte
+			jsonBrokenBatch, err = json.Marshal(broken)
 			if err != nil {
 				http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
+				return
 			}
 
 			// set content type

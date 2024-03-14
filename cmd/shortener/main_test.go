@@ -58,11 +58,10 @@ func TestMain(t *testing.T) {
 	configApp.Address = config.DefaultHost
 	configApp.Response = config.DefaultHost
 
-	stor := service.StorageURL(storage.NewMemory())
+	short := service.NewService(storage.NewMemory())
 
 	//init storage
-	handler := handlers.NewHandlerGetURL(configApp, stor)
-	serviceURL := service.NewService(stor)
+	handler := handlers.NewHandlerGetURL(configApp, short)
 
 	userID, err := uuid.NewV7()
 	if err != nil {
@@ -111,7 +110,7 @@ func TestMain(t *testing.T) {
 
 				brief := strings.TrimLeft(responseURL.Path, "/")
 
-				originDB, exist, _ := serviceURL.GetOrigin(req.Context(), brief)
+				originDB, exist, _ := short.GetOrigin(req.Context(), brief)
 				require.True(t, exist)
 
 				t.Log("brief url: ", brief)
@@ -129,7 +128,7 @@ func TestMain(t *testing.T) {
 				t.Log("=============GET===============")
 
 				//get brief from storage
-				brief, err, _ := serviceURL.GetBrief(context.Background(), tt.body)
+				brief, err, _ := short.GetBrief(context.Background(), tt.body)
 
 				t.Log("brief: ", brief)
 				require.NotNil(t, err)

@@ -18,6 +18,12 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	buildVersion string = "N/A"
+	buildDate    string = "N/A"
+	buildCommit  string = "N/A"
+)
+
 // @Title Shortener API
 // @Description Shortener service.
 // @Version 1.0
@@ -27,6 +33,7 @@ import (
 // @BasePath /
 // @Host localhost:8080
 func main() {
+	app.Intro(buildVersion, buildDate, buildCommit)
 	app.InitLog()
 	ctx, cancel := app.InitContext()
 	defer cancel()
@@ -52,27 +59,26 @@ func main() {
 	var waitDel sync.WaitGroup
 
 	// Init application.
-	stor, backup, del := app.InitApp(ctx, *conf, db, finalCh, &waitDel)
+	short, backup, del := app.InitApp(ctx, *conf, db, finalCh, &waitDel)
 
-	go func(ctx context.Context, stor service.StorageURL, finalCh chan service.DelBatch, wg *sync.WaitGroup) {
-		serviceURL := service.NewService(stor)
+	go func(ctx context.Context, short *service.Shorten, backup *service.Backup, finalCh chan service.DelBatch, wg *sync.WaitGroup) {
 		for {
 			select {
 			case <-ctx.Done():
 				zap.S().Infoln("Waiting of update delete...")
 				wg.Wait()
 				if conf.IsBackup {
-					service.Shutdown(stor, *backup)
+					service.Shutdown(short, *backup)
 				}
 				os.Exit(0)
 			case delBatch := <-finalCh:
-				serviceURL.DeleteBatch(ctx, delBatch)
+				short.DeleteBatch(ctx, delBatch)
 			}
 		}
-	}(ctx, stor, finalCh, &waitDel)
+	}(ctx, short, backup, finalCh, &waitDel)
 
 	// Start web server.
-	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, stor, db, del, &waitDel)); err != nil {
+	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, short, db, del, &waitDel)); err != nil {
 		panic(err)
 	}
 }

@@ -74,11 +74,12 @@ func (m *Memory) GetUserAll(ctx context.Context, userID string) []entities.Short
 }
 
 // Mark all user's URLs by short URL in briefs slice.
-func (m *Memory) DeleteBatch(ctx context.Context, userID string, briefs []string) {
+func (m *Memory) DeleteBatch(ctx context.Context, userID string, briefs []string) error {
 	for _, brief := range briefs {
 		id := slices.IndexFunc(m.StoreURLs, func(s entities.Short) bool { return s.Brief == brief && s.UUID.String == userID })
 		if id != -1 {
 			m.StoreURLs[id].IsDeleted = true
 		}
 	}
+	return nil
 }

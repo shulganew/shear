@@ -31,6 +31,7 @@ func TestBatch(t *testing.T) {
 		reqestShort string
 		numURLs     int
 		statusCode  int
+		brokenURL   bool
 	}{
 		{
 			name:        "base test POTS",
@@ -38,13 +39,15 @@ func TestBatch(t *testing.T) {
 			reqestShort: "http://localhost:8080/",
 			numURLs:     20,
 			statusCode:  http.StatusCreated,
+			brokenURL:   false,
 		},
 		{
-			name:        "base test POTS",
+			name:        "Internal error - parse broken URL",
 			multipleURL: "http://localhost:8080/api/shorten/batch",
 			reqestShort: "http://localhost:8080/",
 			numURLs:     20,
-			statusCode:  http.StatusCreated,
+			statusCode:  http.StatusInternalServerError,
+			brokenURL:   true,
 		},
 	}
 
@@ -57,10 +60,10 @@ func TestBatch(t *testing.T) {
 	configApp.Response = config.DefaultHost
 	configApp.IsDB = false
 	configApp.IsBackup = false
-	stor := service.StorageURL(storage.NewMemory())
+	short := service.NewService(storage.NewMemory())
 	// init storage
-	apiBatch := NewHandlerBatch(configApp, stor)
-	webHand := NewHandlerGetURL(configApp, stor)
+	apiBatch := NewHandlerBatch(configApp, short)
+	webHand := NewHandlerGetURL(configApp, short)
 
 	userID, err := uuid.NewV7()
 	if err != nil {
@@ -69,10 +72,16 @@ func TestBatch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var insertURLS []entities.BatchRequest
-			for i := 0; i < tt.numURLs; i++ {
-				insertURLS = append(insertURLS, entities.BatchRequest{SessionID: strconv.Itoa(i), Origin: "http://yandex" + strconv.Itoa(i) + ".ru"})
-			}
+			if !tt.brokenURL {
+				for i := 0; i < tt.numURLs; i++ {
+					insertURLS = append(insertURLS, entities.BatchRequest{SessionID: strconv.Itoa(i), Origin: "http://yandex" + strconv.Itoa(i) + ".ru"})
+				}
 
+			} else {
+				for i := 0; i < tt.numURLs; i++ {
+					insertURLS = append(insertURLS, entities.BatchRequest{SessionID: strconv.Itoa(i), Origin: "yandex" + strconv.Itoa(i) + "ru"})
+				}
+			}
 			body, err := json.Marshal(&insertURLS)
 			require.NoError(t, err)
 
@@ -95,7 +104,9 @@ func TestBatch(t *testing.T) {
 			// check answer code
 			t.Log("StatusCode test: ", tt.statusCode, " server: ", res.StatusCode)
 			assert.Equal(t, tt.statusCode, res.StatusCode)
-
+			if tt.brokenURL {
+				return
+			}
 			// unmarshal body
 			var resp []entities.BatchResponse
 
