@@ -1,13 +1,14 @@
-package main
+//go:build igonore
+
+package staticlint
 
 import (
 	"os"
 	"strings"
-
-	"golang.org/x/tools/go/analysis"
 )
 
-func docgen(analyzers ...*analysis.Analyzer) {
+// Depricated: Generate documentation to doc.go file for custom static liter.
+func docGen() {
 	var alist strings.Builder
 	intro := `
 	My Check (mychech) is a custom generator, witch consist of:
@@ -24,7 +25,7 @@ func docgen(analyzers ...*analysis.Analyzer) {
 	Detail description of all linters in set:
 	`
 	alist.WriteString(intro)
-
+	analyzers := NewAnalyzer()
 	for _, a := range analyzers {
 		alist.WriteString(">>>>        ")
 		alist.WriteString(a.Name)

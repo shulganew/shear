@@ -88,16 +88,9 @@ func InitContext() (ctx context.Context, cancel context.CancelFunc) {
 
 // Print app version data on startup.
 func Intro(version string, date string, commit string) {
-	if len(version) == 0 {
-		version = "N/A"
-	}
-	if len(date) == 0 {
-		date = "N/A"
-	}
-	if len(commit) == 0 {
-		commit = "N/A"
-	}
-	fmt.Printf("Build version: <%s>\nBuild date: <%s>\nBuild commit: <%s>\n", version, date, commit)
+	fmt.Println("Build version: ", version)
+	fmt.Println("Build date: ", date)
+	fmt.Println("Build commit: ", commit)
 }
 
 // Initialization of a zap logger.
