@@ -56,8 +56,8 @@ func TestDelBulk(t *testing.T) {
 	// init configApp
 	configApp := &config.Config{}
 	// init config with difauls values
-	configApp.Address = config.DefaultHost
-	configApp.Response = config.DefaultHost
+	configApp.Address = DefaultHost
+	configApp.Response = DefaultHost
 	configApp.IsDB = false
 	configApp.IsBackup = false
 	configApp.Pass = "MyPass"

@@ -46,8 +46,8 @@ func TestUsersUrls(t *testing.T) {
 	configApp := &config.Config{}
 
 	// init config with defaults values
-	configApp.Address = config.DefaultHost
-	configApp.Response = config.DefaultHost
+	configApp.Address = DefaultHost
+	configApp.Response = DefaultHost
 	configApp.IsDB = false
 	configApp.IsBackup = false
 	short := service.NewService(storage.NewMemory())

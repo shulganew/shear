@@ -1,5 +1,21 @@
 # Shortener with Yandex Practicum
 
+## Create sertificates
+
+Generate private key:
+```
+openssl genrsa -out server.pem 2048
+```
+Generate CSR: (In the "Common Name" set the domain of your service provider app)
+```
+openssl req -new -key server.pem -out server.csr
+```
+
+Generate Self Signed Cert
+```
+openssl x509 -req -days 365 -in server.csr -signkey server.pem -out server.crt
+```
+
 ## LD flags
 ```
 -ldflags "-X main.buildVersion=v1.0.0 -X 'main.buildDate=$(date +'%Y/%m/%d %H:%M:%S')' -X main.buildCommit=LTS version"

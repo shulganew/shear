@@ -70,8 +70,8 @@ func TestAPI(t *testing.T) {
 	configApp := &config.Config{}
 
 	// init config with difauls values
-	configApp.Address = config.DefaultHost
-	configApp.Response = config.DefaultHost
+	configApp.Address = DefaultHost
+	configApp.Response = DefaultHost
 
 	short := service.NewService(storage.NewMemory())
 	// init storage

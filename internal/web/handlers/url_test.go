@@ -67,8 +67,8 @@ func TestURL(t *testing.T) {
 			configApp := &config.Config{}
 
 			// init config with difauls values
-			configApp.Address = config.DefaultHost
-			configApp.Response = config.DefaultHost
+			configApp.Address = DefaultHost
+			configApp.Response = DefaultHost
 
 			// init storage
 			handler := NewHandlerGetURL(configApp, service.NewService(storeMock))

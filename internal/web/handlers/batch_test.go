@@ -24,6 +24,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const DefaultHost = "localhost:8080"
+
 func TestBatch(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -56,8 +58,8 @@ func TestBatch(t *testing.T) {
 	// init configApp
 	configApp := &config.Config{}
 	// init config with difauls values
-	configApp.Address = config.DefaultHost
-	configApp.Response = config.DefaultHost
+	configApp.Address = DefaultHost
+	configApp.Response = DefaultHost
 	configApp.IsDB = false
 	configApp.IsBackup = false
 	short := service.NewService(storage.NewMemory())

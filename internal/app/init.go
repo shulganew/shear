@@ -75,14 +75,7 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan s
 //
 //	syscall.SIGINT, syscall.SIGTERM
 func InitContext() (ctx context.Context, cancel context.CancelFunc) {
-	exit := make(chan os.Signal, 1)
-	ctx, cancel = context.WithCancel(context.Background())
-	signal.Notify(exit, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-	go func() {
-		<-exit
-		cancel()
-
-	}()
+	ctx, cancel = signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	return
 }
 

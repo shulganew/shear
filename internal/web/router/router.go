@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
+	"strings"
 	"sync"
 
 	"net/http/pprof"
@@ -13,6 +14,7 @@ import (
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/web/handlers"
 	"github.com/shulganew/shear.git/internal/web/middlewares"
+	"github.com/shulganew/shear.git/internal/web/validators"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -68,10 +70,11 @@ func RouteShear(conf *config.Config, short *service.Shorten, db *sql.DB, delete 
 			r.Get("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
 			r.Get("/debug/pprof/trace", http.HandlerFunc(pprof.Trace))
 		}
-
 		// Add swagger page.
+		// Check and parse URL.
+		_, startport, _ := validators.CheckURL(conf.Address, conf.IsSequre)
 		r.Get("/swagger/*", httpSwagger.Handler(
-			httpSwagger.URL("http://localhost:8080/swagger/doc.json"),
+			httpSwagger.URL(strings.Join([]string{conf.GetProtocol(), "://", "localhost:", startport, "/swagger/doc.json"}, "")),
 		))
 	})
 	return

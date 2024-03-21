@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	_ "net/http/pprof"
@@ -38,7 +39,7 @@ func main() {
 	ctx, cancel := app.InitContext()
 	defer cancel()
 
-	conf := config.InitConfig()
+	conf := config.NewConfig()
 
 	var db *sql.DB
 	var err error
@@ -66,7 +67,7 @@ func main() {
 			select {
 			case <-ctx.Done():
 				zap.S().Infoln("Waiting of update delete...")
-				wg.Wait()
+				waitDel.Wait()
 				if conf.IsBackup {
 					service.Shutdown(short, *backup)
 				}
@@ -78,7 +79,19 @@ func main() {
 	}(ctx, short, backup, finalCh, &waitDel)
 
 	// Start web server.
-	if err := http.ListenAndServe(conf.Address, router.RouteShear(conf, short, db, del, &waitDel)); err != nil {
-		panic(err)
+	var srv = http.Server{Addr: conf.Address, Handler: router.RouteShear(conf, short, db, del, &waitDel)}
+
+	// Public sertificate: server.crt
+	//
+	// Private key: server.pem
+	if conf.IsSequre {
+		if err := srv.ListenAndServeTLS("./cert/server.crt", "./cert/server.pem"); err != nil {
+			panic(err)
+		}
+	} else {
+		if err := srv.ListenAndServe(); err != nil {
+			panic(err)
+		}
 	}
+	fmt.Println("End.")
 }

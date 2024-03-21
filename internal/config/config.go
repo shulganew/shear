@@ -9,9 +9,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// Default host.
-const DefaultHost string = "localhost:8080"
-
 // Struct for store main app config.
 type Config struct {
 	Address    string // flag -a
@@ -22,23 +19,35 @@ type Config struct {
 	IsBackup   bool   // is backup enable
 	IsDB       bool   // is db enable
 	Pprof      bool   // use profiling in project
+	IsSequre   bool   // use https with TLS
 }
 
 // Read base config from flags and env.
-func InitConfig() *Config {
+func NewConfig() *Config {
 	config := Config{}
 	// Read command line argue.
-	startAddress := flag.String("a", "localhost:8080", "start server address and port")
-	resultAddress := flag.String("b", "localhost:8080", "answer address and port")
-	userAuth := flag.String("s", "mysecret", "User identity encryption with cookie (user_id)")
+	startAddress := flag.String("a", "", "start server address and port")
+	resultAddress := flag.String("b", "", "answer address and port")
+	userAuth := flag.String("x", "mysecret", "User identity encryption with cookie (user_id)")
 	tempf := flag.String("f", "", "Location of dump file")
 	dsnf := flag.String("d", "", "Data Source Name for DataBase connection")
 	pprof := flag.Bool("p", false, "Visualization tool")
+	seq := flag.Bool("s", false, "Use sequre connection TLS")
 	flag.Parse()
 
+	// SSL enable check.
+	config.IsSequre = *seq
+
 	// Check and parse URL.
-	startaddr, startport := validators.CheckURL(*startAddress)
-	answaddr, answport := validators.CheckURL(*resultAddress)
+	startaddr, startport, isDefS := validators.CheckURL(*startAddress, config.IsSequre)
+	answaddr, answport, isDefR := validators.CheckURL(*resultAddress, config.IsSequre)
+
+	if isDefS {
+		zap.S().Infoln("Use default start address: ", startAddress, startport)
+	}
+	if isDefR {
+		zap.S().Infoln("Use default result address: ", answaddr, answport)
+	}
 
 	config.Address = startaddr + ":" + startport
 	config.Response = answaddr + ":" + answport
@@ -89,4 +98,12 @@ func InitConfig() *Config {
 
 	zap.S().Infoln("Configuration complete")
 	return &config
+}
+
+// Return suffix http or https depend on type of connection (sequre or not).
+func (c Config) GetProtocol() string {
+	if c.IsSequre {
+		return "https"
+	}
+	return "http"
 }
