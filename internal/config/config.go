@@ -38,6 +38,12 @@ func NewConfig() *Config {
 	// SSL enable check.
 	config.IsSequre = *seq
 
+	// Read  ENV.
+	_, exist := os.LookupEnv(("ENABLE_HTTPS"))
+	if exist {
+		config.IsSequre = true
+	}
+
 	// Check and parse URL.
 	startaddr, startport, isDefS := validators.CheckURL(*startAddress, config.IsSequre)
 	answaddr, answport, isDefR := validators.CheckURL(*resultAddress, config.IsSequre)
