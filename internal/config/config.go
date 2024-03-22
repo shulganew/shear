@@ -120,6 +120,7 @@ func isFlagPassed(name string) bool {
 	return found
 }
 
+// Read flags to DTO object.
 func readFlags() entities.ConfFlag {
 	fconf := entities.ConfFlag{}
 	startAddress := flag.String("a", "", "start server address and port")
@@ -165,6 +166,7 @@ func readFlags() entities.ConfFlag {
 
 }
 
+// Read ENV to DTO object.
 func readENV() entities.ConfENV {
 	econf := entities.ConfENV{}
 
