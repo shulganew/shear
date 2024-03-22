@@ -4,9 +4,7 @@ package main
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"net/http"
-
 	_ "net/http/pprof"
 	"os"
 	"sync"
@@ -34,6 +32,7 @@ var (
 // @BasePath /
 // @Host localhost:8080
 func main() {
+
 	app.Intro(buildVersion, buildDate, buildCommit)
 	app.InitLog()
 	ctx, cancel := app.InitContext()
@@ -93,5 +92,5 @@ func main() {
 			panic(err)
 		}
 	}
-	fmt.Println("End.")
+
 }
