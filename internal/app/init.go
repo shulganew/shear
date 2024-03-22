@@ -30,7 +30,7 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan s
 	var stor service.StorageURL
 	var err error
 	// load storage
-	if conf.IsDB && db != nil {
+	if conf.IsDB() && db != nil {
 		// use db storage
 		stor, err = storage.NewDB(ctx, db)
 		if err != nil {
@@ -52,9 +52,9 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan s
 	var backup *service.Backup
 
 	// define backup file
-	if conf.IsBackup {
-		backup = InitBackup(ctx, short, conf.BackupPath)
-		zap.S().Infoln("Backup activated, path: ", conf.BackupPath)
+	if conf.IsBackup() {
+		backup = InitBackup(ctx, short, conf.GetBackupPath())
+		zap.S().Infoln("Backup activated, path: ", conf.GetBackupPath())
 
 		// load all dump links
 		shorts, err := backup.Load()

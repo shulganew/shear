@@ -42,11 +42,11 @@ func main() {
 
 	var db *sql.DB
 	var err error
-	if conf.IsDB {
-		db, err = app.InitDB(ctx, conf.DSN)
+	if conf.IsDB() {
+		db, err = app.InitDB(ctx, conf.GetDSN())
 		if err != nil {
 			db = nil
-			conf.IsDB = false
+			conf.SetIsDB(false)
 			zap.S().Errorln("Can't connect to Database!", err)
 		}
 		defer db.Close()
@@ -67,7 +67,7 @@ func main() {
 			case <-ctx.Done():
 				zap.S().Infoln("Waiting of update delete...")
 				waitDel.Wait()
-				if conf.IsBackup {
+				if conf.IsBackup() {
 					service.Shutdown(short, *backup)
 				}
 				os.Exit(0)
@@ -78,12 +78,12 @@ func main() {
 	}(ctx, short, backup, finalCh, &waitDel)
 
 	// Start web server.
-	var srv = http.Server{Addr: conf.Address, Handler: router.RouteShear(conf, short, db, del, &waitDel)}
+	var srv = http.Server{Addr: conf.GetAddress(), Handler: router.RouteShear(conf, short, db, del, &waitDel)}
 
 	// Public sertificate: server.crt
 	//
 	// Private key: server.pem
-	if conf.IsSequre {
+	if conf.IsSequre() {
 		if err := srv.ListenAndServeTLS("./cert/server.crt", "./cert/server.pem"); err != nil {
 			panic(err)
 		}

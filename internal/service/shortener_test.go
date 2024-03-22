@@ -42,9 +42,8 @@ func TestShortenerURL(t *testing.T) {
 	configApp := config.NewConfig()
 
 	// init config with difauls values
-	configApp.Address = DefaultHost
-	configApp.Response = DefaultHost
-
+	configApp.SetAddress(DefaultHost)
+	configApp.SetResponse(DefaultHost)
 	for _, tt := range tests {
 		tt := tt
 

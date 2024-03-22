@@ -54,16 +54,12 @@ func TestMain(t *testing.T) {
 	}
 
 	// init configApp
-	configApp := config.NewConfig()
-
-	// init config with difauls values
-	configApp.Address = DefaultHost
-	configApp.Response = DefaultHost
+	configApp := config.DefaultConfig()
 
 	short := service.NewService(storage.NewMemory())
 
 	//init storage
-	handler := handlers.NewHandlerGetURL(configApp, short)
+	handler := handlers.NewHandlerGetURL(&configApp, short)
 
 	userID, err := uuid.NewV7()
 	if err != nil {
@@ -166,6 +162,5 @@ func TestMain(t *testing.T) {
 
 			}
 		})
-
 	}
 }

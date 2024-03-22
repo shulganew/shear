@@ -57,7 +57,7 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	brief := service.GenerateShortLinkByte()
-	mainURL, answerURL, err := u.serviceURL.GetAnsURLFast(origin.Scheme, u.conf.Response, brief)
+	mainURL, answerURL, err := u.serviceURL.GetAnsURLFast(origin.Scheme, u.conf.GetResponse(), brief)
 	if err != nil {
 		http.Error(res, "Error parse URL", http.StatusInternalServerError)
 		return

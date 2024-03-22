@@ -67,15 +67,11 @@ func TestAPI(t *testing.T) {
 	}
 
 	// init configApp
-	configApp := &config.Config{}
-
-	// init config with difauls values
-	configApp.Address = DefaultHost
-	configApp.Response = DefaultHost
+	configApp := config.DefaultConfig()
 
 	short := service.NewService(storage.NewMemory())
 	// init storage
-	apiHand := NewHandlerAPI(configApp, short)
+	apiHand := NewHandlerAPI(&configApp, short)
 
 	userID, err := uuid.NewV7()
 	if err != nil {

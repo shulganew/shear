@@ -4,104 +4,179 @@ package config
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"os"
+	"strings"
 
-	"github.com/shulganew/shear.git/internal/entities"
 	"github.com/shulganew/shear.git/internal/web/validators"
 	"go.uber.org/zap"
 )
 
 // Struct for store main app config.
 type Config struct {
-	Address    string // flag -a
-	Response   string //env var, or flag -b if env not exist
-	BackupPath string // file location Path for backup
-	DSN        string // dsn connection string
-	Pass       string // user identity encryption with cookie
-	IsBackup   bool   // is backup enable
-	IsDB       bool   // is db enable
-	Pprof      bool   // use profiling in project
-	IsSequre   bool   // use https with TLS
+	Address    *string `json:"server_address,omitempty"`    // flag -a
+	Response   *string `json:"response_address,omitempty"`  //env var, or flag -b if env not exist
+	BackupPath *string `json:"file_storage_path,omitempty"` // file location Path for backup
+	DSN        *string `json:"database_dsn,omitempty"`      // dsn connection string
+	Pass       *string `json:"pass,omitempty"`              // user identity encryption with cookie
+	Backup     *bool   `json:"enable_backup,omitempty"`     // is backup enable
+	DB         *bool   // is db enable
+	JSONPath   *string // path to JSON config file
+	Pprof      *bool   `json:"enable_pprof,omitempty"` // use profiling in project
+	IsSeq      *bool   `json:"enable_https,omitempty"` // use https with TLS
 }
 
 // Read base config from flags and env.
 func NewConfig() *Config {
 	config := Config{}
 
-	// Set defaults values.
-	config.Address = "localhost:8080"
-	config.Response = "localhost:8080"
-	config.Pass = "mypass"
+	// Read ENV.
+	econf := readENV()
+
+	// Set env values to config.
+	loadConfig(&config, econf)
 
 	// Read command line argue.
 	fconf := readFlags()
-	// Read ENV.
-	econf := readENV()
+
+	// Set flag values to config.
+	loadConfig(&config, fconf)
+
 	// Read JSON config if existed.
-	var jconf *entities.ConfJSON
-	if econf.JSONPath != nil {
-		jconf = readJSONConf(*econf.JSONPath)
-		zap.S().Infoln("Use JSON config from (env value): ", *econf.JSONPath)
-	} else if fconf.JSONPath != nil {
-		jconf = readJSONConf(*fconf.JSONPath)
-		zap.S().Infoln("Use JSON config from (flag value): ", *fconf.JSONPath)
-	}
-	// If JSON config existed, load to main config file.
-	if jconf != nil {
-		loadJSONConfig(&config, *jconf)
+	if config.JSONPath != nil {
+		jconf := readJSONConf(*econf.JSONPath)
+		loadConfig(&config, *jconf)
+
 	}
 
-	// Load flag config.
-	loadFlagConfig(&config, fconf)
-
-	// Load enviroment config.
-	loadENVConfig(&config, econf)
+	// Set defaults values on empty (nil) config values.
+	loadConfig(&config, DefaultConfig())
 
 	// Check and parse URL.
-	startaddr, startport := validators.CheckURL(config.Address, config.IsSequre)
-	answaddr, answport := validators.CheckURL(config.Response, config.IsSequre)
-	config.Address = startaddr + ":" + startport
-	config.Response = answaddr + ":" + answport
-	zap.S().Infoln("Server address: ", config.Address)
+	startaddr, startport := validators.CheckURL(config.GetAddress(), config.IsSequre())
+	answaddr, answport := validators.CheckURL(config.GetAddress(), config.IsSequre())
+	config.SetAddress(startaddr + ":" + startport)
+	config.SetResponse(answaddr + ":" + answport)
+	zap.S().Infoln("Server address: ", config.GetAddress())
 
 	// Init storage DB from env variable.
-	if config.DSN != "" {
-		zap.S().Infoln("Use Data Base storage: ", config.DSN)
-		config.IsDB = true
+	if config.DSN != nil {
+		zap.S().Infoln("Use Data Base storage: ", config.GetDSN())
+		config.SetIsDB(true)
 	} else {
 		zap.S().Infoln("Use memory storage.")
 	}
 
 	// Define backup file.
-
-	if config.BackupPath != "" {
-		zap.S().Infoln("Found backup's path: ", config.BackupPath)
-		config.IsBackup = true
+	if config.BackupPath != nil {
+		zap.S().Infoln("Found backup's path: ", config.GetBackupPath())
+		config.SetIsBackup(true)
 	} else {
 		zap.S().Infoln("Backup disable")
 	}
 
-	zap.S().Infoln("Configuration complete")
+	zap.S().Infoln("Configuration complete:")
+	zap.S().Infoln(config.String())
 
 	return &config
 }
 
 // Return suffix http or https depend on type of connection (sequre or not).
 func (c Config) GetProtocol() string {
-	if c.IsSequre {
+	if *c.IsSeq {
 		return "https"
 	}
 	return "http"
 }
 
+// Address from config.
+func (c Config) GetAddress() string {
+	return *c.Address
+}
+
+// Set address to config.
+func (c *Config) SetAddress(a string) {
+	c.Address = &a
+}
+
+// Get response address from config.
+func (c Config) GetResponse() string {
+	return *c.Response
+}
+
+// Set response address to config.
+func (c *Config) SetResponse(r string) {
+	c.Response = &r
+}
+
+// Path to backup file from config.
+func (c Config) GetBackupPath() string {
+	return *c.BackupPath
+}
+
+// Data base DSN from config.
+func (c Config) GetDSN() string {
+	return *c.DSN
+}
+
+// Def pass from config for cookie auth.
+func (c Config) GetPass() string {
+	return *c.Pass
+}
+
+// Is backup enable in config.
+func (c Config) IsBackup() bool {
+	return *c.Backup
+}
+
+// Set backup usage.
+func (c *Config) SetIsBackup(b bool) {
+	c.Backup = &b
+}
+
+// Return true if db use, false - memory use.
+func (c Config) IsDB() bool {
+	return *c.DB
+}
+
+// Set db or memory.
+func (c *Config) SetIsDB(b bool) {
+	c.DB = &b
+}
+
+// Is Ppor is enable.
+func (c Config) IsPprof() bool {
+	return *c.Pprof
+}
+
+// Is https enable.
+func (c Config) IsSequre() bool {
+	return *c.IsSeq
+}
+
+// Stringer interface.
+func (c Config) String() string {
+	var con strings.Builder
+	con.WriteString(fmt.Sprintf("\nAddress: %s \n", c.GetAddress()))
+	con.WriteString(fmt.Sprintf("Response: %s \n", c.GetResponse()))
+	con.WriteString(fmt.Sprintf("BackupPath: %s \n", c.GetBackupPath()))
+	con.WriteString(fmt.Sprintf("DSN: %s \n", c.GetDSN()))
+	con.WriteString(fmt.Sprintf("Pass: %s \n", c.GetPass()))
+	con.WriteString(fmt.Sprintf("IsBackup: %t \n", c.IsBackup()))
+	con.WriteString(fmt.Sprintf("Use DB: %t \n", c.IsDB()))
+	con.WriteString(fmt.Sprintf("Pprof: %t \n", c.IsPprof()))
+	con.WriteString(fmt.Sprintf("IsSequre: %t \n", c.IsSequre()))
+	return con.String()
+}
+
 // Load JOSN config data.
-func readJSONConf(path string) *entities.ConfJSON {
+func readJSONConf(path string) *Config {
 	f, err := os.Open(path)
 	if err != nil {
 		zap.S().Infoln("Couldn't open file, use defaults: ", err)
 	}
 	jsonDecoder := json.NewDecoder(f)
-	var jconf entities.ConfJSON
+	var jconf Config
 	err = jsonDecoder.Decode(&jconf)
 	if err != nil {
 		zap.S().Infoln("Couldn't unmarshal file, use defauls: ", err)
@@ -120,9 +195,9 @@ func isFlagPassed(name string) bool {
 	return found
 }
 
-// Read flags to DTO object.
-func readFlags() entities.ConfFlag {
-	fconf := entities.ConfFlag{}
+// Read flags to Config object.
+func readFlags() Config {
+	fconf := Config{}
 	startAddress := flag.String("a", "", "start server address and port")
 	resultAddress := flag.String("b", "", "answer address and port")
 	userAuth := flag.String("x", "mysecret", "User identity encryption with cookie (user_id)")
@@ -154,7 +229,7 @@ func readFlags() entities.ConfFlag {
 		fconf.Pprof = pprof
 	}
 	if isFlagPassed("s") {
-		fconf.IsSequre = seq
+		fconf.IsSeq = seq
 	}
 	if isFlagPassed("c") {
 		fconf.JSONPath = jsonS
@@ -166,9 +241,9 @@ func readFlags() entities.ConfFlag {
 
 }
 
-// Read ENV to DTO object.
-func readENV() entities.ConfENV {
-	econf := entities.ConfENV{}
+// Read ENV to Config object.
+func readENV() Config {
+	econf := Config{}
 
 	sa, exist := os.LookupEnv(("SERVER_ADDRESS"))
 	if exist {
@@ -192,7 +267,7 @@ func readENV() entities.ConfENV {
 
 	_, exist = os.LookupEnv(("ENABLE_HTTPS"))
 	if exist {
-		econf.IsSequre = pointBool(true)
+		econf.IsSeq = ptBool(true)
 	}
 
 	jconf, exist := os.LookupEnv(("CONFIG"))
@@ -203,85 +278,59 @@ func readENV() entities.ConfENV {
 	return econf
 }
 
-// Return pointer to bool value.
-func pointBool(b bool) *bool {
+// Return config object with preset defaults walues.
+func DefaultConfig() Config {
+	dconf := Config{}
+	// Set defaults values.
+	dconf.Address = ptStr("localhost:8080")
+	dconf.Response = ptStr("localhost:8080")
+	dconf.Pass = ptStr("mypass")
+	dconf.DB = ptBool(false)
+	dconf.Backup = ptBool(false)
+	dconf.DSN = ptStr("postgresql://short:1@localhost/short")
+	dconf.Pprof = ptBool(false)
+	dconf.IsSeq = ptBool(false)
+	return dconf
+}
+
+func ptBool(b bool) *bool {
 	return &b
 }
 
-// Load config data from json configuration to the main configuration.
-func loadJSONConfig(config *Config, jconf entities.ConfJSON) {
-	if jconf.Address != nil {
-		config.Address = *jconf.Address
-	}
-	if jconf.Response != nil {
-		config.Response = *jconf.Response
-	}
-	if jconf.BackupPath != nil {
-		config.BackupPath = *jconf.BackupPath
-	}
-	if jconf.DSN != nil {
-		config.DSN = *jconf.DSN
-	}
-	if jconf.Pass != nil {
-		config.Pass = *jconf.Pass
-	}
-	if jconf.IsBackup != nil {
-		config.IsBackup = *jconf.IsBackup
-	}
-	if jconf.Pprof != nil {
-		config.Pprof = *jconf.Pprof
-	}
-	if jconf.IsSequre != nil {
-		config.IsSequre = *jconf.IsSequre
-	}
+func ptStr(s string) *string {
+	return &s
 }
 
-// Load config data from flag cmd configuration to the main configuration.
-func loadFlagConfig(config *Config, fconf entities.ConfFlag) {
-	if fconf.Address != nil {
-		config.Address = *fconf.Address
+// Assing field from loaded config to main config if values not set in main and existed in loaded.
+func loadConfig(main *Config, loaded Config) {
+	if main.Address == nil && loaded.Address != nil {
+		main.Address = loaded.Address
 	}
-	if fconf.Response != nil {
-		config.Response = *fconf.Response
+	if main.Response == nil && loaded.Response != nil {
+		main.Response = loaded.Response
 	}
-	if fconf.BackupPath != nil {
-		config.BackupPath = *fconf.BackupPath
+	if main.BackupPath == nil && loaded.BackupPath != nil {
+		main.BackupPath = loaded.BackupPath
 	}
-	if fconf.DSN != nil {
-		config.DSN = *fconf.DSN
+	if main.DSN == nil && loaded.DSN != nil {
+		main.DSN = loaded.DSN
 	}
-	if fconf.Pass != nil {
-		config.Pass = *fconf.Pass
+	if main.Pass == nil && loaded.Pass != nil {
+		main.Pass = loaded.Pass
 	}
-	if fconf.IsBackup != nil {
-		config.IsBackup = *fconf.IsBackup
+	if main.Backup == nil && loaded.Backup != nil {
+		main.Backup = loaded.Backup
 	}
-	if fconf.Pprof != nil {
-		config.Pprof = *fconf.Pprof
+	if main.DB == nil && loaded.DB != nil {
+		main.DB = loaded.DB
 	}
-	if fconf.IsSequre != nil {
-		config.IsSequre = *fconf.IsSequre
+	if main.JSONPath == nil && loaded.JSONPath != nil {
+		main.JSONPath = loaded.JSONPath
 	}
-}
-
-// Load config data from ENV configuration to the main configuration.
-func loadENVConfig(config *Config, econf entities.ConfENV) {
-	if econf.Address != nil {
-		config.Address = *econf.Address
+	if main.Pprof == nil && loaded.Pprof != nil {
+		main.Pprof = loaded.Pprof
 	}
-	if econf.Response != nil {
-		config.Response = *econf.Response
-	}
-	if econf.BackupPath != nil {
-		config.BackupPath = *econf.BackupPath
-	}
-	if econf.DSN != nil {
-		config.DSN = *econf.DSN
-	}
-	if econf.Pass != nil {
-		config.Pass = *econf.Pass
-	}
-	if econf.IsSequre != nil {
-		config.IsSequre = *econf.IsSequre
+	if main.IsSeq == nil && loaded.IsSeq != nil {
+		main.IsSeq = loaded.IsSeq
 	}
 }

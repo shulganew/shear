@@ -25,8 +25,7 @@ func RouteShear(conf *config.Config, short *service.Shorten, db *sql.DB, delete 
 	// send password for encryption to middlewares
 	r.Use(func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-			ctx := context.WithValue(r.Context(), config.CtxPassKey{}, conf.Pass)
+			ctx := context.WithValue(r.Context(), config.CtxPassKey{}, conf.GetPass())
 			h.ServeHTTP(w, r.WithContext(ctx))
 		})
 	})
@@ -62,7 +61,7 @@ func RouteShear(conf *config.Config, short *service.Shorten, db *sql.DB, delete 
 		delID := handlers.NewHandlerDelShorts(delete)
 		r.Delete("/api/user/urls", http.HandlerFunc(delID.DelUserURLs))
 
-		if conf.Pprof {
+		if conf.IsPprof() {
 			// Adding pprof.
 			r.Get("/debug/pprof/*", http.HandlerFunc(pprof.Index))
 			r.Get("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
@@ -72,7 +71,7 @@ func RouteShear(conf *config.Config, short *service.Shorten, db *sql.DB, delete 
 		}
 		// Add swagger page.
 		// Check and parse URL.
-		_, startport := validators.CheckURL(conf.Address, conf.IsSequre)
+		_, startport := validators.CheckURL(conf.GetAddress(), conf.IsSequre())
 		r.Get("/swagger/*", httpSwagger.Handler(
 			httpSwagger.URL(strings.Join([]string{conf.GetProtocol(), "://", "localhost:", startport, "/swagger/doc.json"}, "")),
 		))
