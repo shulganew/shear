@@ -19,7 +19,6 @@ const timeoutServerShutdown = time.Second * 5
 
 // Manage web server.
 func ShortenerServer(ctx context.Context, wgroot *sync.WaitGroup, wgdel *sync.WaitGroup, db *sql.DB, conf *config.Config, short *service.Shorten, del *service.Delete, componentsErrs chan error) {
-	defer zap.S().Infoln("Server shutdown done.")
 	// Start web server.
 	var srv = http.Server{Addr: conf.GetAddress(), Handler: router.RouteShear(conf, short, db, del, wgroot)}
 	go func() {

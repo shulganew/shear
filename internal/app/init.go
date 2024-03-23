@@ -39,7 +39,6 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan s
 			stor = storage.NewMemory()
 			zap.S().Infoln("Use memory storage: database not pinging")
 		}
-
 		zap.S().Infoln("Use database storage")
 	} else {
 		// use memory storage
@@ -50,7 +49,6 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan s
 	short := service.NewService(stor)
 
 	var backup *service.Backup
-
 	// define backup file
 	if conf.IsBackup() {
 		backup = InitBackup(ctx, short, conf.GetBackupPath())

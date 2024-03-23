@@ -52,6 +52,12 @@ func main() {
 	// Wg for asinc deleleting shorts.
 	wgdel := &sync.WaitGroup{}
 
+	// Exit after all components will be done. Database should be closed after all components complited.
+	defer func() {
+		wgroot.Wait()
+		zap.S().Infoln("App done.")
+	}()
+
 	conf := config.NewConfig()
 
 	var db *sql.DB
@@ -76,12 +82,6 @@ func main() {
 		}()
 	}
 
-	// Exit after all components will be done. Database should be closed after all components complited.
-	defer func() {
-		wgroot.Wait()
-		zap.S().Infoln("App done.")
-	}()
-
 	// Error channel.
 	componentsErrs := make(chan error, 1)
 
@@ -95,8 +95,11 @@ func main() {
 	// Start web server.
 	server.ShortenerServer(ctx, wgroot, wgdel, db, conf, short, del, componentsErrs)
 
+	// Update deleted shorts from commont fan-In channel.
+	app.DeleteShort(ctx, wgroot, short, finalCh)
+
 	// Graceful shutdown.
-	app.Shutdown(ctx, wgroot, wgdel, conf, short, backup, finalCh)
+	app.Shutdown(ctx, wgroot, wgdel, conf, short, backup)
 
 	select {
 	// Exit on root context done.
