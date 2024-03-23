@@ -287,6 +287,7 @@ func DefaultConfig() Config {
 	dconf.Pass = ptStr("mypass")
 	dconf.DB = ptBool(false)
 	dconf.Backup = ptBool(false)
+	dconf.BackupPath = ptStr("/tmp/short-url-db.json")
 	dconf.DSN = ptStr("postgresql://short:1@localhost/short")
 	dconf.Pprof = ptBool(false)
 	dconf.IsSeq = ptBool(false)

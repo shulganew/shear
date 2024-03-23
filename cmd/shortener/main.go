@@ -26,7 +26,7 @@ var (
 
 // @Title Shortener API
 // @Description Shortener service.
-// @Version 1.0
+// @Version 1.1
 
 // @Contact.email shulganew@gmail.com
 
