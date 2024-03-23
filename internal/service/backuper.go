@@ -110,7 +110,7 @@ func (b Backup) Load() ([]entities.Short, error) {
 }
 
 // Backup all data from storage to file (service.Backup).File during graceful shutdown.
-func Shutdown(short *Shorten, b Backup) {
+func BackupShorts(short *Shorten, b Backup) {
 	// current context doesn't exist, use background context
 	b.BackupAll(context.Background(), short)
 }
