@@ -2,25 +2,22 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/config"
-	"github.com/shulganew/shear.git/internal/service"
-	"github.com/shulganew/shear.git/internal/web/router"
 	"go.uber.org/zap"
 )
 
 const timeoutServerShutdown = time.Second * 5
 
 // Manage web server.
-func ShortenerServer(ctx context.Context, wgroot *sync.WaitGroup, wgdel *sync.WaitGroup, db *sql.DB, conf *config.Config, short *service.Shorten, del *service.Delete, componentsErrs chan error) {
+func ShortenerServer(ctx context.Context, conf *config.Config, componentsErrs chan error, r *chi.Mux) (webDone chan struct{}) {
 	// Start web server.
-	var srv = http.Server{Addr: conf.GetAddress(), Handler: router.RouteShear(conf, short, db, del, wgroot)}
+	var srv = http.Server{Addr: conf.GetAddress(), Handler: r}
 	go func() {
 		// Public sertificate: server.crt
 		//
@@ -43,17 +40,17 @@ func ShortenerServer(ctx context.Context, wgroot *sync.WaitGroup, wgdel *sync.Wa
 	}()
 
 	// Graceful shutdown.
-	wgroot.Add(1)
+	webDone = make(chan struct{})
 	go func() {
 		defer zap.S().Infoln("Server web has been graceful shutdown.")
-		defer wgroot.Done()
+		defer close(webDone)
 		<-ctx.Done()
 		// Wait until all del async short will be saved.
-		wgdel.Wait()
 		shutdownTimeoutCtx, cancelShutdownTimeoutCtx := context.WithTimeout(context.Background(), timeoutServerShutdown)
 		defer cancelShutdownTimeoutCtx()
 		if err := srv.Shutdown(shutdownTimeoutCtx); err != nil {
 			zap.S().Infoln("an error occurred during server shutdown: %v", err)
 		}
 	}()
+	return
 }

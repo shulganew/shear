@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"net/http"
 	"strings"
-	"sync"
 
 	"net/http/pprof"
 
@@ -19,7 +18,7 @@ import (
 )
 
 // Chi Router for application.
-func RouteShear(conf *config.Config, short *service.Shorten, db *sql.DB, delete *service.Delete, waitDel *sync.WaitGroup) (r *chi.Mux) {
+func RouteShear(conf *config.Config, short *service.Shorten, db *sql.DB, delete *service.Delete) (r *chi.Mux) {
 	r = chi.NewRouter()
 
 	// send password for encryption to middlewares

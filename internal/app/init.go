@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -26,7 +25,7 @@ import (
 )
 
 // Function InitApp initialize Database, Backup and create Delete service.
-func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (*service.Shorten, *service.Backup, *service.Delete) {
+func InitApp(ctx context.Context, conf config.Config, db *sql.DB, delCh chan service.DelBatch) (*service.Shorten, *service.Backup, *service.Delete) {
 	var stor service.StorageURL
 	var err error
 	// load storage
@@ -64,7 +63,7 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan s
 		stor.SetAll(ctx, shorts)
 	}
 
-	del := service.NewDelete(finalCh, waitDel, &conf)
+	del := service.NewDelete(delCh, &conf)
 	zap.S().Infoln("Application init complete")
 	return short, backup, del
 }

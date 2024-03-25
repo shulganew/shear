@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -61,10 +60,9 @@ func TestDelBulk(t *testing.T) {
 	// init storage
 	apiBatch := NewHandlerBatch(&configApp, short)
 	handGet := NewHandlerGetURL(&configApp, short)
-	finalCh := make(chan service.DelBatch, 100)
-	defer close(finalCh)
-	var waitDel sync.WaitGroup
-	del := service.NewDelete(finalCh, &waitDel, &configApp)
+	delCh := make(chan service.DelBatch, 100)
+	defer close(delCh)
+	del := service.NewDelete(delCh, &configApp)
 	handDel := NewHandlerDelShorts(del)
 
 	for _, tt := range tests {
