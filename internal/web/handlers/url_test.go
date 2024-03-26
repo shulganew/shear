@@ -64,14 +64,10 @@ func TestURL(t *testing.T) {
 			storeMock := mocks.NewMockStorageURL(ctrl)
 
 			// init configApp
-			configApp := &config.Config{}
-
-			// init config with difauls values
-			configApp.Address = config.DefaultHost
-			configApp.Response = config.DefaultHost
+			configApp := config.DefaultConfig()
 
 			// init storage
-			handler := NewHandlerGetURL(configApp, service.NewService(storeMock))
+			handler := NewHandlerGetURL(&configApp, service.NewService(storeMock))
 
 			userID, err := uuid.NewV7()
 			if err != nil {

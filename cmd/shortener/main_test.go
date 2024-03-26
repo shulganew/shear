@@ -22,6 +22,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const DefaultHost = "localhost:8080"
+
 func TestMain(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -52,16 +54,12 @@ func TestMain(t *testing.T) {
 	}
 
 	// init configApp
-	configApp := config.InitConfig()
-
-	// init config with difauls values
-	configApp.Address = config.DefaultHost
-	configApp.Response = config.DefaultHost
+	configApp := config.DefaultConfig()
 
 	short := service.NewService(storage.NewMemory())
 
 	//init storage
-	handler := handlers.NewHandlerGetURL(configApp, short)
+	handler := handlers.NewHandlerGetURL(&configApp, short)
 
 	userID, err := uuid.NewV7()
 	if err != nil {
@@ -164,6 +162,5 @@ func TestMain(t *testing.T) {
 
 			}
 		})
-
 	}
 }

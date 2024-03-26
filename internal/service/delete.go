@@ -8,14 +8,15 @@ import (
 
 // Main struct for aggregation and delete user's URL in goroutine.
 type Delete struct {
-	finalCh chan DelBatch
-	waitDel *sync.WaitGroup
-	conf    *config.Config
+	delCh chan DelBatch
+	conf  *config.Config
+	wg    *sync.WaitGroup
 }
 
 // Constructor, create Delete service.
-func NewDelete(finalCh chan DelBatch, waitDel *sync.WaitGroup, conf *config.Config) *Delete {
-	return &Delete{finalCh: finalCh, waitDel: waitDel, conf: conf}
+func NewDelete(delCh chan DelBatch, conf *config.Config) *Delete {
+	w := &sync.WaitGroup{}
+	return &Delete{delCh: delCh, conf: conf, wg: w}
 }
 
 // Struct for working with concurrent requests for delete update with channels - fanIn pattern.
@@ -26,19 +27,31 @@ type DelBatch struct {
 
 // Async delete user's URL in goroutine.
 func (d *Delete) AsyncDelete(userID string, shorts []string) {
-	d.waitDel.Add(1)
-	go WriteFinal(Generator(shorts), userID, d.finalCh, d.waitDel)
+	d.wg.Add(1)
+	WriteFinal(Generator(shorts), userID, d.delCh, d.wg)
+}
+
+// Method for waiting delete service.
+func (d *Delete) Stop() (delServDone chan struct{}) {
+	delServDone = make(chan struct{})
+	go func() {
+		d.wg.Wait()
+		close(delServDone)
+	}()
+	return delServDone
 }
 
 // Write data from handlers to final channel.
-func WriteFinal(input chan string, userID string, finalCh chan DelBatch, waitDel *sync.WaitGroup) {
-	buff := make([]string, 0)
-	//read to buffer from generator channel
-	for data := range input {
-		buff = append(buff, data)
-	}
-	finalCh <- DelBatch{UserID: userID, Briefs: buff}
-	waitDel.Done()
+func WriteFinal(input chan string, userID string, delCh chan DelBatch, wg *sync.WaitGroup) {
+	go func() {
+		defer wg.Done()
+		buff := make([]string, 0)
+		//read to buffer from generator channel
+		for data := range input {
+			buff = append(buff, data)
+		}
+		delCh <- DelBatch{UserID: userID, Briefs: buff}
+	}()
 }
 
 // Return channel with user's briefs for sending in final channel (fan-in).

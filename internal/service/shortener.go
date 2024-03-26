@@ -150,7 +150,7 @@ func GenerateShortLink() string {
 	return sb.String()
 }
 
-// Crypto function for getting crypted user id from cookies.
+// Crypto function for getting crypt user id from cookies.
 func GetCodedUserID(req *http.Request, pass string) (userID string, ok bool) {
 	// find UserID in cookies
 	cookie, err := req.Cookie("user_id")

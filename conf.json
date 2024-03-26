@@ -1,0 +1,10 @@
+{
+    "server_address": "localhost:8080",
+    "response_address": "localhost:8080", 
+    "file_storage_path": "/tmp/short-url-db.json", 
+    "database_dsn": "postgresql://short:1@localhost/short", 
+    "pass": "mypass",
+    "enable_backup": true, 
+    "enable_pprof": true, 
+    "enable_https": true
+}
