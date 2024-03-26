@@ -70,7 +70,7 @@ func RouteShear(conf *config.Config, short *service.Shorten, db *sql.DB, delete 
 		}
 		// Add swagger page.
 		// Check and parse URL.
-		_, startport := validators.CheckURL(conf.GetAddress(), conf.IsSequre())
+		_, startport := validators.CheckURL(conf.GetAddress(), conf.IsSecure())
 		r.Get("/swagger/*", httpSwagger.Handler(
 			httpSwagger.URL(strings.Join([]string{conf.GetProtocol(), "://", "localhost:", startport, "/swagger/doc.json"}, "")),
 		))

@@ -69,7 +69,7 @@ func (b Backup) BackupAll(ctx context.Context, short *Shorten) error {
 			zap.S().Error("Error Marshal Backup: ", err)
 		}
 
-		// append next line characte
+		// append next line character
 		shortj = append(shortj, []byte("\n")...)
 		data = append(data, shortj...)
 	}

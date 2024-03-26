@@ -20,7 +20,7 @@ const userID = "lsjnN107/XV2f27GIedhnl3eRKQPwspek3FoFK3AcYkRPxlhY9hN3DGxG9jQSBlZ
 const testDuration = 30 * time.Second
 const numOfURLs = 5
 
-// Load hendler.
+// Load handler.
 //
 //	/ [post]
 //	/{id} [get]
@@ -62,7 +62,7 @@ func SetURL() vegeta.Targeter {
 	}
 }
 
-// Load hendler.
+// Load handler.
 //
 //	/api/user/urls [get]
 func UsersUrls() vegeta.Targeter {
@@ -101,7 +101,7 @@ func UsersUrls() vegeta.Targeter {
 	}
 }
 
-// Load hendler.
+// Load handler.
 //
 //	/api/shorten/batch [delete]
 func DelUsersUrls() vegeta.Targeter {
@@ -158,7 +158,7 @@ func DelUsersUrls() vegeta.Targeter {
 	}
 }
 
-// Load hendler.
+// Load handler.
 //
 //	/api/shorten [post]
 func JSON() vegeta.Targeter {

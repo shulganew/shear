@@ -53,8 +53,8 @@ func NewConfig() *Config {
 	loadConfig(&config, DefaultConfig())
 
 	// Check and parse URL.
-	startaddr, startport := validators.CheckURL(config.GetAddress(), config.IsSequre())
-	answaddr, answport := validators.CheckURL(config.GetAddress(), config.IsSequre())
+	startaddr, startport := validators.CheckURL(config.GetAddress(), config.IsSecure())
+	answaddr, answport := validators.CheckURL(config.GetAddress(), config.IsSecure())
 	config.SetAddress(startaddr + ":" + startport)
 	config.SetResponse(answaddr + ":" + answport)
 	zap.S().Infoln("Server address: ", config.GetAddress())
@@ -81,7 +81,7 @@ func NewConfig() *Config {
 	return &config
 }
 
-// Return suffix http or https depend on type of connection (sequre or not).
+// Return suffix http or https depend on type of connection (secure or not).
 func (c Config) GetProtocol() string {
 	if *c.IsSeq {
 		return "https"
@@ -150,7 +150,7 @@ func (c Config) IsPprof() bool {
 }
 
 // Is https enable.
-func (c Config) IsSequre() bool {
+func (c Config) IsSecure() bool {
 	return *c.IsSeq
 }
 
@@ -165,11 +165,11 @@ func (c Config) String() string {
 	con.WriteString(fmt.Sprintf("IsBackup: %t \n", c.IsBackup()))
 	con.WriteString(fmt.Sprintf("Use DB: %t \n", c.IsDB()))
 	con.WriteString(fmt.Sprintf("Pprof: %t \n", c.IsPprof()))
-	con.WriteString(fmt.Sprintf("IsSequre: %t \n", c.IsSequre()))
+	con.WriteString(fmt.Sprintf("IsSecure: %t \n", c.IsSecure()))
 	return con.String()
 }
 
-// Load JOSN config data.
+// Load JSON config data.
 func readJSONConf(path string) *Config {
 	f, err := os.Open(path)
 	if err != nil {
@@ -204,7 +204,7 @@ func readFlags() Config {
 	tempf := flag.String("f", "", "Location of dump file")
 	dsnf := flag.String("d", "", "Data Source Name for DataBase connection")
 	pprof := flag.Bool("p", false, "Visualization tool")
-	seq := flag.Bool("s", false, "Use sequre connection TLS")
+	seq := flag.Bool("s", false, "Use secure connection TLS")
 	// Read JSON config
 	jsonS := flag.String("c", "", "Path to JSON file with configuration")
 	jsonL := flag.String("config", "", "Path to JSON file with configuration")
@@ -278,7 +278,7 @@ func readENV() Config {
 	return econf
 }
 
-// Return config object with preset defaults walues.
+// Return config object with preset defaults values.
 func DefaultConfig() Config {
 	dconf := Config{}
 	// Set defaults values.

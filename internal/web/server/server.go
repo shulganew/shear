@@ -19,10 +19,10 @@ func ShortenerServer(ctx context.Context, conf *config.Config, componentsErrs ch
 	// Start web server.
 	var srv = http.Server{Addr: conf.GetAddress(), Handler: r}
 	go func() {
-		// Public sertificate: server.crt
+		// Public certificate: server.crt
 		//
 		// Private key: server.pem
-		if conf.IsSequre() {
+		if conf.IsSecure() {
 			if err := srv.ListenAndServeTLS("./cert/server.crt", "./cert/server.pem"); err != nil {
 				if errors.Is(err, http.ErrServerClosed) {
 					return

@@ -98,10 +98,17 @@ func InitLog() zap.SugaredLogger {
 }
 
 // Init Database connection using pgx driver.
-func InitDB(ctx context.Context, dsn string) (db *sql.DB, err error) {
-	db, err = sql.Open("pgx", dsn)
-	if err != nil {
-		return nil, err
+func InitDB(ctx context.Context, conf config.Config) (db *sql.DB) {
+	if conf.IsDB() {
+		var err error
+		db, err = sql.Open("pgx", conf.GetDSN())
+		if err != nil {
+			db = nil
+			conf.SetIsDB(false)
+			zap.S().Errorln("Can't connect to Database!", err)
+			return nil
+		}
+		// Exit after all components will be done. Database should be closed after all components complited.
 	}
 	return
 }

@@ -9,5 +9,5 @@ type ConfJSON struct {
 	Pass       *string `json:"pass,omitempty"`
 	IsBackup   *bool   `json:"enable_backup,omitempty"`
 	Pprof      *bool   `json:"enable_pprof,omitempty"`
-	IsSequre   *bool   `json:"enable_https,omitempty"`
+	IsSecure   *bool   `json:"enable_https,omitempty"`
 }
