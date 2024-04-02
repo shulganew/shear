@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -54,22 +53,16 @@ func TestDelBulk(t *testing.T) {
 	// init configApp
 	app.InitLog()
 	// init configApp
-	configApp := &config.Config{}
-	// init config with difauls values
-	configApp.Address = config.DefaultHost
-	configApp.Response = config.DefaultHost
-	configApp.IsDB = false
-	configApp.IsBackup = false
-	configApp.Pass = "MyPass"
+	configApp := config.DefaultConfig()
+
 	stor := storage.NewMemory()
 	short := service.NewService(stor)
 	// init storage
-	apiBatch := NewHandlerBatch(configApp, short)
-	handGet := NewHandlerGetURL(configApp, short)
-	finalCh := make(chan service.DelBatch, 100)
-	defer close(finalCh)
-	var waitDel sync.WaitGroup
-	del := service.NewDelete(finalCh, &waitDel, configApp)
+	apiBatch := NewHandlerBatch(&configApp, short)
+	handGet := NewHandlerGetURL(&configApp, short)
+	delCh := make(chan service.DelBatch, 100)
+	defer close(delCh)
+	del := service.NewDelete(delCh, &configApp)
 	handDel := NewHandlerDelShorts(del)
 
 	for _, tt := range tests {
@@ -160,7 +153,7 @@ func TestDelBulk(t *testing.T) {
 					rctx := chi.NewRouteContext()
 					rctx.URLParams.Add("id", userSet[i].delShorts[j])
 					req := httptest.NewRequest(http.MethodGet, tt.reqestShort, nil)
-					ctx := context.WithValue(req.Context(), config.CtxPassKey{}, configApp.Pass)
+					ctx := context.WithValue(req.Context(), config.CtxPassKey{}, configApp.GetPass())
 					req = req.WithContext(context.WithValue(ctx, chi.RouteCtxKey, rctx))
 					req.Header.Add("Content-Type", "plain/text")
 					cookie := http.Cookie{Name: "user_id", Value: userSet[i].userID}

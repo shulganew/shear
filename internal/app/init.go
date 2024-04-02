@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -26,11 +25,11 @@ import (
 )
 
 // Function InitApp initialize Database, Backup and create Delete service.
-func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan service.DelBatch, waitDel *sync.WaitGroup) (*service.Shorten, *service.Backup, *service.Delete) {
+func InitApp(ctx context.Context, conf config.Config, db *sql.DB, delCh chan service.DelBatch) (*service.Shorten, *service.Backup, *service.Delete) {
 	var stor service.StorageURL
 	var err error
 	// load storage
-	if conf.IsDB && db != nil {
+	if conf.IsDB() && db != nil {
 		// use db storage
 		stor, err = storage.NewDB(ctx, db)
 		if err != nil {
@@ -39,7 +38,6 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan s
 			stor = storage.NewMemory()
 			zap.S().Infoln("Use memory storage: database not pinging")
 		}
-
 		zap.S().Infoln("Use database storage")
 	} else {
 		// use memory storage
@@ -50,11 +48,10 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan s
 	short := service.NewService(stor)
 
 	var backup *service.Backup
-
 	// define backup file
-	if conf.IsBackup {
-		backup = InitBackup(ctx, short, conf.BackupPath)
-		zap.S().Infoln("Backup activated, path: ", conf.BackupPath)
+	if conf.IsBackup() {
+		backup = InitBackup(ctx, short, conf.GetBackupPath())
+		zap.S().Infoln("Backup activated, path: ", conf.GetBackupPath())
 
 		// load all dump links
 		shorts, err := backup.Load()
@@ -66,7 +63,7 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan s
 		stor.SetAll(ctx, shorts)
 	}
 
-	del := service.NewDelete(finalCh, waitDel, &conf)
+	del := service.NewDelete(delCh, &conf)
 	zap.S().Infoln("Application init complete")
 	return short, backup, del
 }
@@ -75,14 +72,7 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, finalCh chan s
 //
 //	syscall.SIGINT, syscall.SIGTERM
 func InitContext() (ctx context.Context, cancel context.CancelFunc) {
-	exit := make(chan os.Signal, 1)
-	ctx, cancel = context.WithCancel(context.Background())
-	signal.Notify(exit, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-	go func() {
-		<-exit
-		cancel()
-
-	}()
+	ctx, cancel = signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	return
 }
 
@@ -108,10 +98,17 @@ func InitLog() zap.SugaredLogger {
 }
 
 // Init Database connection using pgx driver.
-func InitDB(ctx context.Context, dsn string) (db *sql.DB, err error) {
-	db, err = sql.Open("pgx", dsn)
-	if err != nil {
-		return nil, err
+func InitDB(ctx context.Context, conf config.Config) (db *sql.DB) {
+	if conf.IsDB() {
+		var err error
+		db, err = sql.Open("pgx", conf.GetDSN())
+		if err != nil {
+			db = nil
+			conf.SetIsDB(false)
+			zap.S().Errorln("Can't connect to Database!", err)
+			return nil
+		}
+		// Exit after all components will be done. Database should be closed after all components complited.
 	}
 	return
 }

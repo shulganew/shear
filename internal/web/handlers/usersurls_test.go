@@ -43,20 +43,17 @@ func TestUsersUrls(t *testing.T) {
 	app.InitLog()
 
 	// init configApp
-	configApp := &config.Config{}
+	configApp := config.DefaultConfig()
 
 	// init config with defaults values
-	configApp.Address = config.DefaultHost
-	configApp.Response = config.DefaultHost
-	configApp.IsDB = false
-	configApp.IsBackup = false
+
 	short := service.NewService(storage.NewMemory())
 
 	// init storage
-	apiBatch := NewHandlerBatch(configApp, short)
+	apiBatch := NewHandlerBatch(&configApp, short)
 
 	// Get all users URLs.
-	apiUsersURLs := NewHandlerAuthUser(configApp, short)
+	apiUsersURLs := NewHandlerAuthUser(&configApp, short)
 	userID, err := uuid.NewV7()
 	if err != nil {
 		zap.S().Errorln("Error generate user uuid")

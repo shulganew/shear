@@ -57,7 +57,7 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	brief := service.GenerateShortLinkByte()
-	mainURL, answerURL, err := u.serviceURL.GetAnsURLFast(origin.Scheme, u.conf.Response, brief)
+	mainURL, answerURL, err := u.serviceURL.GetAnsURLFast(origin.Scheme, u.conf.GetResponse(), brief)
 	if err != nil {
 		http.Error(res, "Error parse URL", http.StatusInternalServerError)
 		return
@@ -95,7 +95,7 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 			if err != nil {
 				http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
 			}
-			zap.S().Infoln("Server ansver with short URL in JSON (duplicated request): ", string(jsonBrokenURL))
+			zap.S().Infoln("Server answer with short URL in JSON (duplicated request): ", string(jsonBrokenURL))
 
 			// set status code 409
 			res.WriteHeader(http.StatusConflict)
@@ -113,7 +113,7 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
 	}
-	zap.S().Infoln("Server ansver with short URL in JSON: ", string(jsonURL))
+	zap.S().Infoln("Server answer with short URL in JSON: ", string(jsonURL))
 
 	// set status code 201
 	res.WriteHeader(http.StatusCreated)

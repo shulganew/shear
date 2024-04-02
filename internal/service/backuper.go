@@ -69,7 +69,7 @@ func (b Backup) BackupAll(ctx context.Context, short *Shorten) error {
 			zap.S().Error("Error Marshal Backup: ", err)
 		}
 
-		// append next line characte
+		// append next line character
 		shortj = append(shortj, []byte("\n")...)
 		data = append(data, shortj...)
 	}
@@ -110,7 +110,7 @@ func (b Backup) Load() ([]entities.Short, error) {
 }
 
 // Backup all data from storage to file (service.Backup).File during graceful shutdown.
-func Shutdown(short *Shorten, b Backup) {
+func BackupShorts(short *Shorten, b Backup) {
 	// current context doesn't exist, use background context
 	b.BackupAll(context.Background(), short)
 }

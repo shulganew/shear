@@ -86,7 +86,7 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 	}
 	zap.S().Infoln("redirectURL ", redirectURL)
 	brief := service.GenerateShortLinkByte()
-	mainURL, answerURL, err := u.serviceURL.GetAnsURLFast(redirectURL.Scheme, u.conf.Response, brief)
+	mainURL, answerURL, err := u.serviceURL.GetAnsURLFast(redirectURL.Scheme, u.conf.GetResponse(), brief)
 	if err != nil {
 		http.Error(res, "Error parse URL", http.StatusInternalServerError)
 		return
