@@ -79,6 +79,36 @@ func (mr *MockStorageURLMockRecorder) GetBrief(ctx, origin interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBrief", reflect.TypeOf((*MockStorageURL)(nil).GetBrief), ctx, origin)
 }
 
+// GetNumShorts mocks base method.
+func (m *MockStorageURL) GetNumShorts(ctx context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNumShorts", ctx)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNumShorts indicates an expected call of GetNumShorts.
+func (mr *MockStorageURLMockRecorder) GetNumShorts(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNumShorts", reflect.TypeOf((*MockStorageURL)(nil).GetNumShorts), ctx)
+}
+
+// GetNumUsers mocks base method.
+func (m *MockStorageURL) GetNumUsers(ctx context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNumUsers", ctx)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNumUsers indicates an expected call of GetNumUsers.
+func (mr *MockStorageURLMockRecorder) GetNumUsers(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNumUsers", reflect.TypeOf((*MockStorageURL)(nil).GetNumUsers), ctx)
+}
+
 // GetOrigin mocks base method.
 func (m *MockStorageURL) GetOrigin(ctx context.Context, brief string) (string, bool, bool) {
 	m.ctrl.T.Helper()

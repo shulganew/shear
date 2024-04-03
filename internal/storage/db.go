@@ -69,7 +69,7 @@ func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
 	}
 
 	for _, short := range shorts {
-		_, err = prep.ExecContext(ctx, short.UUID, short.Brief, short.Origin)
+		_, err = prep.ExecContext(ctx, short.UserID, short.Brief, short.Origin)
 		if err != nil {
 			var pgErr *pgconn.PgError
 			// if URL exist in DataBase
@@ -96,7 +96,7 @@ func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
 func (base *DB) GetOrigin(ctx context.Context, brief string) (origin string, existed bool, isDeleted bool) {
 	row := base.master.QueryRowContext(ctx, "SELECT id, user_id, brief, origin, is_deleted FROM short WHERE brief=$1", brief)
 	var short entities.Short
-	err := row.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin, &short.IsDeleted)
+	err := row.Scan(&short.ID, &short.UserID, &short.Brief, &short.Origin, &short.IsDeleted)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", false, false
@@ -110,7 +110,7 @@ func (base *DB) GetOrigin(ctx context.Context, brief string) (origin string, exi
 func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, existed bool, isDeleted bool) {
 	row := base.master.QueryRowContext(ctx, "SELECT id, user_id, brief, origin, is_deleted FROM short WHERE origin=$1", origin)
 	var short entities.Short
-	err := row.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin, &short.IsDeleted)
+	err := row.Scan(&short.ID, &short.UserID, &short.Brief, &short.Origin, &short.IsDeleted)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -134,7 +134,7 @@ func (base *DB) GetAll(ctx context.Context) []entities.Short {
 	shorts := []entities.Short{}
 	for rows.Next() {
 		var short entities.Short
-		err = rows.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin)
+		err = rows.Scan(&short.ID, &short.UserID, &short.Brief, &short.Origin)
 		if err != nil {
 			zap.S().Errorln(err)
 		}
@@ -161,7 +161,7 @@ func (base *DB) GetUserAll(ctx context.Context, userID string) []entities.Short 
 	shorts := []entities.Short{}
 	for rows.Next() {
 		var short entities.Short
-		err = rows.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin)
+		err = rows.Scan(&short.ID, &short.UserID, &short.Brief, &short.Origin)
 		if err != nil {
 			zap.S().Errorln(err)
 		}
@@ -202,7 +202,6 @@ func (base *DB) isDeleted(ctx context.Context, brief string) bool {
 
 	var isDeleted bool
 	err := row.Scan(&isDeleted)
-
 	if err != nil {
 		zap.S().Errorln(err)
 	}
@@ -226,4 +225,28 @@ func (base *DB) Start(ctx context.Context) error {
 	err := base.master.PingContext(ctx)
 	defer cancel()
 	return err
+}
+
+// Get totoal number of shorts.
+func (base *DB) GetNumShorts(ctx context.Context) (num int, err error) {
+	row := base.master.QueryRowContext(ctx, "SELECT COUNT(DISTINCT user_id) FROM short WHERE user_id IS NOT NULL")
+
+	err = row.Scan(&num)
+	if err != nil {
+		return 0, err
+	}
+	zap.S().Infoln("Stat num of users: ", num)
+	return num, nil
+}
+
+// Get totoal number of users.
+func (base *DB) GetNumUsers(ctx context.Context) (num int, err error) {
+	row := base.master.QueryRowContext(ctx, "SELECT COUNT(origin) FROM short")
+
+	err = row.Scan(&num)
+	if err != nil {
+		return 0, err
+	}
+	zap.S().Infoln("Stat num of users: ", num)
+	return num, nil
 }

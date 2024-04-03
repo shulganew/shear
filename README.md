@@ -1,5 +1,8 @@
 # Shortener with Yandex Practicum
-
+## X-Real-IP with curl
+```
+curl --header "X-Real-IP: 192.168.2.2" localhost:8080/api/internal/stats
+```
 ## Create sertificates
 
 Generate private key:

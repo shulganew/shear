@@ -35,6 +35,8 @@ type StorageURL interface {
 	GetAll(ctx context.Context) []entities.Short
 	GetUserAll(ctx context.Context, userID string) []entities.Short
 	DeleteBatch(ctx context.Context, userID string, briefs []string) error
+	GetNumShorts(ctx context.Context) (num int, err error)
+	GetNumUsers(ctx context.Context) (num int, err error)
 }
 
 // Service constructor.
@@ -90,6 +92,18 @@ func (s *Shorten) DeleteBatchArray(ctx context.Context, delBatchs []DelBatch) {
 // Batch delete by user's short URLs.
 func (s *Shorten) DeleteBatch(ctx context.Context, delBatch DelBatch) (err error) {
 	err = s.storeURLs.DeleteBatch(ctx, delBatch.UserID, delBatch.Briefs)
+	return
+}
+
+// Get totoal number of shorts.
+func (s *Shorten) GetNumShorts(ctx context.Context) (num int, err error) {
+	num, err = s.storeURLs.GetNumShorts(ctx)
+	return
+}
+
+// Get totoal number of users.
+func (s *Shorten) GetNumUsers(ctx context.Context) (num int, err error) {
+	num, err = s.storeURLs.GetNumUsers(ctx)
 	return
 }
 

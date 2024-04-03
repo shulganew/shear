@@ -45,7 +45,7 @@ func TestDBGetAll(t *testing.T) {
 			shorts := db.GetAll(ctx)
 			for i, short := range shorts {
 				assert.Equal(t, tt.rows[i][0], short.ID)
-				assert.Equal(t, tt.rows[i][1], short.UUID.String)
+				assert.Equal(t, tt.rows[i][1], short.UserID.String)
 				assert.Equal(t, tt.rows[i][2], short.Brief)
 				assert.Equal(t, tt.rows[i][3], short.Origin)
 			}
@@ -93,7 +93,7 @@ func TestDBGetUserAll(t *testing.T) {
 			shorts := db.GetUserAll(ctx, tt.userID)
 			for i, short := range shorts {
 				assert.Equal(t, short.ID, tt.rows[i][0])
-				assert.Equal(t, short.UUID.String, tt.rows[i][1])
+				assert.Equal(t, short.UserID.String, tt.rows[i][1])
 				assert.Equal(t, short.Brief, tt.rows[i][2])
 				assert.Equal(t, short.Origin, tt.rows[i][3])
 			}

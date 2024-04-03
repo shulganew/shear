@@ -59,7 +59,6 @@ func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 
 		return
 	}
-
 	res.WriteHeader(http.StatusNotFound)
 }
 

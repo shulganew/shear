@@ -33,7 +33,7 @@ func TestShortenerURL(t *testing.T) {
 			responseBrief:     "dzafbfsx",
 			responseExist:     true,
 			responseIsDeleted: false,
-			shorts:            []entities.Short{{ID: 0, UUID: sql.NullString{String: uuid.NewString(), Valid: true}, Brief: "dzafbfsx", Origin: "http://yandex1.ru/", SessionID: "qq12"}, {ID: 1, UUID: sql.NullString{String: uuid.NewString(), Valid: true}, Brief: "dzafbfsy", Origin: "http://yandex2.ru/", SessionID: "qq13"}},
+			shorts:            []entities.Short{{ID: 0, UserID: sql.NullString{String: uuid.NewString(), Valid: true}, Brief: "dzafbfsx", Origin: "http://yandex1.ru/", SessionID: "qq12"}, {ID: 1, UserID: sql.NullString{String: uuid.NewString(), Valid: true}, Brief: "dzafbfsy", Origin: "http://yandex2.ru/", SessionID: "qq13"}},
 			bathch:            []string{"sdfsdf", "sdfsdfsdf"},
 		},
 	}

@@ -21,10 +21,11 @@ import (
 func RouteShear(conf *config.Config, short *service.Shorten, db *sql.DB, delete *service.Delete) (r *chi.Mux) {
 	r = chi.NewRouter()
 
-	// send password for encryption to middlewares
+	// Send password and ip/mask trusted network to middlewares.
 	r.Use(func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := context.WithValue(r.Context(), config.CtxPassKey{}, conf.GetPass())
+			ctx = context.WithValue(ctx, config.CtxIP{}, conf.GetIP())
 			h.ServeHTTP(w, r.WithContext(ctx))
 		})
 	})
@@ -59,6 +60,10 @@ func RouteShear(conf *config.Config, short *service.Shorten, db *sql.DB, delete 
 		// Batch delete shorts from handlers (bulk postgres delete).
 		delID := handlers.NewHandlerDelShorts(delete)
 		r.Delete("/api/user/urls", http.HandlerFunc(delID.DelUserURLs))
+
+		// Server statistic.
+		stat := handlers.NewHandlerStat(conf, short)
+		r.With(middlewares.NetAccess).Get("/api/internal/stats", http.HandlerFunc(stat.GetStat))
 
 		if conf.IsPprof() {
 			// Adding pprof.

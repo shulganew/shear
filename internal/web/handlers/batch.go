@@ -72,7 +72,7 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 		batch := entities.BatchResponse{SessionID: r.SessionID, Answer: answerURL.String()}
 		// add batches
 		batches = append(batches, batch)
-		shortSession := entities.NewShort(i, userID.Value, brief, (*origin).String(), batch.SessionID)
+		shortSession := entities.NewShort(i, userID.Value, brief, (*origin).String(), batch.SessionID, userID.String())
 		shorts = append(shorts, *shortSession)
 
 	}
