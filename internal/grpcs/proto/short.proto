@@ -13,11 +13,11 @@ message GetURLResponse {
 }
 
 message SetURLRequest {
-	string brief = 1;
+	string origin = 1;
     }
 
 message SetURLResponse {
-	string origin = 1;
+	string brief = 1;
 }
 
 service Users {

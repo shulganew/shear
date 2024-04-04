@@ -2,11 +2,15 @@ package handlers
 
 import (
 	"context"
+	"errors"
+	"net/url"
 
+	"github.com/shulganew/shear.git/internal/config"
 	pb "github.com/shulganew/shear.git/internal/grpcs/proto"
+	"github.com/shulganew/shear.git/internal/service"
+	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -39,52 +43,40 @@ func (us *UsersServer) GetURL(ctx context.Context, in *pb.GetURLRequest) (*pb.Ge
 // @Failure      404 "Conflict. URL existed."
 // @Failure      500 "Handling error"
 func (us *UsersServer) SetURL(ctx context.Context, in *pb.SetURLRequest) (*pb.SetURLResponse, error) {
-	//brief := service.GenerateShortLinkByte()
-	//mainURL, answerURL, err := us.serviceURL.GetAnsURLFast(service.SchemaHTTP, us.conf.GetResponse(), brief)
-	// if err != nil {
-	// 	return nil, status.Errorf(codes.Internal, "Error parse URL")
-	// }
-
 	// Get userID from context.
-	var userID string
-	md, ok := metadata.FromIncomingContext(ctx)
-	if ok {
-		values := md.Get("user_id")
-		if len(values) > 0 {
-			userID = values[0]
-		}
-	} else {
-		return nil, status.Errorf(codes.PermissionDenied, "Can't find user in metadata")
+	ctxConfig := ctx.Value(config.CtxConfig{}).(config.CtxConfig)
+
+	zap.S().Infoln("IsNewUser: ", ctxConfig.IsNewUser())
+	zap.S().Infoln("IserID: ", ctxConfig.GetUserID())
+
+	redirectURL, err := url.Parse(in.Origin)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "parse URL error")
 	}
-	zap.S().Infoln("IserID: ", userID)
-	return nil, nil
+	zap.S().Infoln("redirectURL: ", redirectURL)
+	brief := service.GenerateShortLinkByte()
+	mainURL, answerURL, err := us.serviceURL.GetAnsURLFast(redirectURL.Scheme, us.conf.GetResponse(), brief)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "parse new URL error")
+	}
 
-	/*
-		// Save map to storage
-		err = us.serviceURL.SetURL(req.Context(), userID.Value, brief, (*redirectURL).String())
-
-		if err != nil {
-			var tagErr *storage.ErrDuplicatedURL
-			if errors.As(err, &tagErr) {
-				// set status code 409 Conflict
-				res.WriteHeader(http.StatusConflict)
-
-				//send existed string from error
-				var answer string
-				answer, err = url.JoinPath(mainURL, tagErr.Brief)
-				if err != nil {
-					zap.S().Errorln("Error during JoinPath", err)
-				}
-				res.Write([]byte(answer))
-				return
+	// Save map to storage.
+	err = us.serviceURL.SetURL(ctx, ctxConfig.GetUserID(), brief, (*redirectURL).String())
+	if err != nil {
+		var tagErr *storage.ErrDuplicatedURL
+		if errors.As(err, &tagErr) {
+			// Send existed string from error.
+			var answer string
+			answer, err = url.JoinPath(mainURL, tagErr.Brief)
+			if err != nil {
+				zap.S().Errorln("Error during JoinPath", err)
 			}
-
-			zap.S().Errorln(err)
-			http.Error(res, "Error saving in Storage.", http.StatusInternalServerError)
+			return &pb.SetURLResponse{Brief: answer}, status.Errorf(codes.AlreadyExists, "StatusConflict AlreadyExists")
 		}
-		// set status code 201
-		res.WriteHeader(http.StatusCreated)
-		// send generate and saved string
-		res.Write([]byte(answerURL.String()))
-	*/
+
+		zap.S().Errorln(err)
+		return nil, status.Errorf(codes.Internal, "Error saving in Storage")
+	}
+
+	return &pb.SetURLResponse{Brief: answerURL.String()}, nil
 }

@@ -121,6 +121,7 @@ func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
 
 		zap.S().Errorln(err)
 		http.Error(res, "Error saving in Storage.", http.StatusInternalServerError)
+		return
 	}
 	// set status code 201
 	res.WriteHeader(http.StatusCreated)

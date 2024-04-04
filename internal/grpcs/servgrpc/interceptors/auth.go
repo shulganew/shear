@@ -2,9 +2,10 @@ package interceptors
 
 import (
 	"context"
-	"strings"
 
+	"github.com/google/uuid"
 	"github.com/shulganew/shear.git/internal/config"
+	"github.com/shulganew/shear.git/internal/service"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -13,100 +14,62 @@ import (
 )
 
 func LogInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
-	zap.S().Infoln("Intersepted!")
-
+	// Pass from config.
 	pass := ctx.Value(config.CtxPassKey{}).(string)
-	zap.S().Infoln("Pass!", pass)
-	// authentication (token verification)
+
+	// Check userID in gRPC ctx.
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return nil, status.Errorf(codes.InvalidArgument, "missing metadata")
+		return nil, status.Errorf(codes.InvalidArgument, "missing metadata: user id")
 	}
-	if !valid(md["user_id"]) {
-
-		return nil, status.Errorf(codes.Unauthenticated, "user unauthorized")
-
+	isNewUser := false
+	values := md.Get("user_id")
+	var cUserID string
+	if len(values) > 0 {
+		cUserID = values[0]
+	} else {
+		isNewUser = true
 	}
+	// User UUID existed in ctx.
+	if !isNewUser {
+		userID, err := service.DecodeCookie(cUserID, pass)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "decode user id failed")
+		}
+
+		// check correct UUID
+		_, err = uuid.Parse(userID)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "parce user UUID failed")
+		}
+
+		rctx := context.WithValue(ctx, config.CtxConfig{}, config.NewCtxConfig(userID, isNewUser))
+
+		m, err := handler(rctx, req)
+		if err != nil {
+			zap.S().Infoln("RPC failed with error: %v", err)
+		}
+		return m, err
+	}
+
+	// UUID not set.
+	userID, err := uuid.NewV7()
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Error generate user uuid")
+	}
+	// Request contex.
+	rctx := context.WithValue(ctx, config.CtxConfig{}, config.NewCtxConfig(userID.String(), isNewUser))
+
+	cUserID, err = service.EncodeCookie(userID.String(), pass)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Error encode cookie")
+	}
+	// Add userID to response.
+	md = metadata.New(map[string]string{"user_id": cUserID})
+	ctx = metadata.NewOutgoingContext(rctx, md)
 	m, err := handler(ctx, req)
 	if err != nil {
 		zap.S().Infoln("RPC failed with error: %v", err)
 	}
-	// to add context
-	//https://stackoverflow.com/questions/71114401/grpc-how-to-pass-value-from-interceptor-to-service-function
 	return m, err
 }
-
-func valid(authorization []string) bool {
-	if len(authorization) < 1 {
-		return false
-	}
-	token := strings.TrimPrefix(authorization[0], "Bearer ")
-	// Perform the token validation here. For the sake of this example, the code
-	// here forgoes any of the usual OAuth2 token validation and instead checks
-	// for a token matching an arbitrary string.
-	return token == "some-secret-token"
-}
-
-/*
-
-}
-
-
-// Middleware function check user's authorization.
-//
-// Verify encrypted cookie, check or add if not existed context context variable config.CtxConfig user_id(uuid) and new_user(bool).
-func Auth(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// get password from context
-		pass := req.Context().Value(config.CtxPassKey{}).(string)
-		isNewUser := false
-		userID, ok := service.GetCodedUserID(req, pass)
-
-		if ok {
-			// cookie user_id is set
-			cookies := req.Cookies()
-
-			// clean cookie data
-			req.Header["Cookie"] = make([]string, 0)
-			for _, cookie := range cookies {
-
-				if cookie.Name == "user_id" {
-					cookie.Value = userID
-				}
-				req.AddCookie(cookie)
-			}
-		} else {
-			// cookie not set or not decoded
-			// create new user uuid
-			userID, err := uuid.NewV7()
-			if err != nil {
-				zap.S().Errorln("Error generate user uuid")
-				http.Error(res, err.Error(), http.StatusInternalServerError)
-			}
-
-			// encode cookie for client
-			coded, err := service.EncodeCookie(userID.String(), pass)
-			if err != nil {
-				zap.S().Errorln("Error encode uuid")
-				http.Error(res, err.Error(), http.StatusInternalServerError)
-			}
-			// set to response
-			codedCookie := http.Cookie{Name: "user_id", Value: coded}
-			http.SetCookie(res, &codedCookie)
-
-			// set to request
-			cookie := http.Cookie{Name: "user_id", Value: userID.String()}
-			req.AddCookie(&cookie)
-
-			// mark new user for handlers
-			newUser := http.Cookie{Name: "new_user", Value: "true"}
-			req.AddCookie(&newUser)
-			isNewUser = true
-
-		}
-		ctx := context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID, isNewUser))
-		h.ServeHTTP(res, req.WithContext(ctx))
-	})
-
-}
-*/
