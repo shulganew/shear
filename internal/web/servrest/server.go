@@ -1,4 +1,4 @@
-package server
+package servrest
 
 import (
 	"context"
@@ -15,9 +15,9 @@ import (
 const timeoutServerShutdown = time.Second * 5
 
 // Manage web server.
-func ShortenerServer(ctx context.Context, conf *config.Config, componentsErrs chan error, r *chi.Mux) (webDone chan struct{}) {
+func Shortener(ctx context.Context, conf *config.Config, componentsErrs chan error, r *chi.Mux) (webDone chan struct{}) {
 	// Start web server.
-	var srv = http.Server{Addr: conf.GetAddress(), Handler: r}
+	var srv = http.Server{Addr: conf.GetAddrREST(), Handler: r}
 	go func() {
 		// Public certificate: server.crt
 		//
@@ -45,7 +45,6 @@ func ShortenerServer(ctx context.Context, conf *config.Config, componentsErrs ch
 		defer zap.S().Infoln("Server web has been graceful shutdown.")
 		defer close(webDone)
 		<-ctx.Done()
-		// Wait until all del async short will be saved.
 		shutdownTimeoutCtx, cancelShutdownTimeoutCtx := context.WithTimeout(context.Background(), timeoutServerShutdown)
 		defer cancelShutdownTimeoutCtx()
 		if err := srv.Shutdown(shutdownTimeoutCtx); err != nil {

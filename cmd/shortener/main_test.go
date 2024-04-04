@@ -54,7 +54,7 @@ func TestMain(t *testing.T) {
 	}
 
 	// init configApp
-	configApp := config.DefaultConfig()
+	configApp := config.DefaultConfig(false)
 
 	short := service.NewService(storage.NewMemory())
 

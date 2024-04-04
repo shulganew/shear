@@ -64,7 +64,7 @@ func TestURL(t *testing.T) {
 			storeMock := mocks.NewMockStorageURL(ctrl)
 
 			// init configApp
-			configApp := config.DefaultConfig()
+			configApp := config.DefaultConfig(false)
 
 			// init storage
 			handler := NewHandlerGetURL(&configApp, service.NewService(storeMock))

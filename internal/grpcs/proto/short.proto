@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package shortgrpc; // package name for generated files
+
+option go_package = "shortgrpc/proto";
+
+message GetURL {
+	string brief = 1;
+    }
+
+message GetURLResponse {
+	string origin = 1;
+}
+
+service Users {
+	rpc Get(GetURL) returns (GetURLResponse);
+
+} 

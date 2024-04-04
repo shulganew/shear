@@ -1,4 +1,15 @@
 # Shortener with Yandex Practicum
+
+## gRPC generate
+
+```
+protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative internal/grpc/proto/short.proto
+```
+
+В --go-out запишется файл с кодом для Protobuf-сериализации.  (short.pb.go)
+В --go-grpc_out сохранится файл с gRPC-интерфейсами и методами. (short_grpc.pb.go)
+Так как вы указали параметр paths=source_relative, сгенерированные файлы создадутся в поддиректории ./proto. Если бы указали параметр paths=import, то сгенерированные файлы создались бы в директории, указанной в директиве go_package.
+
 ## X-Real-IP with curl
 ```
 curl --header "X-Real-IP: 192.168.2.2" localhost:8080/api/internal/stats

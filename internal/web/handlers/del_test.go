@@ -53,7 +53,7 @@ func TestDelBulk(t *testing.T) {
 	// init configApp
 	app.InitLog()
 	// init configApp
-	configApp := config.DefaultConfig()
+	configApp := config.DefaultConfig(false)
 
 	stor := storage.NewMemory()
 	short := service.NewService(stor)

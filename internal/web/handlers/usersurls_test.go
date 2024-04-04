@@ -43,7 +43,7 @@ func TestUsersUrls(t *testing.T) {
 	app.InitLog()
 
 	// init configApp
-	configApp := config.DefaultConfig()
+	configApp := config.DefaultConfig(false)
 
 	// init config with defaults values
 

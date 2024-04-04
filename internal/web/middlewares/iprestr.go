@@ -12,7 +12,7 @@ import (
 // Middleware function check network restriction.
 func NetAccess(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// ip/mask from config.
+		// ip/mask from context config.
 		trust := req.Context().Value(config.CtxIP{}).(string)
 		_, nip, err := net.ParseCIDR(trust)
 		if err != nil {
