@@ -1,5 +1,21 @@
 # Shortener with Yandex Practicum
 
+## gRPC interceptors
+https://github.com/grpc/grpc-go/blob/master/examples/features/interceptor/server/main.go
+
+## gRPC error codes
+[gRPC - HTTP error codes mapping: ](https://www.howico.de/2020/03/http-grpc-status-codes-guidelines/)
+HTTP: 200 / gRPC: OK
+HTTP: 400 / gRPC: OUT_OF_RANGE, FAILED_PRECONDITION
+HTTP: 401 / gRPC: UNAUTHENTICATED
+HTTP: 403 / gRPC: PERMISSION_DENIED
+HTTP: 404 / gRPC: NOT_FOUND
+HTTP: 410 / gRPC: UNKNOWN 
+HTTP: 500 / gRPC: NTERNAL
+HTTP: 503 / gRPC: UNAVAILABLE
+HTTP: 504 / gRPC: DEADLINE_EXCEEDED
+
+
 ## gRPC generate
 
 ```

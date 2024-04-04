@@ -63,7 +63,7 @@ func NewConfig() *Config {
 	config.SetAddress(startaddr + ":" + startport)
 	config.SetResponse(answaddr + ":" + answport)
 	zap.S().Infoln("Server REST address: ", config.GetAddrREST())
-
+	zap.S().Infoln("Server gRPC address: ", config.GetAddrGRPC())
 	// Init storage DB from env variable.
 	if config.DSN != nil {
 		zap.S().Infoln("Use Data Base storage: ", config.GetDSN())

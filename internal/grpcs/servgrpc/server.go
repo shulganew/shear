@@ -6,20 +6,28 @@ import (
 	"net"
 
 	"github.com/shulganew/shear.git/internal/config"
-	"github.com/shulganew/shear.git/internal/grpcs"
 	"github.com/shulganew/shear.git/internal/service"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
 	pb "github.com/shulganew/shear.git/internal/grpcs/proto"
+	"github.com/shulganew/shear.git/internal/grpcs/servgrpc/handlers"
+	"github.com/shulganew/shear.git/internal/grpcs/servgrpc/interceptors"
 )
 
 // TODO GRPC tls
 // https://github.com/grpc/grpc-go/blob/master/examples/features/encryption/TLS/server/main.go
 // Manage gRPC server.
 func Shortener(ctx context.Context, serviceURL *service.Shorten, conf *config.Config, componentsErrs chan error) (rpcDone chan struct{}) {
-	s := grpc.NewServer()
-	us := grpcs.NewUsersServer(serviceURL, conf)
+	// Add pass value to interceptors
+	initCtx := func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		newCtx := context.WithValue(ctx, config.CtxPassKey{}, conf.GetPass())
+		return handler(newCtx, req)
+	}
+
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(initCtx, interceptors.LogInterceptor))
+	us := handlers.NewUsersServer(serviceURL, conf)
+
 	pb.RegisterUsersServer(s, us)
 	go func() {
 		// Start gRPC server.

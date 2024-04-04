@@ -20,6 +20,7 @@ import (
 
 // Length of short URL random sequence length.
 const ShortLength = 8
+const SchemaHTTP = "http"
 
 // Base service shortener struct for manipulating with URLs.
 type Shorten struct {

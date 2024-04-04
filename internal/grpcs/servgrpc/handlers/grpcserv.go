@@ -1,4 +1,4 @@
-package grpcs
+package handlers
 
 import (
 	"github.com/shulganew/shear.git/internal/config"
