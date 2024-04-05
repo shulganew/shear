@@ -8,7 +8,7 @@ import (
 )
 
 // Example show how to get short (brief) URL from shortener. Use POST request with original URL in the body.
-func ExampleHandlerURL_SetURL() {
+func ExampleHandlerURL_AddURL() {
 	// Create a Resty Client
 	client := resty.New()
 	resp, err := client.R().
@@ -55,7 +55,7 @@ func ExampleHandlerURL_GetURL() {
 }
 
 // Create several shorts with batch request API.
-func ExampleHandlerBatch_BatchSet() {
+func ExampleHandlerBatch_BatchAdd() {
 	client := resty.New()
 	resp, err := client.R().
 		SetBody(`
