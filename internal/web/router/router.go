@@ -37,7 +37,7 @@ func RouteShear(conf *config.Config, short *service.Shorten, db *sql.DB, delete 
 
 		// Set short from URL.
 		webHand := handlers.NewHandlerGetURL(conf, short)
-		r.Post("/", http.HandlerFunc(webHand.SetURL))
+		r.Post("/", http.HandlerFunc(webHand.AddURL))
 		// Get URL by short.
 		r.Get("/{id}", http.HandlerFunc(webHand.GetURL))
 

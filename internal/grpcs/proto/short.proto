@@ -4,6 +4,8 @@ package shortgrpc; // package name for generated files
 
 option go_package = "shortgrpc/proto";
 
+
+// GetURL messages.
 message GetURLRequest {
 	string brief = 1;
     }
@@ -12,6 +14,7 @@ message GetURLResponse {
 	string origin = 1;
 }
 
+// SetURL messages.
 message SetURLRequest {
 	string origin = 1;
     }
@@ -20,7 +23,20 @@ message SetURLResponse {
 	string brief = 1;
 }
 
+// GetUserURLs messages.
+message GetURLs {}
+
+message Short {
+	string brief = 1;
+	string origin = 2;
+}
+
+message GetUserURLsResponse {
+	repeated Short short = 1;
+}
+
 service Users {
 	rpc GetURL(GetURLRequest) returns (GetURLResponse);
 	rpc SetURL(SetURLRequest) returns (SetURLResponse);
+	rpc GetUserURLs(GetURLs) returns (GetUserURLsResponse);
 } 

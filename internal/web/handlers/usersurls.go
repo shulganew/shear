@@ -58,7 +58,7 @@ func (u HandlerAuth) GetUserURLs(res http.ResponseWriter, req *http.Request) {
 	// if no data - 204
 	if len(shorts) == 0 {
 		res.WriteHeader(http.StatusNoContent)
-		res.Write([]byte("Cookie not set"))
+		res.Write([]byte("No content for user"))
 		return
 	}
 

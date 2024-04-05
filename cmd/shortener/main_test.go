@@ -79,7 +79,7 @@ func TestMain(t *testing.T) {
 				//create status recorder
 				resRecord := httptest.NewRecorder()
 
-				handler.SetURL(resRecord, req)
+				handler.AddURL(resRecord, req)
 
 				//get result
 				res := resRecord.Result()

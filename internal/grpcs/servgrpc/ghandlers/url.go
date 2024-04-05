@@ -1,4 +1,4 @@
-package handlers
+package ghandlers
 
 import (
 	"context"
@@ -35,20 +35,15 @@ func (us *UsersServer) GetURL(ctx context.Context, in *pb.GetURLRequest) (*pb.Ge
 	return nil, status.Errorf(codes.NotFound, "NotFound")
 }
 
-// @Summary      Set origin URL
+// @Summary      Add origin URL
 // @Description  set URL
 // @Tags         gRPC
 // @Success      nil
-// @Failure      7 "User unauthorized. PermissionDenied."
-// @Failure      404 "Conflict. URL existed."
-// @Failure      500 "Handling error"
-func (us *UsersServer) SetURL(ctx context.Context, in *pb.SetURLRequest) (*pb.SetURLResponse, error) {
+// @Failure      6 "Conflict. URL existed."
+// @Failure      13 "Handling error"
+func (us *UsersServer) AddURL(ctx context.Context, in *pb.SetURLRequest) (*pb.SetURLResponse, error) {
 	// Get userID from context.
 	ctxConfig := ctx.Value(config.CtxConfig{}).(config.CtxConfig)
-
-	zap.S().Infoln("IsNewUser: ", ctxConfig.IsNewUser())
-	zap.S().Infoln("IserID: ", ctxConfig.GetUserID())
-
 	redirectURL, err := url.Parse(in.Origin)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "parse URL error")

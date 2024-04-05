@@ -62,7 +62,7 @@ func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusNotFound)
 }
 
-// POTS and set generate short URL.
+// POTS and add generate short URL.
 // @Summary      Set origin URL
 // @Description  set URL in body POST
 // @Tags         api
@@ -73,7 +73,7 @@ func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 // @Failure      404 "Conflict. URL existed."
 // @Failure      500 "Handling error"
 // @Router       / [post]
-func (u *HandlerURL) SetURL(res http.ResponseWriter, req *http.Request) {
+func (u *HandlerURL) AddURL(res http.ResponseWriter, req *http.Request) {
 	readBody, err := io.ReadAll(req.Body)
 	if err != nil {
 		http.Error(res, "Body not found", http.StatusInternalServerError)

@@ -20,6 +20,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// GetURL messages.
 type GetURLRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -114,6 +115,7 @@ func (x *GetURLResponse) GetOrigin() string {
 	return ""
 }
 
+// SetURL messages.
 type SetURLRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -208,6 +210,147 @@ func (x *SetURLResponse) GetBrief() string {
 	return ""
 }
 
+// GetUserURLs messages.
+type GetURLs struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *GetURLs) Reset() {
+	*x = GetURLs{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_internal_grpcs_proto_short_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetURLs) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetURLs) ProtoMessage() {}
+
+func (x *GetURLs) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_grpcs_proto_short_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetURLs.ProtoReflect.Descriptor instead.
+func (*GetURLs) Descriptor() ([]byte, []int) {
+	return file_internal_grpcs_proto_short_proto_rawDescGZIP(), []int{4}
+}
+
+type Short struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Brief  string `protobuf:"bytes,1,opt,name=brief,proto3" json:"brief,omitempty"`
+	Origin string `protobuf:"bytes,2,opt,name=origin,proto3" json:"origin,omitempty"`
+}
+
+func (x *Short) Reset() {
+	*x = Short{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_internal_grpcs_proto_short_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Short) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Short) ProtoMessage() {}
+
+func (x *Short) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_grpcs_proto_short_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Short.ProtoReflect.Descriptor instead.
+func (*Short) Descriptor() ([]byte, []int) {
+	return file_internal_grpcs_proto_short_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *Short) GetBrief() string {
+	if x != nil {
+		return x.Brief
+	}
+	return ""
+}
+
+func (x *Short) GetOrigin() string {
+	if x != nil {
+		return x.Origin
+	}
+	return ""
+}
+
+type GetUserURLsResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Short []*Short `protobuf:"bytes,1,rep,name=short,proto3" json:"short,omitempty"`
+}
+
+func (x *GetUserURLsResponse) Reset() {
+	*x = GetUserURLsResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_internal_grpcs_proto_short_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetUserURLsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserURLsResponse) ProtoMessage() {}
+
+func (x *GetUserURLsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_grpcs_proto_short_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserURLsResponse.ProtoReflect.Descriptor instead.
+func (*GetUserURLsResponse) Descriptor() ([]byte, []int) {
+	return file_internal_grpcs_proto_short_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *GetUserURLsResponse) GetShort() []*Short {
+	if x != nil {
+		return x.Short
+	}
+	return nil
+}
+
 var File_internal_grpcs_proto_short_proto protoreflect.FileDescriptor
 
 var file_internal_grpcs_proto_short_proto_rawDesc = []byte{
@@ -223,18 +366,30 @@ var file_internal_grpcs_proto_short_proto_rawDesc = []byte{
 	0x16, 0x0a, 0x06, 0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x06, 0x6f, 0x72, 0x69, 0x67, 0x69, 0x6e, 0x22, 0x26, 0x0a, 0x0e, 0x53, 0x65, 0x74, 0x55, 0x52,
 	0x4c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x62, 0x72, 0x69,
-	0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x62, 0x72, 0x69, 0x65, 0x66, 0x32,
-	0x85, 0x01, 0x0a, 0x05, 0x55, 0x73, 0x65, 0x72, 0x73, 0x12, 0x3d, 0x0a, 0x06, 0x47, 0x65, 0x74,
+	0x65, 0x66, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x62, 0x72, 0x69, 0x65, 0x66, 0x22,
+	0x09, 0x0a, 0x07, 0x47, 0x65, 0x74, 0x55, 0x52, 0x4c, 0x73, 0x22, 0x35, 0x0a, 0x05, 0x53, 0x68,
+	0x6f, 0x72, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x62, 0x72, 0x69, 0x65, 0x66, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x05, 0x62, 0x72, 0x69, 0x65, 0x66, 0x12, 0x16, 0x0a, 0x06, 0x6f, 0x72, 0x69,
+	0x67, 0x69, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x6f, 0x72, 0x69, 0x67, 0x69,
+	0x6e, 0x22, 0x3d, 0x0a, 0x13, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x55, 0x52, 0x4c, 0x73,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x26, 0x0a, 0x05, 0x73, 0x68, 0x6f, 0x72,
+	0x74, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x67,
+	0x72, 0x70, 0x63, 0x2e, 0x53, 0x68, 0x6f, 0x72, 0x74, 0x52, 0x05, 0x73, 0x68, 0x6f, 0x72, 0x74,
+	0x32, 0xc8, 0x01, 0x0a, 0x05, 0x55, 0x73, 0x65, 0x72, 0x73, 0x12, 0x3d, 0x0a, 0x06, 0x47, 0x65,
+	0x74, 0x55, 0x52, 0x4c, 0x12, 0x18, 0x2e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x67, 0x72, 0x70, 0x63,
+	0x2e, 0x47, 0x65, 0x74, 0x55, 0x52, 0x4c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x19,
+	0x2e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x52,
+	0x4c, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3d, 0x0a, 0x06, 0x53, 0x65, 0x74,
 	0x55, 0x52, 0x4c, 0x12, 0x18, 0x2e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x67, 0x72, 0x70, 0x63, 0x2e,
-	0x47, 0x65, 0x74, 0x55, 0x52, 0x4c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e,
-	0x73, 0x68, 0x6f, 0x72, 0x74, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x52, 0x4c,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3d, 0x0a, 0x06, 0x53, 0x65, 0x74, 0x55,
-	0x52, 0x4c, 0x12, 0x18, 0x2e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x53,
-	0x65, 0x74, 0x55, 0x52, 0x4c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e, 0x73,
-	0x68, 0x6f, 0x72, 0x74, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x65, 0x74, 0x55, 0x52, 0x4c, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x11, 0x5a, 0x0f, 0x73, 0x68, 0x6f, 0x72, 0x74,
-	0x67, 0x72, 0x70, 0x63, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x53, 0x65, 0x74, 0x55, 0x52, 0x4c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x19, 0x2e,
+	0x73, 0x68, 0x6f, 0x72, 0x74, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x53, 0x65, 0x74, 0x55, 0x52, 0x4c,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x41, 0x0a, 0x0b, 0x47, 0x65, 0x74, 0x55,
+	0x73, 0x65, 0x72, 0x55, 0x52, 0x4c, 0x73, 0x12, 0x12, 0x2e, 0x73, 0x68, 0x6f, 0x72, 0x74, 0x67,
+	0x72, 0x70, 0x63, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x52, 0x4c, 0x73, 0x1a, 0x1e, 0x2e, 0x73, 0x68,
+	0x6f, 0x72, 0x74, 0x67, 0x72, 0x70, 0x63, 0x2e, 0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x55,
+	0x52, 0x4c, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x11, 0x5a, 0x0f, 0x73,
+	0x68, 0x6f, 0x72, 0x74, 0x67, 0x72, 0x70, 0x63, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -249,23 +404,29 @@ func file_internal_grpcs_proto_short_proto_rawDescGZIP() []byte {
 	return file_internal_grpcs_proto_short_proto_rawDescData
 }
 
-var file_internal_grpcs_proto_short_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_internal_grpcs_proto_short_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_internal_grpcs_proto_short_proto_goTypes = []interface{}{
-	(*GetURLRequest)(nil),  // 0: shortgrpc.GetURLRequest
-	(*GetURLResponse)(nil), // 1: shortgrpc.GetURLResponse
-	(*SetURLRequest)(nil),  // 2: shortgrpc.SetURLRequest
-	(*SetURLResponse)(nil), // 3: shortgrpc.SetURLResponse
+	(*GetURLRequest)(nil),       // 0: shortgrpc.GetURLRequest
+	(*GetURLResponse)(nil),      // 1: shortgrpc.GetURLResponse
+	(*SetURLRequest)(nil),       // 2: shortgrpc.SetURLRequest
+	(*SetURLResponse)(nil),      // 3: shortgrpc.SetURLResponse
+	(*GetURLs)(nil),             // 4: shortgrpc.GetURLs
+	(*Short)(nil),               // 5: shortgrpc.Short
+	(*GetUserURLsResponse)(nil), // 6: shortgrpc.GetUserURLsResponse
 }
 var file_internal_grpcs_proto_short_proto_depIdxs = []int32{
-	0, // 0: shortgrpc.Users.GetURL:input_type -> shortgrpc.GetURLRequest
-	2, // 1: shortgrpc.Users.SetURL:input_type -> shortgrpc.SetURLRequest
-	1, // 2: shortgrpc.Users.GetURL:output_type -> shortgrpc.GetURLResponse
-	3, // 3: shortgrpc.Users.SetURL:output_type -> shortgrpc.SetURLResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	5, // 0: shortgrpc.GetUserURLsResponse.short:type_name -> shortgrpc.Short
+	0, // 1: shortgrpc.Users.GetURL:input_type -> shortgrpc.GetURLRequest
+	2, // 2: shortgrpc.Users.SetURL:input_type -> shortgrpc.SetURLRequest
+	4, // 3: shortgrpc.Users.GetUserURLs:input_type -> shortgrpc.GetURLs
+	1, // 4: shortgrpc.Users.GetURL:output_type -> shortgrpc.GetURLResponse
+	3, // 5: shortgrpc.Users.SetURL:output_type -> shortgrpc.SetURLResponse
+	6, // 6: shortgrpc.Users.GetUserURLs:output_type -> shortgrpc.GetUserURLsResponse
+	4, // [4:7] is the sub-list for method output_type
+	1, // [1:4] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_internal_grpcs_proto_short_proto_init() }
@@ -322,6 +483,42 @@ func file_internal_grpcs_proto_short_proto_init() {
 				return nil
 			}
 		}
+		file_internal_grpcs_proto_short_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetURLs); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_internal_grpcs_proto_short_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Short); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_internal_grpcs_proto_short_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetUserURLsResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -329,7 +526,7 @@ func file_internal_grpcs_proto_short_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_internal_grpcs_proto_short_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

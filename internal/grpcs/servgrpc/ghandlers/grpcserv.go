@@ -1,4 +1,4 @@
-package handlers
+package ghandlers
 
 import (
 	"github.com/shulganew/shear.git/internal/config"

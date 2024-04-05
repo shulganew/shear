@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc"
 
 	pb "github.com/shulganew/shear.git/internal/grpcs/proto"
-	"github.com/shulganew/shear.git/internal/grpcs/servgrpc/handlers"
+	"github.com/shulganew/shear.git/internal/grpcs/servgrpc/ghandlers"
 	"github.com/shulganew/shear.git/internal/grpcs/servgrpc/interceptors"
 )
 
@@ -26,7 +26,7 @@ func Shortener(ctx context.Context, serviceURL *service.Shorten, conf *config.Co
 	}
 
 	s := grpc.NewServer(grpc.ChainUnaryInterceptor(initCtx, interceptors.LogInterceptor))
-	us := handlers.NewUsersServer(serviceURL, conf)
+	us := ghandlers.NewUsersServer(serviceURL, conf)
 
 	pb.RegisterUsersServer(s, us)
 	go func() {

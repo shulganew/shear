@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Users_GetURL_FullMethodName = "/shortgrpc.Users/GetURL"
-	Users_SetURL_FullMethodName = "/shortgrpc.Users/SetURL"
+	Users_GetURL_FullMethodName      = "/shortgrpc.Users/GetURL"
+	Users_SetURL_FullMethodName      = "/shortgrpc.Users/SetURL"
+	Users_GetUserURLs_FullMethodName = "/shortgrpc.Users/GetUserURLs"
 )
 
 // UsersClient is the client API for Users service.
@@ -29,6 +30,7 @@ const (
 type UsersClient interface {
 	GetURL(ctx context.Context, in *GetURLRequest, opts ...grpc.CallOption) (*GetURLResponse, error)
 	SetURL(ctx context.Context, in *SetURLRequest, opts ...grpc.CallOption) (*SetURLResponse, error)
+	GetUserURLs(ctx context.Context, in *GetURLs, opts ...grpc.CallOption) (*GetUserURLsResponse, error)
 }
 
 type usersClient struct {
@@ -57,12 +59,22 @@ func (c *usersClient) SetURL(ctx context.Context, in *SetURLRequest, opts ...grp
 	return out, nil
 }
 
+func (c *usersClient) GetUserURLs(ctx context.Context, in *GetURLs, opts ...grpc.CallOption) (*GetUserURLsResponse, error) {
+	out := new(GetUserURLsResponse)
+	err := c.cc.Invoke(ctx, Users_GetUserURLs_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
 type UsersServer interface {
 	GetURL(context.Context, *GetURLRequest) (*GetURLResponse, error)
 	SetURL(context.Context, *SetURLRequest) (*SetURLResponse, error)
+	GetUserURLs(context.Context, *GetURLs) (*GetUserURLsResponse, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -75,6 +87,9 @@ func (UnimplementedUsersServer) GetURL(context.Context, *GetURLRequest) (*GetURL
 }
 func (UnimplementedUsersServer) SetURL(context.Context, *SetURLRequest) (*SetURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetURL not implemented")
+}
+func (UnimplementedUsersServer) GetUserURLs(context.Context, *GetURLs) (*GetUserURLsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserURLs not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -125,6 +140,24 @@ func _Users_SetURL_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_GetUserURLs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetURLs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).GetUserURLs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Users_GetUserURLs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).GetUserURLs(ctx, req.(*GetURLs))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -139,6 +172,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetURL",
 			Handler:    _Users_SetURL_Handler,
+		},
+		{
+			MethodName: "GetUserURLs",
+			Handler:    _Users_GetUserURLs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
