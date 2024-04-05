@@ -95,7 +95,7 @@ func TestDelBulk(t *testing.T) {
 
 				// create status recorder
 				resRecord := httptest.NewRecorder()
-				apiBatch.BatchSet(resRecord, req)
+				apiBatch.BatchAdd(resRecord, req)
 
 				// 2. Reas body for result and check server answer
 				res := resRecord.Result()

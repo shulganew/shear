@@ -23,7 +23,7 @@ type Short struct {
 }
 
 // Constructor Short.
-func NewShort(ID int, UUID string, brief string, origin string, sessionID string, userID string) *Short {
+func NewShort(ID int, UUID string, brief string, origin string, sessionID string) *Short {
 	nullUUID := sql.NullString{String: UUID, Valid: true}
 	if UUID == "" {
 		nullUUID.Valid = false

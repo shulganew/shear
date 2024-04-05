@@ -20,7 +20,7 @@ func NewMemory() *Memory {
 // Set short and original URL to storage.
 func (m *Memory) Set(ctx context.Context, userID, brief, origin string) (err error) {
 	// init storage
-	short := entities.NewShort(len(m.StoreURLs), userID, brief, origin, "", "")
+	short := entities.NewShort(len(m.StoreURLs), userID, brief, origin, "")
 	m.StoreURLs = append(m.StoreURLs, *short)
 	return
 }

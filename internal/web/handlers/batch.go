@@ -27,8 +27,8 @@ func NewHandlerBatch(conf *config.Config, short *service.Shorten) *HandlerBatch 
 	return &HandlerBatch{serviceURL: short, conf: conf}
 }
 
-// @Summary      Set several user's URLs in body in JSON format
-// @Description  Set json URLs
+// @Summary      Add several user's URLs in body in JSON format
+// @Description  Add json URLs
 // @Tags         api
 // @Accept       json
 // @Produce      json
@@ -38,7 +38,7 @@ func NewHandlerBatch(conf *config.Config, short *service.Shorten) *HandlerBatch 
 // @Failure      404 "Conflict. URL existed."
 // @Failure      500 "Handling error"
 // @Router       /api/shorten/batch [post]
-func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
+func (u *HandlerBatch) BatchAdd(res http.ResponseWriter, req *http.Request) {
 	// find UserID in cookies
 	userID, err := req.Cookie("user_id")
 	if err != nil {
@@ -72,9 +72,8 @@ func (u *HandlerBatch) BatchSet(res http.ResponseWriter, req *http.Request) {
 		batch := entities.BatchResponse{SessionID: r.SessionID, Answer: answerURL.String()}
 		// add batches
 		batches = append(batches, batch)
-		shortSession := entities.NewShort(i, userID.Value, brief, (*origin).String(), batch.SessionID, userID.String())
+		shortSession := entities.NewShort(i, userID.Value, brief, (*origin).String(), batch.SessionID)
 		shorts = append(shorts, *shortSession)
-
 	}
 	// save to storage
 	err = u.serviceURL.SetAll(req.Context(), shorts)

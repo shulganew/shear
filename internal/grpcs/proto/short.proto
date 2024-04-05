@@ -49,10 +49,18 @@ message DelResponse {
 	bool ok = 1;
 }
 
+// Batch request.
+message BatchRequest {
+	repeated string origins = 1;
+}
+message BatchResponse {
+	repeated string briefs = 1;
+}
 service Users {
 	rpc GetURL(GetURLRequest) returns (GetURLResponse);
 	rpc SetURL(SetURLRequest) returns (SetURLResponse);
 	rpc GetUserURLs(GetURLs) returns (GetUserURLsResponse);
 	rpc Ping(PingRequest) returns (PingResponse);
 	rpc DelUserURLs(DelRequest) returns (DelResponse);
+	rpc Batch(BatchRequest) returns (BatchResponse);
 } 

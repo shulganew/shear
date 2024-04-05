@@ -51,7 +51,7 @@ func RouteShear(conf *config.Config, short *service.Shorten, db *sql.DB, delete 
 
 		// DB Postgres Batch request (multiple JSON)
 		batchHand := handlers.NewHandlerBatch(conf, short)
-		r.Post("/api/shorten/batch", http.HandlerFunc(batchHand.BatchSet))
+		r.Post("/api/shorten/batch", http.HandlerFunc(batchHand.BatchAdd))
 
 		// Get all users URLs.
 		handCookieID := handlers.NewHandlerAuthUser(conf, short)

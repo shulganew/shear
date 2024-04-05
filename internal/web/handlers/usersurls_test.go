@@ -79,7 +79,7 @@ func TestUsersUrls(t *testing.T) {
 
 			// create status recorder
 			resRecord := httptest.NewRecorder()
-			apiBatch.BatchSet(resRecord, req)
+			apiBatch.BatchAdd(resRecord, req)
 
 			// get result
 			res := resRecord.Result()
