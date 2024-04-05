@@ -17,8 +17,7 @@ import (
 
 // @Summary      Add several original user's URLs and return generated briefs from response
 // @Description  Add json URLs
-// @Tags         api
-// @Accept       gRPC
+// @Tags         gRPC
 // @Success      0   "Created"
 // @Failure      3 "Wrong URL format"
 // @Failure      6 "Conflict. URL existed."

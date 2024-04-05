@@ -25,6 +25,7 @@ const (
 	Users_Ping_FullMethodName        = "/shortgrpc.Users/Ping"
 	Users_DelUserURLs_FullMethodName = "/shortgrpc.Users/DelUserURLs"
 	Users_Batch_FullMethodName       = "/shortgrpc.Users/Batch"
+	Users_GetStat_FullMethodName     = "/shortgrpc.Users/GetStat"
 )
 
 // UsersClient is the client API for Users service.
@@ -37,6 +38,7 @@ type UsersClient interface {
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 	DelUserURLs(ctx context.Context, in *DelRequest, opts ...grpc.CallOption) (*DelResponse, error)
 	Batch(ctx context.Context, in *BatchRequest, opts ...grpc.CallOption) (*BatchResponse, error)
+	GetStat(ctx context.Context, in *GetStatRequest, opts ...grpc.CallOption) (*GetStatResponse, error)
 }
 
 type usersClient struct {
@@ -101,6 +103,15 @@ func (c *usersClient) Batch(ctx context.Context, in *BatchRequest, opts ...grpc.
 	return out, nil
 }
 
+func (c *usersClient) GetStat(ctx context.Context, in *GetStatRequest, opts ...grpc.CallOption) (*GetStatResponse, error) {
+	out := new(GetStatResponse)
+	err := c.cc.Invoke(ctx, Users_GetStat_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -111,6 +122,7 @@ type UsersServer interface {
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	DelUserURLs(context.Context, *DelRequest) (*DelResponse, error)
 	Batch(context.Context, *BatchRequest) (*BatchResponse, error)
+	GetStat(context.Context, *GetStatRequest) (*GetStatResponse, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -135,6 +147,9 @@ func (UnimplementedUsersServer) DelUserURLs(context.Context, *DelRequest) (*DelR
 }
 func (UnimplementedUsersServer) Batch(context.Context, *BatchRequest) (*BatchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Batch not implemented")
+}
+func (UnimplementedUsersServer) GetStat(context.Context, *GetStatRequest) (*GetStatResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStat not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -257,6 +272,24 @@ func _Users_Batch_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_GetStat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).GetStat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Users_GetStat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).GetStat(ctx, req.(*GetStatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -287,6 +320,10 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Batch",
 			Handler:    _Users_Batch_Handler,
+		},
+		{
+			MethodName: "GetStat",
+			Handler:    _Users_GetStat_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

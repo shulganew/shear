@@ -57,7 +57,7 @@ func main() {
 	// Start web server.
 	webDone := servrest.Shortener(ctx, conf, componentsErrs, rt)
 
-	// Start web server.
+	// Start gRPC server.
 	grpcDone := servgrpc.Shortener(ctx, short, conf, db, del, componentsErrs)
 
 	// Update deleted shorts from common fan-In channel.

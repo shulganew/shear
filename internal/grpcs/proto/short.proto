@@ -56,6 +56,14 @@ message BatchRequest {
 message BatchResponse {
 	repeated string briefs = 1;
 }
+
+// Get statistics GetStat.
+message GetStatRequest {}
+message GetStatResponse {
+	int64 Shorts = 1;
+	int64 Users = 2;
+}
+
 service Users {
 	rpc GetURL(GetURLRequest) returns (GetURLResponse);
 	rpc SetURL(SetURLRequest) returns (SetURLResponse);
@@ -63,4 +71,5 @@ service Users {
 	rpc Ping(PingRequest) returns (PingResponse);
 	rpc DelUserURLs(DelRequest) returns (DelResponse);
 	rpc Batch(BatchRequest) returns (BatchResponse);
+	rpc GetStat(GetStatRequest) returns (GetStatResponse);
 } 

@@ -22,8 +22,9 @@ import (
 func Shortener(ctx context.Context, serviceURL *service.Shorten, conf *config.Config, db *sql.DB, sd *service.Delete, componentsErrs chan error) (rpcDone chan struct{}) {
 	// Add pass value to interceptors
 	initCtx := func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		newCtx := context.WithValue(ctx, config.CtxPassKey{}, conf.GetPass())
-		return handler(newCtx, req)
+		ctx = context.WithValue(ctx, config.CtxIP{}, conf.GetIP())
+		ctx = context.WithValue(ctx, config.CtxPassKey{}, conf.GetPass())
+		return handler(ctx, req)
 	}
 
 	s := grpc.NewServer(grpc.ChainUnaryInterceptor(initCtx, interceptors.LogInterceptor))
