@@ -13,7 +13,7 @@ import (
 
 // Return all users briefs URLs (shorts).
 // @Summary      Get all user's origin URLs
-// @Description  Add origin URL by JSON request, get brief URL in response
+// @Description  Return Short object with origin and brief URL.
 // @Tags         gRPC
 // @Success      0 {object} []ResponseAuth "OK"
 // @Failure      7 "User unauthorized"

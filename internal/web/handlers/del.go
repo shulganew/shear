@@ -39,7 +39,7 @@ func (d *DelShorts) DelUserURLs(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Cookie not set.", http.StatusUnauthorized)
 
 	}
-
+	
 	userID := ctxConfig.GetUserID()
 
 	body, err := io.ReadAll(req.Body)

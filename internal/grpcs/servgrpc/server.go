@@ -2,6 +2,7 @@ package servgrpc
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net"
 
@@ -18,7 +19,7 @@ import (
 // TODO GRPC tls
 // https://github.com/grpc/grpc-go/blob/master/examples/features/encryption/TLS/server/main.go
 // Manage gRPC server.
-func Shortener(ctx context.Context, serviceURL *service.Shorten, conf *config.Config, componentsErrs chan error) (rpcDone chan struct{}) {
+func Shortener(ctx context.Context, serviceURL *service.Shorten, conf *config.Config, db *sql.DB, sd *service.Delete, componentsErrs chan error) (rpcDone chan struct{}) {
 	// Add pass value to interceptors
 	initCtx := func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		newCtx := context.WithValue(ctx, config.CtxPassKey{}, conf.GetPass())
@@ -26,7 +27,7 @@ func Shortener(ctx context.Context, serviceURL *service.Shorten, conf *config.Co
 	}
 
 	s := grpc.NewServer(grpc.ChainUnaryInterceptor(initCtx, interceptors.LogInterceptor))
-	us := ghandlers.NewUsersServer(serviceURL, conf)
+	us := ghandlers.NewUsersServer(serviceURL, conf, db, sd)
 
 	pb.RegisterUsersServer(s, us)
 	go func() {

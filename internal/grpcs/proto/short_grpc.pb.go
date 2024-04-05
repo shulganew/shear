@@ -22,6 +22,8 @@ const (
 	Users_GetURL_FullMethodName      = "/shortgrpc.Users/GetURL"
 	Users_SetURL_FullMethodName      = "/shortgrpc.Users/SetURL"
 	Users_GetUserURLs_FullMethodName = "/shortgrpc.Users/GetUserURLs"
+	Users_Ping_FullMethodName        = "/shortgrpc.Users/Ping"
+	Users_DelUserURLs_FullMethodName = "/shortgrpc.Users/DelUserURLs"
 )
 
 // UsersClient is the client API for Users service.
@@ -31,6 +33,8 @@ type UsersClient interface {
 	GetURL(ctx context.Context, in *GetURLRequest, opts ...grpc.CallOption) (*GetURLResponse, error)
 	SetURL(ctx context.Context, in *SetURLRequest, opts ...grpc.CallOption) (*SetURLResponse, error)
 	GetUserURLs(ctx context.Context, in *GetURLs, opts ...grpc.CallOption) (*GetUserURLsResponse, error)
+	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
+	DelUserURLs(ctx context.Context, in *DelRequest, opts ...grpc.CallOption) (*DelResponse, error)
 }
 
 type usersClient struct {
@@ -68,6 +72,24 @@ func (c *usersClient) GetUserURLs(ctx context.Context, in *GetURLs, opts ...grpc
 	return out, nil
 }
 
+func (c *usersClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
+	out := new(PingResponse)
+	err := c.cc.Invoke(ctx, Users_Ping_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *usersClient) DelUserURLs(ctx context.Context, in *DelRequest, opts ...grpc.CallOption) (*DelResponse, error) {
+	out := new(DelResponse)
+	err := c.cc.Invoke(ctx, Users_DelUserURLs_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UsersServer is the server API for Users service.
 // All implementations must embed UnimplementedUsersServer
 // for forward compatibility
@@ -75,6 +97,8 @@ type UsersServer interface {
 	GetURL(context.Context, *GetURLRequest) (*GetURLResponse, error)
 	SetURL(context.Context, *SetURLRequest) (*SetURLResponse, error)
 	GetUserURLs(context.Context, *GetURLs) (*GetUserURLsResponse, error)
+	Ping(context.Context, *PingRequest) (*PingResponse, error)
+	DelUserURLs(context.Context, *DelRequest) (*DelResponse, error)
 	mustEmbedUnimplementedUsersServer()
 }
 
@@ -90,6 +114,12 @@ func (UnimplementedUsersServer) SetURL(context.Context, *SetURLRequest) (*SetURL
 }
 func (UnimplementedUsersServer) GetUserURLs(context.Context, *GetURLs) (*GetUserURLsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserURLs not implemented")
+}
+func (UnimplementedUsersServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedUsersServer) DelUserURLs(context.Context, *DelRequest) (*DelResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DelUserURLs not implemented")
 }
 func (UnimplementedUsersServer) mustEmbedUnimplementedUsersServer() {}
 
@@ -158,6 +188,42 @@ func _Users_GetUserURLs_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Users_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).Ping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Users_Ping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).Ping(ctx, req.(*PingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Users_DelUserURLs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UsersServer).DelUserURLs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Users_DelUserURLs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UsersServer).DelUserURLs(ctx, req.(*DelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Users_ServiceDesc is the grpc.ServiceDesc for Users service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -176,6 +242,14 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserURLs",
 			Handler:    _Users_GetUserURLs_Handler,
+		},
+		{
+			MethodName: "Ping",
+			Handler:    _Users_Ping_Handler,
+		},
+		{
+			MethodName: "DelUserURLs",
+			Handler:    _Users_DelUserURLs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

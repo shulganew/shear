@@ -35,8 +35,24 @@ message GetUserURLsResponse {
 	repeated Short short = 1;
 }
 
+// Ping messages.
+message PingRequest {}
+message PingResponse {
+	bool ok = 1;
+}
+
+// Del array of briefs.
+message DelRequest {
+	repeated string briefs = 1;
+}
+message DelResponse {
+	bool ok = 1;
+}
+
 service Users {
 	rpc GetURL(GetURLRequest) returns (GetURLResponse);
 	rpc SetURL(SetURLRequest) returns (SetURLResponse);
 	rpc GetUserURLs(GetURLs) returns (GetUserURLsResponse);
+	rpc Ping(PingRequest) returns (PingResponse);
+	rpc DelUserURLs(DelRequest) returns (DelResponse);
 } 
