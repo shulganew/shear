@@ -51,7 +51,7 @@ func TestAPI(t *testing.T) {
 		{
 			name:       "base test Broken JSON",
 			requestURL: "http://localhost:8080/api/shorten",
-			body:       `{"url": "https://practicum.yandex.ru"}`,
+			body:       `{"ul": "https://practicum.yandex.ru"}`,
 			link:       "https://practicum.yandex.ru",
 			statusCode: http.StatusInternalServerError,
 			isCookie:   false,
@@ -59,7 +59,7 @@ func TestAPI(t *testing.T) {
 		{
 			name:       "base test Borken URL",
 			requestURL: "http://localhost:8080/api/shorten",
-			body:       `{"url": "https://practicum.yandex.ru"}`,
+			body:       `{"ul": "https://practicum.yandex.ru"}`,
 			link:       "https://practicum.yandex.ru",
 			statusCode: http.StatusInternalServerError,
 			isCookie:   false,

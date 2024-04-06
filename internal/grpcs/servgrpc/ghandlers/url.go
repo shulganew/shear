@@ -22,9 +22,9 @@ import (
 // @Success      nil
 // @Failure      2
 // @Failure      5
-func (us *UsersServer) GetURL(ctx context.Context, in *pb.GetURLRequest) (*pb.GetURLResponse, error) {
+func (u *UsersServer) GetURL(ctx context.Context, in *pb.GetURLRequest) (*pb.GetURLResponse, error) {
 	var resp pb.GetURLResponse
-	origin, exist, isDeleted := us.serviceURL.GetOrigin(ctx, in.GetBrief())
+	origin, exist, isDeleted := u.serviceURL.GetOrigin(ctx, in.GetBrief())
 	if exist {
 		if isDeleted {
 			return nil, status.Errorf(codes.Unknown, "Deleted: StatusGone")
@@ -41,7 +41,7 @@ func (us *UsersServer) GetURL(ctx context.Context, in *pb.GetURLRequest) (*pb.Ge
 // @Success      nil
 // @Failure      6 "Conflict. URL existed."
 // @Failure      13 "Handling error"
-func (us *UsersServer) AddURL(ctx context.Context, in *pb.SetURLRequest) (*pb.SetURLResponse, error) {
+func (u *UsersServer) AddURL(ctx context.Context, in *pb.SetURLRequest) (*pb.SetURLResponse, error) {
 	// Get userID from context.
 	ctxConfig := ctx.Value(config.CtxConfig{}).(config.CtxConfig)
 	redirectURL, err := url.Parse(in.Origin)
@@ -50,13 +50,13 @@ func (us *UsersServer) AddURL(ctx context.Context, in *pb.SetURLRequest) (*pb.Se
 	}
 	zap.S().Infoln("redirectURL: ", redirectURL)
 	brief := service.GenerateShortLinkByte()
-	mainURL, answerURL, err := us.serviceURL.GetAnsURLFast(redirectURL.Scheme, us.conf.GetResponse(), brief)
+	mainURL, answerURL, err := u.serviceURL.GetAnsURLFast(redirectURL.Scheme, u.conf.GetResponse(), brief)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "parse new URL error")
 	}
 
 	// Save map to storage.
-	err = us.serviceURL.SetURL(ctx, ctxConfig.GetUserID(), brief, (*redirectURL).String())
+	err = u.serviceURL.SetURL(ctx, ctxConfig.GetUserID(), brief, (*redirectURL).String())
 	if err != nil {
 		var tagErr *storage.ErrDuplicatedURL
 		if errors.As(err, &tagErr) {

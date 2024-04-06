@@ -16,8 +16,6 @@ import (
 	"github.com/shulganew/shear.git/internal/grpcs/servgrpc/interceptors"
 )
 
-// TODO GRPC tls
-// https://github.com/grpc/grpc-go/blob/master/examples/features/encryption/TLS/server/main.go
 // Manage gRPC server.
 func Shortener(ctx context.Context, serviceURL *service.Shorten, conf *config.Config, db *sql.DB, sd *service.Delete, componentsErrs chan error) (rpcDone chan struct{}) {
 	// Add pass value to interceptors
@@ -27,7 +25,7 @@ func Shortener(ctx context.Context, serviceURL *service.Shorten, conf *config.Co
 		return handler(ctx, req)
 	}
 
-	s := grpc.NewServer(grpc.ChainUnaryInterceptor(initCtx, interceptors.LogInterceptor))
+	s := grpc.NewServer(grpc.ChainUnaryInterceptor(initCtx, interceptors.AuthInterceptor))
 	us := ghandlers.NewUsersServer(serviceURL, conf, db, sd)
 
 	pb.RegisterUsersServer(s, us)

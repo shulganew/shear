@@ -20,6 +20,8 @@ import (
 
 // Length of short URL random sequence length.
 const ShortLength = 8
+
+// Prefix with protocol chema for URLs constractors.
 const SchemaHTTP = "http"
 
 // Base service shortener struct for manipulating with URLs.

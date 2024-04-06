@@ -13,7 +13,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func LogInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+// Check user auth from MD value (cookie analog of authmiddleware).
+func AuthInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 	// Pass from config.
 	pass := ctx.Value(config.CtxPassKey{}).(string)
 
