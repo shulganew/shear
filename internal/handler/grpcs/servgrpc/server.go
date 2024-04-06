@@ -11,9 +11,9 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	pb "github.com/shulganew/shear.git/internal/grpcs/proto"
-	"github.com/shulganew/shear.git/internal/grpcs/servgrpc/ghandlers"
-	"github.com/shulganew/shear.git/internal/grpcs/servgrpc/interceptors"
+	pb "github.com/shulganew/shear.git/internal/handler/grpcs/proto"
+	"github.com/shulganew/shear.git/internal/handler/grpcs/servgrpc/ghandlers"
+	"github.com/shulganew/shear.git/internal/handler/grpcs/servgrpc/interceptors"
 )
 
 // Manage gRPC server.

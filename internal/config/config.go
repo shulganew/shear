@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/shulganew/shear.git/internal/web/validators"
+	"github.com/shulganew/shear.git/internal/handler/http/validators"
 	"go.uber.org/zap"
 )
 

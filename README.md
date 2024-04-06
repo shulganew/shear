@@ -246,6 +246,10 @@ go build -o ./cmd/shortener/shortener ./cmd/shortener/main.go
 
 ## Test cover
 ```
+go test -v -coverpkg=./... -coverprofile=/tmp/profile.cov ./...;cat /tmp/profile.cov | grep -v "mock\|vegeta" > /tmp/nomocksmigrations.cov;go tool cover -func /tmp/nomocksmigrations.cov
+```
+
+```
 go test -v -coverpkg=./... -coverprofile=profile.cov ./...
 go tool cover -func profile.cov
 ```

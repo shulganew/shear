@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/shulganew/shear.git/internal/config"
-	pb "github.com/shulganew/shear.git/internal/grpcs/proto"
+	pb "github.com/shulganew/shear.git/internal/handler/grpcs/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

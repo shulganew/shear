@@ -12,8 +12,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/shulganew/shear.git/internal/config"
+	"github.com/shulganew/shear.git/internal/handler/http/rest"
 	"github.com/shulganew/shear.git/internal/service"
-	"github.com/shulganew/shear.git/internal/web/handlers"
+
 	"go.uber.org/zap"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -59,7 +60,7 @@ func TestMain(t *testing.T) {
 	short := service.NewService(storage.NewMemory())
 
 	//init storage
-	handler := handlers.NewHandlerGetURL(&configApp, short)
+	handler := rest.NewHandlerGetURL(&configApp, short)
 
 	userID, err := uuid.NewV7()
 	if err != nil {

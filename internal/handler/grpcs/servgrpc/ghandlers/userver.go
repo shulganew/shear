@@ -4,7 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/shulganew/shear.git/internal/config"
-	pb "github.com/shulganew/shear.git/internal/grpcs/proto"
+	pb "github.com/shulganew/shear.git/internal/handler/grpcs/proto"
 	"github.com/shulganew/shear.git/internal/service"
 )
 

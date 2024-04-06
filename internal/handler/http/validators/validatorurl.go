@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// Parse server and url address. If address empty or parsing error - return default URL: 8080/8443
+// Parse server and url address. If address empty or parsing error - return default URL: 8080/8443.
 func CheckURL(address string, isSequer bool) (host string, port string) {
 
 	if len(address) == 0 {

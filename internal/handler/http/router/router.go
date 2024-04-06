@@ -10,10 +10,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shulganew/shear.git/internal/config"
+	"github.com/shulganew/shear.git/internal/handler/http/middlewares"
+	"github.com/shulganew/shear.git/internal/handler/http/rest"
+	"github.com/shulganew/shear.git/internal/handler/http/validators"
+
 	"github.com/shulganew/shear.git/internal/service"
-	"github.com/shulganew/shear.git/internal/web/handlers"
-	"github.com/shulganew/shear.git/internal/web/middlewares"
-	"github.com/shulganew/shear.git/internal/web/validators"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -36,33 +37,33 @@ func RouteShear(conf *config.Config, short *service.Shorten, db *sql.DB, delete 
 		r.Use(middlewares.Auth)
 
 		// Set short from URL.
-		webHand := handlers.NewHandlerGetURL(conf, short)
+		webHand := rest.NewHandlerGetURL(conf, short)
 		r.Post("/", http.HandlerFunc(webHand.AddURL))
 		// Get URL by short.
 		r.Get("/{id}", http.HandlerFunc(webHand.GetURL))
 
 		// JSON API for shortener.
-		apiHand := handlers.NewHandlerAPI(conf, short)
+		apiHand := rest.NewHandlerAPI(conf, short)
 		r.Post("/api/shorten", http.HandlerFunc(apiHand.GetBrief))
 
 		// Database test - ping.
-		dbHand := handlers.NewDB(db)
+		dbHand := rest.NewDB(db)
 		r.Get("/ping", http.HandlerFunc(dbHand.Ping))
 
 		// DB Postgres Batch request (multiple JSON)
-		batchHand := handlers.NewHandlerBatch(conf, short)
+		batchHand := rest.NewHandlerBatch(conf, short)
 		r.Post("/api/shorten/batch", http.HandlerFunc(batchHand.BatchAdd))
 
 		// Get all users URLs.
-		handCookieID := handlers.NewHandlerAuthUser(conf, short)
+		handCookieID := rest.NewHandlerAuthUser(conf, short)
 		r.Get("/api/user/urls", http.HandlerFunc(handCookieID.GetUserURLs))
 
 		// Batch delete shorts from handlers (bulk postgres delete).
-		delID := handlers.NewHandlerDelShorts(delete)
+		delID := rest.NewHandlerDelShorts(delete)
 		r.Delete("/api/user/urls", http.HandlerFunc(delID.DelUserURLs))
 
 		// Server statistic.
-		stat := handlers.NewHandlerStat(conf, short)
+		stat := rest.NewHandlerStat(conf, short)
 		r.With(middlewares.NetAccess).Get("/api/internal/stats", http.HandlerFunc(stat.GetStat))
 
 		if conf.IsPprof() {

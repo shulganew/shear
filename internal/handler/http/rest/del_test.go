@@ -1,4 +1,4 @@
-package handlers
+package rest
 
 import (
 	"bytes"
@@ -18,9 +18,10 @@ import (
 	"github.com/shulganew/shear.git/internal/app"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/entities"
+	"github.com/shulganew/shear.git/internal/handler/http/middlewares"
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/storage"
-	"github.com/shulganew/shear.git/internal/web/middlewares"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"

@@ -6,7 +6,7 @@ import (
 	"net/url"
 
 	"github.com/shulganew/shear.git/internal/config"
-	pb "github.com/shulganew/shear.git/internal/grpcs/proto"
+	pb "github.com/shulganew/shear.git/internal/handler/grpcs/proto"
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"

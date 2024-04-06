@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 
 	"github.com/shulganew/shear.git/internal/config"
-	pb "github.com/shulganew/shear.git/internal/grpcs/proto"
+	pb "github.com/shulganew/shear.git/internal/handler/grpcs/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
