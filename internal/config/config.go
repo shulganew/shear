@@ -312,10 +312,10 @@ func readENV() Config {
 }
 
 // Return config object with preset defaults values.
-func DefaultConfig(isSeq bool) Config {
+func DefaultConfig(isSec bool) Config {
 	dconf := Config{}
 	// Set defaults values.
-	if !isSeq {
+	if !isSec {
 		dconf.AddrREST = ptStr("localhost:8080")
 		dconf.AddrGRPC = ptStr("localhost:9090")
 	} else {

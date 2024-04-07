@@ -30,7 +30,7 @@ _golangci-lint-rm-unformatted-report: _golangci-lint-format-report
 golangci-lint-clean:
 	sudo rm -rf ./golangci-lint 
 
-#Migrations
+# Migrations
 
 .PHONY: pg
 pg:
@@ -49,3 +49,10 @@ pg:
 .PHONY: pg-stop
 pg-stop:
 	docker stop shortdb_v11
+
+# Update proto files
+.PHONY: upproto
+upproto:
+	rm -f internal/handler/grpc/proto/short.pb.go
+	rm -f internal/handler/grpc/proto/short_grpc.pb.go
+	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative internal/handler/grpc/proto/short.proto

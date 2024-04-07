@@ -31,8 +31,8 @@ type Shorten struct {
 
 // Interface for universal data storage, witch contain short and full URL.
 type StorageURL interface {
-	Set(ctx context.Context, userID string, brief, origin string) error
-	SetAll(ctx context.Context, short []entities.Short) error
+	Add(ctx context.Context, userID string, brief, origin string) error
+	AddAll(ctx context.Context, short []entities.Short) error
 	GetOrigin(ctx context.Context, brief string) (string, bool, bool)
 	GetBrief(ctx context.Context, origin string) (string, bool, bool)
 	GetAll(ctx context.Context) []entities.Short
@@ -48,8 +48,8 @@ func NewService(storage StorageURL) *Shorten {
 }
 
 // Set user's URL to storage: original and short.
-func (s *Shorten) SetURL(ctx context.Context, userID, brief, origin string) (err error) {
-	err = s.storeURLs.Set(ctx, userID, brief, origin)
+func (s *Shorten) AddURL(ctx context.Context, userID, brief, origin string) (err error) {
+	err = s.storeURLs.Add(ctx, userID, brief, origin)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (s *Shorten) SetURL(ctx context.Context, userID, brief, origin string) (err
 
 // Set user's URLs short object array.
 func (s *Shorten) SetAll(ctx context.Context, short []entities.Short) (err error) {
-	err = s.storeURLs.SetAll(ctx, short)
+	err = s.storeURLs.AddAll(ctx, short)
 	if err != nil {
 		return fmt.Errorf("error during save URL to Store: %w", err)
 	}

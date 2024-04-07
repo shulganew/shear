@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 
@@ -12,6 +13,7 @@ import (
 // Middleware function check network restriction.
 func NetAccess(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		fmt.Println("!!!!!!!!!!")
 		// ip/mask from context config.
 		trust := req.Context().Value(config.CtxIP{}).(string)
 		_, nip, err := net.ParseCIDR(trust)

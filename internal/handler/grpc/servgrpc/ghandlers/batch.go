@@ -7,7 +7,7 @@ import (
 
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/entities"
-	pb "github.com/shulganew/shear.git/internal/handler/grpcs/proto"
+	pb "github.com/shulganew/shear.git/internal/handler/grpc/proto"
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"

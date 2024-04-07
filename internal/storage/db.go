@@ -26,8 +26,8 @@ func NewDB(ctx context.Context, master *sql.DB) (*DB, error) {
 	return &db, err
 }
 
-// Set short and original URL to storage.
-func (base *DB) Set(ctx context.Context, userID, brief, origin string) error {
+// Add short and original URL to storage.
+func (base *DB) Add(ctx context.Context, userID, brief, origin string) error {
 	err := base.master.QueryRowContext(ctx, "INSERT INTO short (user_id, brief, origin, is_deleted) VALUES ($1, $2, $3, $4) ", userID, brief, origin, false).Scan()
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -57,7 +57,7 @@ func (base *DB) Set(ctx context.Context, userID, brief, origin string) error {
 }
 
 // Set all user's short and original URLs from Short slice.
-func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
+func (base *DB) AddAll(ctx context.Context, shorts []entities.Short) error {
 	tx, err := base.master.Begin()
 	if err != nil {
 		zap.S().Errorln(err)

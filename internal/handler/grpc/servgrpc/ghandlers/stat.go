@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/shulganew/shear.git/internal/config"
-	pb "github.com/shulganew/shear.git/internal/handler/grpcs/proto"
+	pb "github.com/shulganew/shear.git/internal/handler/grpc/proto"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/peer"

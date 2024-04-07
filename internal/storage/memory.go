@@ -17,8 +17,8 @@ func NewMemory() *Memory {
 	return &Memory{StoreURLs: make([]entities.Short, 0)}
 }
 
-// Set short and original URL to storage.
-func (m *Memory) Set(ctx context.Context, userID, brief, origin string) (err error) {
+// Add short and original URL to storage.
+func (m *Memory) Add(ctx context.Context, userID, brief, origin string) (err error) {
 	// init storage
 	short := entities.NewShort(len(m.StoreURLs), userID, brief, origin, "")
 	m.StoreURLs = append(m.StoreURLs, *short)
@@ -26,7 +26,7 @@ func (m *Memory) Set(ctx context.Context, userID, brief, origin string) (err err
 }
 
 // Set all user's short and original URLs from Short slice.
-func (m *Memory) SetAll(ctx context.Context, shotrs []entities.Short) error {
+func (m *Memory) AddAll(ctx context.Context, shotrs []entities.Short) error {
 	m.StoreURLs = append(m.StoreURLs, shotrs...)
 	return nil
 }

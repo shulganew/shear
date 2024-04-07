@@ -71,7 +71,7 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 	}
 
 	// save map to storage
-	err = u.serviceURL.SetURL(req.Context(), userID.Value, brief, (*origin).String())
+	err = u.serviceURL.AddURL(req.Context(), userID.Value, brief, (*origin).String())
 
 	// set content type
 	res.Header().Add("Content-Type", "application/json")

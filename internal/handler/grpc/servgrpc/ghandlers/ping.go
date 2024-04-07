@@ -3,7 +3,7 @@ package ghandlers
 import (
 	"context"
 
-	pb "github.com/shulganew/shear.git/internal/handler/grpcs/proto"
+	pb "github.com/shulganew/shear.git/internal/handler/grpc/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

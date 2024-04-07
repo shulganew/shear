@@ -6,34 +6,13 @@ import (
 	"net/url"
 
 	"github.com/shulganew/shear.git/internal/config"
-	pb "github.com/shulganew/shear.git/internal/handler/grpcs/proto"
+	pb "github.com/shulganew/shear.git/internal/handler/grpc/proto"
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
-
-// GET and redirect by brief.
-// @Summary      Get origin URL by brief (short) URL
-// @Description  get short by id
-// @Tags         gRPC
-// @Param        id   path  string  true  "brief URL"
-// @Success      nil
-// @Failure      2
-// @Failure      5
-func (u *UsersServer) GetURL(ctx context.Context, in *pb.GetURLRequest) (*pb.GetURLResponse, error) {
-	var resp pb.GetURLResponse
-	origin, exist, isDeleted := u.serviceURL.GetOrigin(ctx, in.GetBrief())
-	if exist {
-		if isDeleted {
-			return nil, status.Errorf(codes.Unknown, "Deleted: StatusGone")
-		}
-		resp.Origin = origin
-		return &resp, nil
-	}
-	return nil, status.Errorf(codes.NotFound, "NotFound")
-}
 
 // @Summary      Add origin URL
 // @Description  set URL
@@ -56,7 +35,7 @@ func (u *UsersServer) AddURL(ctx context.Context, in *pb.SetURLRequest) (*pb.Set
 	}
 
 	// Save map to storage.
-	err = u.serviceURL.SetURL(ctx, ctxConfig.GetUserID(), brief, (*redirectURL).String())
+	err = u.serviceURL.AddURL(ctx, ctxConfig.GetUserID(), brief, (*redirectURL).String())
 	if err != nil {
 		var tagErr *storage.ErrDuplicatedURL
 		if errors.As(err, &tagErr) {

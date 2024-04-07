@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func TestURL(t *testing.T) {
+func TestGet(t *testing.T) {
 	tests := []struct {
 		name              string
 		request           string

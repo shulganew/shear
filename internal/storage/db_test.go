@@ -290,7 +290,7 @@ func TestDBSet(t *testing.T) {
 
 			db, err := NewDB(ctx, sql)
 			assert.NoError(t, err)
-			err = db.Set(ctx, tt.userID, tt.brief, tt.origin)
+			err = db.Add(ctx, tt.userID, tt.brief, tt.origin)
 
 			// If rows duplicated.
 			if !tt.existed {
