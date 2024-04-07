@@ -235,7 +235,6 @@ func TestDBGetBrief(t *testing.T) {
 				t.Errorf("Error '%s' was not expected while closing the database", err)
 			}
 		})
-
 	}
 }
 
@@ -425,5 +424,113 @@ func TestDRRecover(t *testing.T) {
 				t.Errorf("Error '%s' was not expected while closing the database", err)
 			}
 		})
+	}
+}
+
+func TestDBGetNumShorts(t *testing.T) {
+	tests := []struct {
+		name   string
+		userID string
+		num    int
+		err    error
+	}{
+		{
+			name:   "Base SQL test: Get Number of user's shorts",
+			userID: "018dea9b-7085-75f5-91c5-2ba674052348",
+			num:    10,
+			err:    nil,
+		},
+		{
+			name:   "Base SQL test: Get Number of user's shorts",
+			userID: "018dea9b-7085-75f5-91c5-2ba674052348",
+			num:    0,
+			err:    errors.New("Db error"),
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			sql, sqlmock, err := sqlmock.New()
+			if err != nil {
+				t.Errorf("An error '%s' was not expected when opening a stub database connection", err)
+			}
+			if tt.err == nil {
+				sqlmock.ExpectQuery("SELECT COUNT\\(DISTINCT user_id\\) FROM short WHERE user_id IS NOT NULL").
+					WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(tt.num))
+			} else {
+				sqlmock.ExpectQuery("SELECT COUNT\\(DISTINCT user_id\\) FROM short WHERE user_id IS NOT NULL").
+					WillReturnError(tt.err)
+			}
+			sqlmock.ExpectClose()
+
+			db, err := NewDB(ctx, sql)
+			assert.NoError(t, err)
+			num, err := db.GetNumShorts(ctx)
+			assert.Equal(t, tt.err, err)
+			assert.Equal(t, tt.num, num)
+
+			// db.Close() ensures that all expectations have been met
+			if err = sql.Close(); err != nil {
+				t.Errorf("Error '%s' was not expected while closing the database", err)
+			}
+		})
+
+	}
+}
+
+func TestDBGetNumUsers(t *testing.T) {
+	tests := []struct {
+		name   string
+		userID string
+		num    int
+		err    error
+	}{
+		{
+			name:   "Base SQL test: Get Number of user's shorts",
+			userID: "018dea9b-7085-75f5-91c5-2ba674052348",
+			num:    10,
+			err:    nil,
+		},
+		{
+			name:   "Base SQL test: Get Number of user's shorts",
+			userID: "018dea9b-7085-75f5-91c5-2ba674052348",
+			num:    0,
+			err:    errors.New("Db error"),
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			sql, sqlmock, err := sqlmock.New()
+			if err != nil {
+				t.Errorf("An error '%s' was not expected when opening a stub database connection", err)
+			}
+			if tt.err == nil {
+				sqlmock.ExpectQuery("SELECT COUNT\\(origin\\) FROM short").
+					WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(tt.num))
+			} else {
+				sqlmock.ExpectQuery("SELECT COUNT\\(origin\\) FROM short").
+					WillReturnError(tt.err)
+			}
+			sqlmock.ExpectClose()
+
+			db, err := NewDB(ctx, sql)
+			assert.NoError(t, err)
+			num, err := db.GetNumUsers(ctx)
+			assert.Equal(t, tt.err, err)
+			assert.Equal(t, tt.num, num)
+
+			// db.Close() ensures that all expectations have been met
+			if err = sql.Close(); err != nil {
+				t.Errorf("Error '%s' was not expected while closing the database", err)
+			}
+		})
+
 	}
 }

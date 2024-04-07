@@ -106,7 +106,6 @@ func TestGRPCGet(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-
 		_ = storeMock.EXPECT().
 			GetOrigin(gomock.Any(), tt.brief).
 			Times(1).
@@ -119,10 +118,10 @@ func TestGRPCGet(t *testing.T) {
 			err := conn.Close()
 			assert.NoError(t, err)
 		}()
-
 		client := pb.NewUsersClient(conn)
+		// Get request.
 		_, err = client.GetURL(ctx, &pb.GetURLRequest{Brief: tt.brief})
-
+		// Check error.
 		assert.Equal(t, tt.statusError, err)
 	}
 }
