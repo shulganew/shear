@@ -5,7 +5,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/jackc/pgerrcode"
@@ -176,7 +175,6 @@ func (base *DB) GetUserAll(ctx context.Context, userID string) []entities.Short 
 // Mark all user's URLs by short URL in briefs slice.
 func (base *DB) DeleteBatch(ctx context.Context, userID string, briefs []string) (err error) {
 	// Prepare bulk request to database.
-	fmt.Println(briefs)
 	userIDs := make([]string, len(briefs))
 	for i := range briefs {
 		userIDs[i] = userID
