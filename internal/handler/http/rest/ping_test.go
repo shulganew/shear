@@ -16,7 +16,6 @@ func TestAPIPing(t *testing.T) {
 	tests := []struct {
 		name string
 		ping bool
-		//want
 	}{
 		{
 			name: "DB ping test available",
