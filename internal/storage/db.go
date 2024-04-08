@@ -76,14 +76,12 @@ func (base *DB) AddAll(ctx context.Context, shorts []entities.Short) error {
 			if errors.As(err, &pgErr) && pgerrcode.UniqueViolation == pgErr.Code {
 				// get brief string
 				if brief, ok, _ := base.GetBrief(ctx, short.Origin); ok {
-
 					return NewErrDuplicatedShort(short.SessionID, brief, short.Origin, pgErr)
 				}
 			}
 			tx.Rollback()
 			return err
 		}
-
 	}
 	err = tx.Commit()
 	if err != nil {
@@ -177,7 +175,7 @@ func (base *DB) GetUserAll(ctx context.Context, userID string) []entities.Short 
 
 // Mark all user's URLs by short URL in briefs slice.
 func (base *DB) DeleteBatch(ctx context.Context, userID string, briefs []string) (err error) {
-	// prepare bulk request to database
+	// Prepare bulk request to database.
 	fmt.Println(briefs)
 	userIDs := make([]string, len(briefs))
 	for i := range briefs {

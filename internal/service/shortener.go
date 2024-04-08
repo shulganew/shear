@@ -57,7 +57,7 @@ func (s *Shorten) AddURL(ctx context.Context, userID, brief, origin string) (err
 }
 
 // Set user's URLs short object array.
-func (s *Shorten) SetAll(ctx context.Context, short []entities.Short) (err error) {
+func (s *Shorten) AddAll(ctx context.Context, short []entities.Short) (err error) {
 	err = s.storeURLs.AddAll(ctx, short)
 	if err != nil {
 		return fmt.Errorf("error during save URL to Store: %w", err)

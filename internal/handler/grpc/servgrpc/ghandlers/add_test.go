@@ -2,27 +2,30 @@ package ghandlers
 
 import (
 	"context"
+	"errors"
 	"log"
 	"net"
 	"testing"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/status"
-	"google.golang.org/grpc/test/bufconn"
-
 	"github.com/golang/mock/gomock"
+	"github.com/shulganew/shear.git/internal/app"
 	"github.com/shulganew/shear.git/internal/config"
 	pb "github.com/shulganew/shear.git/internal/handler/grpc/proto"
-	"github.com/stretchr/testify/assert"
-
 	"github.com/shulganew/shear.git/internal/handler/grpc/servgrpc/interceptors"
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/service/mocks"
+	"github.com/shulganew/shear.git/internal/storage"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/test/bufconn"
 )
 
-func TestGRPCGet(t *testing.T) {
+func TestGRPCAdd(t *testing.T) {
+	app.InitLog()
 	// Buffer for gRPC connection emulation.
 	bufSize := 1024 * 1024
 	var lis *bufconn.Listener
@@ -30,7 +33,6 @@ func TestGRPCGet(t *testing.T) {
 	configApp := config.DefaultConfig(false)
 
 	initCtx := func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
-		ctx = context.WithValue(ctx, config.CtxIP{}, configApp.GetIP())
 		ctx = context.WithValue(ctx, config.CtxPassKey{}, configApp.GetPass())
 		return handler(ctx, req)
 	}
@@ -57,55 +59,76 @@ func TestGRPCGet(t *testing.T) {
 	tests := []struct {
 		name              string
 		origin            string
-		brief             string
+		userID            string
 		statusError       error
-		responseExist     bool
 		responseIsDeleted bool
+		mockCalls         int
+		errDB             error
 	}{
 		{
-			name:              "Get URL gRPC Ok",
+			name:              "Add URL gRPC Ok",
 			origin:            "http://yandex.ru/",
 			statusError:       nil,
-			brief:             "qwerqewr",
-			responseExist:     true,
+			userID:            "018dea9b-7085-75f5-91c5-2ba674052348",
 			responseIsDeleted: false,
+			mockCalls:         1,
+			errDB:             nil,
 		},
 		{
-			name:              "Get URL gRPC Deleted",
+			name:              "Add Duplicated URL",
 			origin:            "http://yandex.ru/",
-			statusError:       status.Errorf(codes.Unknown, "Deleted: StatusGone"),
-			brief:             "qwerqewr",
-			responseExist:     true,
-			responseIsDeleted: true,
+			statusError:       status.Errorf(codes.AlreadyExists, "StatusConflict AlreadyExists"),
+			userID:            "018dea9b-7085-75f5-91c5-2ba674052348",
+			responseIsDeleted: false,
+			mockCalls:         1,
+			errDB:             &storage.ErrDuplicatedURL{Err: errors.New("Database duplicated"), Label: "Duplicated", Brief: "dupli234", Origin: "http://localhost:8080"},
 		},
 		{
-			name:              "Get URL gRPC Deleted",
+			name:              "Database error",
 			origin:            "http://yandex.ru/",
-			statusError:       status.Errorf(codes.NotFound, "NotFound"),
-			brief:             "qwerqewr",
-			responseExist:     false,
+			statusError:       status.Errorf(codes.Internal, "Error saving in Storage"),
+			userID:            "018dea9b-7085-75f5-91c5-2ba674052348",
 			responseIsDeleted: false,
+			mockCalls:         1,
+			errDB:             errors.New("Database error"),
+		},
+		{
+			name:              "Add broken URL",
+			origin:            "e4r5eswg",
+			statusError:       status.Errorf(codes.Internal, "parse new URL error"),
+			userID:            "018dea9b-7085-75f5-91c5-2ba674052348",
+			responseIsDeleted: false,
+			mockCalls:         0,
+			errDB:             nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Log("Test: ", tt.name)
 		_ = storeMock.EXPECT().
-			GetOrigin(gomock.Any(), tt.brief).
-			Times(1).
-			Return(tt.origin, tt.responseExist, tt.responseIsDeleted)
+			Add(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Times(tt.mockCalls).
+			Return(tt.errDB)
 
+		// Add MD to request.
 		ctx := context.Background()
+		cUserID, _ := service.EncodeCookie(tt.userID, "mypass")
+		md := metadata.New(map[string]string{"user_id": cUserID})
+		ctx = metadata.NewOutgoingContext(ctx, md)
+
 		conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
 			return lis.Dial()
 		}), grpc.WithTransportCredentials(insecure.NewCredentials()))
+
 		assert.NoError(t, err)
 		defer func() {
 			err := conn.Close()
 			assert.NoError(t, err)
 		}()
 		client := pb.NewUsersClient(conn)
+
 		// Get request.
-		_, err = client.GetURL(ctx, &pb.GetURLRequest{Brief: tt.brief})
+		_, err = client.AddURL(ctx, &pb.AddURLRequest{Origin: tt.origin})
+
 		// Check error.
 		assert.Equal(t, tt.statusError, err)
 	}

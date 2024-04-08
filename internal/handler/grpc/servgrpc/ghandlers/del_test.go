@@ -9,10 +9,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 
 	"github.com/golang/mock/gomock"
+	"github.com/shulganew/shear.git/internal/app"
 	"github.com/shulganew/shear.git/internal/config"
 	pb "github.com/shulganew/shear.git/internal/handler/grpc/proto"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +24,8 @@ import (
 	"github.com/shulganew/shear.git/internal/service/mocks"
 )
 
-func TestGRPCGet(t *testing.T) {
+func TestGRPCDel(t *testing.T) {
+	app.InitLog()
 	// Buffer for gRPC connection emulation.
 	bufSize := 1024 * 1024
 	var lis *bufconn.Listener
@@ -39,11 +42,17 @@ func TestGRPCGet(t *testing.T) {
 
 	// crete mock storege
 	storeMock := mocks.NewMockStorageURL(ctrl)
-
 	serviceURL := service.NewService(storeMock)
 
 	s := grpc.NewServer(grpc.ChainUnaryInterceptor(initCtx, interceptors.AuthInterceptor))
-	us := NewUsersServer(serviceURL, &configApp, nil, nil)
+
+	// Create Del service.
+	delCh := make(chan service.DelBatch)
+	del := service.NewDelete(delCh, &configApp)
+	app.DeleteShort(context.Background(), serviceURL, delCh)
+
+	// Register gRPC server.
+	us := NewUsersServer(serviceURL, &configApp, nil, del)
 	pb.RegisterUsersServer(s, us)
 
 	lis = bufconn.Listen(bufSize)
@@ -55,46 +64,44 @@ func TestGRPCGet(t *testing.T) {
 	}()
 
 	tests := []struct {
-		name              string
-		origin            string
-		brief             string
-		statusError       error
-		responseExist     bool
-		responseIsDeleted bool
+		name        string
+		userID      string
+		briefs      []string
+		statusError error
+		userAuth    bool
+		mockCalls   int
 	}{
 		{
-			name:              "Get URL gRPC Ok",
-			origin:            "http://yandex.ru/",
-			statusError:       nil,
-			brief:             "qwerqewr",
-			responseExist:     true,
-			responseIsDeleted: false,
+			name:        "Del URL gRPC Ok",
+			userID:      "018dea9b-7085-75f5-91c5-2ba674052348",
+			briefs:      []string{"afdgad", "sdfasgf"},
+			statusError: nil,
+			userAuth:    true,
+			mockCalls:   1,
 		},
 		{
-			name:              "Get URL gRPC Deleted",
-			origin:            "http://yandex.ru/",
-			statusError:       status.Errorf(codes.Unknown, "Deleted: StatusGone"),
-			brief:             "qwerqewr",
-			responseExist:     true,
-			responseIsDeleted: true,
-		},
-		{
-			name:              "Get URL gRPC Deleted",
-			origin:            "http://yandex.ru/",
-			statusError:       status.Errorf(codes.NotFound, "NotFound"),
-			brief:             "qwerqewr",
-			responseExist:     false,
-			responseIsDeleted: false,
+			name:        "Del URL gRPC Ok",
+			userID:      "018dea9b-7085-75f5-91c5-2ba674052348",
+			briefs:      []string{"afdgad", "sdfasgf"},
+			statusError: status.Errorf(codes.PermissionDenied, "User not athorized"),
+			userAuth:    false,
+			mockCalls:   0,
 		},
 	}
 	for _, tt := range tests {
 		t.Log("Test: ", tt.name)
 		_ = storeMock.EXPECT().
-			GetOrigin(gomock.Any(), tt.brief).
-			Times(1).
-			Return(tt.origin, tt.responseExist, tt.responseIsDeleted)
+			DeleteBatch(gomock.Any(), tt.userID, tt.briefs).
+			Times(tt.mockCalls).
+			Return(nil)
 
+		// Add MD to request.
 		ctx := context.Background()
+		if tt.userAuth {
+			cUserID, _ := service.EncodeCookie(tt.userID, "mypass")
+			md := metadata.New(map[string]string{"user_id": cUserID})
+			ctx = metadata.NewOutgoingContext(ctx, md)
+		}
 		conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
 			return lis.Dial()
 		}), grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -104,8 +111,12 @@ func TestGRPCGet(t *testing.T) {
 			assert.NoError(t, err)
 		}()
 		client := pb.NewUsersClient(conn)
-		// Get request.
-		_, err = client.GetURL(ctx, &pb.GetURLRequest{Brief: tt.brief})
+
+		// Del request.
+		ok, err := client.DelUserURLs(ctx, &pb.DelRequest{Briefs: tt.briefs})
+		if tt.userAuth {
+			assert.True(t, ok.GetOk())
+		}
 		// Check error.
 		assert.Equal(t, tt.statusError, err)
 	}

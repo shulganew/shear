@@ -46,7 +46,7 @@ func TestAdd(t *testing.T) {
 			err:               nil,
 		},
 		{
-			name:              "Add URL",
+			name:              "Add URL DB error",
 			request:           "http://localhost:8080",
 			body:              "http://yandex.ru/",
 			origin:            "http://yandex.ru/",
@@ -59,7 +59,7 @@ func TestAdd(t *testing.T) {
 		},
 
 		{
-			name:              "Add URL",
+			name:              "Add URL Duplication error",
 			request:           "http://localhost:8080",
 			body:              "http://yandex.ru/",
 			origin:            "http://yandex.ru/",

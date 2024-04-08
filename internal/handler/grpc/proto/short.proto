@@ -14,12 +14,12 @@ message GetURLResponse {
 	string origin = 1;
 }
 
-// SetURL messages.
-message SetURLRequest {
+// AddURL messages.
+message AddURLRequest {
 	string origin = 1;
     }
 
-message SetURLResponse {
+message AddURLResponse {
 	string brief = 1;
 }
 
@@ -66,7 +66,7 @@ message GetStatResponse {
 
 service Users {
 	rpc GetURL(GetURLRequest) returns (GetURLResponse);
-	rpc SetURL(SetURLRequest) returns (SetURLResponse);
+	rpc AddURL(AddURLRequest) returns (AddURLResponse);
 	rpc GetUserURLs(GetURLs) returns (GetUserURLsResponse);
 	rpc Ping(PingRequest) returns (PingResponse);
 	rpc DelUserURLs(DelRequest) returns (DelResponse);

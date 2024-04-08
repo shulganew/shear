@@ -20,7 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	Users_GetURL_FullMethodName      = "/shortgrpc.Users/GetURL"
-	Users_SetURL_FullMethodName      = "/shortgrpc.Users/SetURL"
+	Users_AddURL_FullMethodName      = "/shortgrpc.Users/AddURL"
 	Users_GetUserURLs_FullMethodName = "/shortgrpc.Users/GetUserURLs"
 	Users_Ping_FullMethodName        = "/shortgrpc.Users/Ping"
 	Users_DelUserURLs_FullMethodName = "/shortgrpc.Users/DelUserURLs"
@@ -33,7 +33,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UsersClient interface {
 	GetURL(ctx context.Context, in *GetURLRequest, opts ...grpc.CallOption) (*GetURLResponse, error)
-	SetURL(ctx context.Context, in *SetURLRequest, opts ...grpc.CallOption) (*SetURLResponse, error)
+	AddURL(ctx context.Context, in *AddURLRequest, opts ...grpc.CallOption) (*AddURLResponse, error)
 	GetUserURLs(ctx context.Context, in *GetURLs, opts ...grpc.CallOption) (*GetUserURLsResponse, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 	DelUserURLs(ctx context.Context, in *DelRequest, opts ...grpc.CallOption) (*DelResponse, error)
@@ -58,9 +58,9 @@ func (c *usersClient) GetURL(ctx context.Context, in *GetURLRequest, opts ...grp
 	return out, nil
 }
 
-func (c *usersClient) SetURL(ctx context.Context, in *SetURLRequest, opts ...grpc.CallOption) (*SetURLResponse, error) {
-	out := new(SetURLResponse)
-	err := c.cc.Invoke(ctx, Users_SetURL_FullMethodName, in, out, opts...)
+func (c *usersClient) AddURL(ctx context.Context, in *AddURLRequest, opts ...grpc.CallOption) (*AddURLResponse, error) {
+	out := new(AddURLResponse)
+	err := c.cc.Invoke(ctx, Users_AddURL_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (c *usersClient) GetStat(ctx context.Context, in *GetStatRequest, opts ...g
 // for forward compatibility
 type UsersServer interface {
 	GetURL(context.Context, *GetURLRequest) (*GetURLResponse, error)
-	SetURL(context.Context, *SetURLRequest) (*SetURLResponse, error)
+	AddURL(context.Context, *AddURLRequest) (*AddURLResponse, error)
 	GetUserURLs(context.Context, *GetURLs) (*GetUserURLsResponse, error)
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	DelUserURLs(context.Context, *DelRequest) (*DelResponse, error)
@@ -133,8 +133,8 @@ type UnimplementedUsersServer struct {
 func (UnimplementedUsersServer) GetURL(context.Context, *GetURLRequest) (*GetURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetURL not implemented")
 }
-func (UnimplementedUsersServer) SetURL(context.Context, *SetURLRequest) (*SetURLResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetURL not implemented")
+func (UnimplementedUsersServer) AddURL(context.Context, *AddURLRequest) (*AddURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddURL not implemented")
 }
 func (UnimplementedUsersServer) GetUserURLs(context.Context, *GetURLs) (*GetUserURLsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserURLs not implemented")
@@ -182,20 +182,20 @@ func _Users_GetURL_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Users_SetURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SetURLRequest)
+func _Users_AddURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddURLRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UsersServer).SetURL(ctx, in)
+		return srv.(UsersServer).AddURL(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Users_SetURL_FullMethodName,
+		FullMethod: Users_AddURL_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UsersServer).SetURL(ctx, req.(*SetURLRequest))
+		return srv.(UsersServer).AddURL(ctx, req.(*AddURLRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -302,8 +302,8 @@ var Users_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Users_GetURL_Handler,
 		},
 		{
-			MethodName: "SetURL",
-			Handler:    _Users_SetURL_Handler,
+			MethodName: "AddURL",
+			Handler:    _Users_AddURL_Handler,
 		},
 		{
 			MethodName: "GetUserURLs",

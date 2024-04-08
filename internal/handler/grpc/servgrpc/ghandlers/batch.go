@@ -46,23 +46,21 @@ func (u *UsersServer) Batch(ctx context.Context, in *pb.BatchRequest) (*pb.Batch
 
 		// add batches
 		briefs = append(briefs, answerURL.String())
-
 		shortSession := entities.NewShort(i, ctxConfig.GetUserID(), brief, (*origin).String(), "")
 		shorts = append(shorts, *shortSession)
 	}
 	zap.S().Infof("Original URLS: %+v \n", shorts)
 	// save to storage
-	err := u.serviceURL.SetAll(ctx, shorts)
+	err := u.serviceURL.AddAll(ctx, shorts)
 
 	// check duplicated strings
 	var tagErr *storage.ErrDuplicatedShort
 	if err != nil {
 		if errors.As(err, &tagErr) {
-			// conflictR
+			// conflict
 			return &pb.BatchResponse{Briefs: []string{tagErr.Short.Brief}}, status.Errorf(codes.AlreadyExists, "Has existed original URL")
-
 		}
-		// create Ok answer
+		return nil, status.Errorf(codes.Internal, "Error saving in Storage")
 	}
 	return &pb.BatchResponse{Briefs: briefs}, nil
 }

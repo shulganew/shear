@@ -76,7 +76,7 @@ func (u *HandlerBatch) BatchAdd(res http.ResponseWriter, req *http.Request) {
 		shorts = append(shorts, *shortSession)
 	}
 	// save to storage
-	err = u.serviceURL.SetAll(req.Context(), shorts)
+	err = u.serviceURL.AddAll(req.Context(), shorts)
 
 	// check duplicated strings
 	var tagErr *storage.ErrDuplicatedShort

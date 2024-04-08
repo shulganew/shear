@@ -20,7 +20,7 @@ import (
 // @Success      nil
 // @Failure      6 "Conflict. URL existed."
 // @Failure      13 "Handling error"
-func (u *UsersServer) AddURL(ctx context.Context, in *pb.SetURLRequest) (*pb.SetURLResponse, error) {
+func (u *UsersServer) AddURL(ctx context.Context, in *pb.AddURLRequest) (*pb.AddURLResponse, error) {
 	// Get userID from context.
 	ctxConfig := ctx.Value(config.CtxConfig{}).(config.CtxConfig)
 	redirectURL, err := url.Parse(in.Origin)
@@ -45,12 +45,12 @@ func (u *UsersServer) AddURL(ctx context.Context, in *pb.SetURLRequest) (*pb.Set
 			if err != nil {
 				zap.S().Errorln("Error during JoinPath", err)
 			}
-			return &pb.SetURLResponse{Brief: answer}, status.Errorf(codes.AlreadyExists, "StatusConflict AlreadyExists")
+			return &pb.AddURLResponse{Brief: answer}, status.Errorf(codes.AlreadyExists, "StatusConflict AlreadyExists")
 		}
 
 		zap.S().Errorln(err)
 		return nil, status.Errorf(codes.Internal, "Error saving in Storage")
 	}
 
-	return &pb.SetURLResponse{Brief: answerURL.String()}, nil
+	return &pb.AddURLResponse{Brief: answerURL.String()}, nil
 }
