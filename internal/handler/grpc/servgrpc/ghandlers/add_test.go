@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/shulganew/shear.git/internal/app"
 	"github.com/shulganew/shear.git/internal/config"
 	pb "github.com/shulganew/shear.git/internal/handler/grpc/proto"
 	"github.com/shulganew/shear.git/internal/handler/grpc/servgrpc/interceptors"
@@ -25,11 +24,11 @@ import (
 )
 
 func TestGRPCAdd(t *testing.T) {
-	app.InitLog()
+
 	// Buffer for gRPC connection emulation.
 	bufSize := 1024 * 1024
 	var lis *bufconn.Listener
-	// init configApp
+	// Init configApp.
 	configApp := config.DefaultConfig(false)
 
 	initCtx := func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {

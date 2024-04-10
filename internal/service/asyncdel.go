@@ -1,13 +1,11 @@
-package app
+package service
 
 import (
 	"context"
-
-	"github.com/shulganew/shear.git/internal/service"
 )
 
 // Deleted short URL from common channel.
-func DeleteShort(ctx context.Context, short *service.Shorten, delCh chan service.DelBatch) (done chan struct{}) {
+func DeleteShort(ctx context.Context, short *Shorten, delCh chan DelBatch) (done chan struct{}) {
 	done = make(chan struct{})
 	go func() {
 		defer close(done)

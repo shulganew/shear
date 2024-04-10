@@ -14,7 +14,6 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/golang/mock/gomock"
-	"github.com/shulganew/shear.git/internal/app"
 	"github.com/shulganew/shear.git/internal/config"
 	pb "github.com/shulganew/shear.git/internal/handler/grpc/proto"
 	"github.com/stretchr/testify/assert"
@@ -24,7 +23,6 @@ import (
 )
 
 func TestGRPCPing(t *testing.T) {
-	app.InitLog()
 	// Buffer for gRPC connection emulation.
 	bufSize := 1024 * 1024
 	var lis *bufconn.Listener

@@ -6,7 +6,7 @@ require (
 	4d63.com/gochecknoglobals v0.2.1
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/butuzov/ireturn v0.3.0
-	github.com/go-chi/chi/v5 v5.0.10
+	github.com/go-chi/chi/v5 v5.0.12
 	github.com/go-resty/resty/v2 v2.11.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0

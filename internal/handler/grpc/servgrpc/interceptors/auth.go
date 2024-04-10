@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
+
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

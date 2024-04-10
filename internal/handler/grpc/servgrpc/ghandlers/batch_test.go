@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/shulganew/shear.git/internal/app"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/entities"
 	pb "github.com/shulganew/shear.git/internal/handler/grpc/proto"
@@ -26,7 +25,7 @@ import (
 )
 
 func TestGRPCBatch(t *testing.T) {
-	app.InitLog()
+
 	// Buffer for gRPC connection emulation.
 	bufSize := 1024 * 1024
 	var lis *bufconn.Listener
