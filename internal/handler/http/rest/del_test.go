@@ -88,10 +88,13 @@ func TestDelBulk(t *testing.T) {
 				// add chi context
 				rctx := chi.NewRouteContext()
 				t.Log("URL: ", tt.multipleURL)
+
 				req := httptest.NewRequest(http.MethodPost, tt.multipleURL, bytes.NewReader(body))
-				req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+				ctx := context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID.String(), false))
+				req = req.WithContext(context.WithValue(ctx, chi.RouteCtxKey, rctx))
 				req.Header.Add("Content-Type", "application/json")
 				cookie := http.Cookie{Name: "user_id", Value: userSet[i].userID}
+
 				req.AddCookie(&cookie)
 
 				// create status recorder

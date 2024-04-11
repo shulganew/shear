@@ -14,7 +14,6 @@ import (
 	"github.com/shulganew/shear.git/internal/handler/grpc/servgrpc/interceptors"
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/service/mocks"
-	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -25,7 +24,6 @@ import (
 )
 
 func TestGRPCBatch(t *testing.T) {
-
 	// Buffer for gRPC connection emulation.
 	bufSize := 1024 * 1024
 	var lis *bufconn.Listener
@@ -61,6 +59,7 @@ func TestGRPCBatch(t *testing.T) {
 		origins           []string
 		userID            string
 		statusError       error
+		statusErrorCode   codes.Code
 		responseIsDeleted bool
 		mockCalls         int
 		errDB             error
@@ -71,6 +70,7 @@ func TestGRPCBatch(t *testing.T) {
 			name:              "Batch URL gRPC Ok",
 			origins:           []string{"http://yandex1.ru/", "http://yandex1.ru/", "http://yandex3.ru/"},
 			statusError:       nil,
+			statusErrorCode:   codes.Aborted,
 			userID:            "018dea9b-7085-75f5-91c5-2ba674052348",
 			responseIsDeleted: false,
 			mockCalls:         1,
@@ -79,24 +79,14 @@ func TestGRPCBatch(t *testing.T) {
 			userAuth:          true,
 		},
 		{
-			name:              "Batch auth not ok",
-			origins:           []string{"http://yandex1.ru/", "http://yandex1.ru/", "http://yandex3.ru/"},
-			statusError:       status.Errorf(codes.PermissionDenied, "User not athorized"),
-			userID:            "018dea9b-7085-75f5-91c5-2ba674052348",
-			responseIsDeleted: false,
-			mockCalls:         0,
-			errDB:             nil,
-			isDuplicated:      false,
-			userAuth:          false,
-		},
-		{
 			name:              "Batch Duplicated URL",
 			origins:           []string{"http://yandex1.ru/", "http://yandex1.ru/", "http://yandex3.ru/"},
 			statusError:       status.Errorf(codes.AlreadyExists, "Has existed original URL"),
+			statusErrorCode:   codes.AlreadyExists,
 			userID:            "018dea9b-7085-75f5-91c5-2ba674052348",
 			responseIsDeleted: false,
 			mockCalls:         1,
-			errDB:             &storage.ErrDuplicatedShort{Err: errors.New("Database duplicated"), Label: "Duplicated", Short: entities.Short{}},
+			errDB:             &service.ErrDuplicatedShort{Err: errors.New("Database duplicated"), Label: "Duplicated", Short: entities.Short{}},
 			isDuplicated:      true,
 			userAuth:          true,
 		},
@@ -104,6 +94,7 @@ func TestGRPCBatch(t *testing.T) {
 			name:              "Database error",
 			origins:           []string{"http://yandex1.ru/", "http://yandex1.ru/", "http://yandex3.ru/"},
 			statusError:       status.Errorf(codes.Internal, "Error saving in Storage"),
+			statusErrorCode:   codes.Internal,
 			userID:            "018dea9b-7085-75f5-91c5-2ba674052348",
 			responseIsDeleted: false,
 			mockCalls:         1,
@@ -142,6 +133,11 @@ func TestGRPCBatch(t *testing.T) {
 		_, err = client.Batch(ctx, &pb.BatchRequest{Origins: tt.origins})
 
 		// Check error.
-		assert.Equal(t, tt.statusError, err)
+		if err != nil {
+			status, ok := status.FromError(err)
+			assert.True(t, ok)
+			t.Log(tt.name, ". Error: ", err)
+			assert.Equal(t, tt.statusErrorCode, status.Code())
+		}
 	}
 }

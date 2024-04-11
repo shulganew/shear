@@ -8,6 +8,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
+	"github.com/shulganew/shear.git/internal/service"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -283,7 +284,7 @@ func TestDBSet(t *testing.T) {
 					WillReturnRows(sqlmock.NewRows([]string{}))
 			} else {
 				sqlmock.ExpectQuery("INSERT INTO short \\(user_id, brief, origin, is_deleted\\) VALUES (.+)").
-					WillReturnError(NewErrDuplicatedURL(tt.brief, tt.origin, errors.New("Duplicated.")))
+					WillReturnError(service.NewErrDuplicatedURL(tt.brief, tt.origin, errors.New("Duplicated.")))
 			}
 			sqlmock.ExpectClose()
 

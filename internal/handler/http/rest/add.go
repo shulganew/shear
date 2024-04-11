@@ -7,7 +7,6 @@ import (
 	"net/url"
 
 	"github.com/shulganew/shear.git/internal/service"
-	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"
 )
 
@@ -40,7 +39,7 @@ func (u *HandlerURL) AddURL(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// set content type
+	// Set content type.
 	res.Header().Add("Content-Type", "text/plain")
 
 	// find UserID in cookies
@@ -49,11 +48,11 @@ func (u *HandlerURL) AddURL(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Can't find user in cookies", http.StatusUnauthorized)
 	}
 
-	// save map to storage
+	// Save map to storage.
 	err = u.serviceURL.AddURL(req.Context(), userID.Value, brief, (*redirectURL).String())
 
 	if err != nil {
-		var tagErr *storage.ErrDuplicatedURL
+		var tagErr *service.ErrDuplicatedURL
 		if errors.As(err, &tagErr) {
 			// set status code 409 Conflict
 			res.WriteHeader(http.StatusConflict)
@@ -72,8 +71,8 @@ func (u *HandlerURL) AddURL(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Error saving in Storage.", http.StatusInternalServerError)
 		return
 	}
-	// set status code 201
+	// Set status code 201.
 	res.WriteHeader(http.StatusCreated)
-	// send generate and saved string
+	// Send generate and saved string.
 	res.Write([]byte(answerURL.String()))
 }

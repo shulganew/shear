@@ -7,14 +7,16 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
+	"errors"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/shulganew/shear.git/internal/builders"
 	"github.com/shulganew/shear.git/internal/entities"
+
 	"go.uber.org/zap"
 )
 
@@ -57,12 +59,41 @@ func (s *Shorten) AddURL(ctx context.Context, userID, brief, origin string) (err
 }
 
 // Set user's URLs short object array.
-func (s *Shorten) AddAll(ctx context.Context, short []entities.Short) (err error) {
-	err = s.storeURLs.AddAll(ctx, short)
-	if err != nil {
-		return fmt.Errorf("error during save URL to Store: %w", err)
+func (s *Shorten) AddBatch(ctx context.Context, reqb builders.BatchRequestDTO) (resb builders.BatchResponsehDTO) {
+	shorts := []entities.Short{}
+	response := []entities.BatchResponse{}
+	for i, r := range reqb.Origins {
+		var origin *url.URL
+		origin, err := url.Parse(r.Origin)
+		if err != nil {
+			return builders.BatchResponsehDTO{AnwerURLs: nil, Status: builders.NewRespStatus(http.StatusInternalServerError), Err: errors.New("wrong URL in origins, parse URL error")}
+		}
+		// get short brief and full answer URL
+		brief := GenerateShortLinkByte()
+		var answerURL *url.URL
+		_, answerURL, err = s.GetAnsURLFast(origin.Scheme, reqb.Resp, brief)
+		if err != nil {
+			return builders.BatchResponsehDTO{AnwerURLs: nil, Status: builders.NewRespStatus(http.StatusInternalServerError), Err: errors.New("error parse URL after construct")}
+		}
+		response = append(response, entities.BatchResponse{SessionID: r.SessionID, Answer: answerURL.String()})
+		shortSession := entities.NewShort(i, reqb.CtxConfig.GetUserID(), brief, (*origin).String(), r.SessionID)
+		shorts = append(shorts, *shortSession)
 	}
-	return nil
+	// Add to database.
+	err := s.storeURLs.AddAll(ctx, shorts)
+
+	// check duplicated strings
+	var tagErr *ErrDuplicatedShort
+	if err != nil {
+		if errors.As(err, &tagErr) {
+			// send existed URL to response
+			broken := []entities.BatchResponse{}
+			batch := entities.BatchResponse{SessionID: tagErr.Short.SessionID, Answer: tagErr.Short.Brief}
+			broken = append(broken, batch)
+			return builders.BatchResponsehDTO{AnwerURLs: broken, Status: builders.NewRespStatus(http.StatusConflict), Err: err}
+		}
+	}
+	return builders.BatchResponsehDTO{AnwerURLs: response, Status: builders.NewRespStatus(http.StatusCreated), Err: err}
 }
 
 // Return original URL by short URL.

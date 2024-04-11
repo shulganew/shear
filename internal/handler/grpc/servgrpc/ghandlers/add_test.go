@@ -13,7 +13,6 @@ import (
 	"github.com/shulganew/shear.git/internal/handler/grpc/servgrpc/interceptors"
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/service/mocks"
-	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -80,7 +79,7 @@ func TestGRPCAdd(t *testing.T) {
 			userID:            "018dea9b-7085-75f5-91c5-2ba674052348",
 			responseIsDeleted: false,
 			mockCalls:         1,
-			errDB:             &storage.ErrDuplicatedURL{Err: errors.New("Database duplicated"), Label: "Duplicated", Brief: "dupli234", Origin: "http://localhost:8080"},
+			errDB:             &service.ErrDuplicatedURL{Err: errors.New("Database duplicated"), Label: "Duplicated", Brief: "dupli234", Origin: "http://localhost:8080"},
 		},
 		{
 			name:              "Database error",

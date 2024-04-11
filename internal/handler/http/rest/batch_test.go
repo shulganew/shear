@@ -90,8 +90,11 @@ func TestBatch(t *testing.T) {
 			// add chi context
 			rctx := chi.NewRouteContext()
 			t.Log("URL: ", tt.multipleURL)
+
 			req := httptest.NewRequest(http.MethodPost, tt.multipleURL, bytes.NewReader(body))
-			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+			ctx := context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID.String(), false))
+			req = req.WithContext(context.WithValue(ctx, chi.RouteCtxKey, rctx))
+
 			req.Header.Add("Content-Type", "application/json")
 			cookie := http.Cookie{Name: "user_id", Value: userID.String()}
 			req.AddCookie(&cookie)
@@ -127,9 +130,10 @@ func TestBatch(t *testing.T) {
 				rctx.URLParams.Add("id", strings.TrimPrefix(id, "/"))
 				req = httptest.NewRequest(http.MethodGet, short.Answer, nil)
 				req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
-				req.Header.Add("Content-Type", "plain/text")
 				cookie = http.Cookie{Name: "user_id", Value: userID.String()}
 				req.AddCookie(&cookie)
+
+				req.Header.Add("Content-Type", "application/json")
 
 				// create status recorder
 				resRecord = httptest.NewRecorder()

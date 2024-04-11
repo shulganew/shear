@@ -10,6 +10,8 @@ import (
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/shulganew/shear.git/internal/entities"
+	"github.com/shulganew/shear.git/internal/service"
+
 	"go.uber.org/zap"
 )
 
@@ -41,7 +43,7 @@ func (base *DB) Add(ctx context.Context, userID, brief, origin string) error {
 					return nil
 				}
 				zap.S().Infoln("Found duplicated URL: ", origin)
-				return NewErrDuplicatedURL(brief, origin, pgErr)
+				return service.NewErrDuplicatedURL(brief, origin, pgErr)
 			}
 		}
 
@@ -75,7 +77,7 @@ func (base *DB) AddAll(ctx context.Context, shorts []entities.Short) error {
 			if errors.As(err, &pgErr) && pgerrcode.UniqueViolation == pgErr.Code {
 				// get brief string
 				if brief, ok, _ := base.GetBrief(ctx, short.Origin); ok {
-					return NewErrDuplicatedShort(short.SessionID, brief, short.Origin, pgErr)
+					return service.NewErrDuplicatedShort(short.SessionID, brief, short.Origin, pgErr)
 				}
 			}
 			tx.Rollback()

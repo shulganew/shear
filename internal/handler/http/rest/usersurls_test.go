@@ -72,7 +72,8 @@ func TestUsersUrls(t *testing.T) {
 			rctx := chi.NewRouteContext()
 			t.Log("URL: ", tt.multipleURL)
 			req := httptest.NewRequest(http.MethodPost, tt.multipleURL, bytes.NewReader(body))
-			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+			ctx := context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID.String(), false))
+			req = req.WithContext(context.WithValue(ctx, chi.RouteCtxKey, rctx))
 			req.Header.Add("Content-Type", "application/json")
 			cookie := http.Cookie{Name: "user_id", Value: userID.String()}
 			req.AddCookie(&cookie)
@@ -98,7 +99,7 @@ func TestUsersUrls(t *testing.T) {
 			// add chi context
 			rctx = chi.NewRouteContext()
 			req = httptest.NewRequest(http.MethodGet, tt.usersURLs, nil)
-			ctx := context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID.String(), false))
+			ctx = context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID.String(), false))
 			req = req.WithContext(context.WithValue(ctx, chi.RouteCtxKey, rctx))
 			req.Header.Add("Content-Type", "application/json")
 			cookie = http.Cookie{Name: "user_id", Value: userID.String()}

@@ -8,7 +8,6 @@ import (
 
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
-	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"
 )
 
@@ -78,7 +77,7 @@ func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 
-		var tagErr *storage.ErrDuplicatedURL
+		var tagErr *service.ErrDuplicatedURL
 		if errors.As(err, &tagErr) {
 			// get correct answer URL
 			var answer string

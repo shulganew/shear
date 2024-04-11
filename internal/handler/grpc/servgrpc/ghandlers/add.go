@@ -8,7 +8,6 @@ import (
 	"github.com/shulganew/shear.git/internal/config"
 	pb "github.com/shulganew/shear.git/internal/handler/grpc/proto"
 	"github.com/shulganew/shear.git/internal/service"
-	"github.com/shulganew/shear.git/internal/storage"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -37,7 +36,7 @@ func (u *UsersServer) AddURL(ctx context.Context, in *pb.AddURLRequest) (*pb.Add
 	// Save map to storage.
 	err = u.serviceURL.AddURL(ctx, ctxConfig.GetUserID(), brief, (*redirectURL).String())
 	if err != nil {
-		var tagErr *storage.ErrDuplicatedURL
+		var tagErr *service.ErrDuplicatedURL
 		if errors.As(err, &tagErr) {
 			// Send existed string from error.
 			var answer string

@@ -15,7 +15,6 @@ const NumShorts = 30
 const NumUsers = 3
 
 func TestMem(t *testing.T) {
-
 	mem := NewMemory()
 	ctx := context.Background()
 

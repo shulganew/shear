@@ -14,7 +14,6 @@ import (
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/service/mocks"
-	"github.com/shulganew/shear.git/internal/storage"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
@@ -68,7 +67,7 @@ func TestAdd(t *testing.T) {
 			brief:             "dupli234",
 			responseExist:     true,
 			responseIsDeleted: false,
-			err:               &storage.ErrDuplicatedURL{Err: errors.New("Database duplicated"), Label: "Duplicated", Brief: "dupli234", Origin: "http://localhost:8080"},
+			err:               &service.ErrDuplicatedURL{Err: errors.New("Database duplicated"), Label: "Duplicated", Brief: "dupli234", Origin: "http://localhost:8080"},
 		},
 	}
 
