@@ -2,10 +2,9 @@ package rest
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
-	"net/url"
 
+	"github.com/shulganew/shear.git/internal/builders"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
 	"go.uber.org/zap"
@@ -44,77 +43,32 @@ func NewHandlerAPI(conf *config.Config, short *service.Shorten) *HandlerAPI {
 // @Failure      500 "Handling error"
 // @Router       /api/shorten [post]
 func (u *HandlerAPI) GetBrief(res http.ResponseWriter, req *http.Request) {
+	// get UserID from cxt values
+	ctxConfig := req.Context().Value(config.CtxConfig{}).(config.CtxConfig)
+
 	var request Request
 	if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	origin, err := url.Parse(string(request.URL))
-	if err != nil {
-		http.Error(res, "Wrong URL in JSON, parse error", http.StatusInternalServerError)
-		return
-	}
-	brief := service.GenerateShortLinkByte()
-	mainURL, answerURL, err := u.serviceURL.GetAnsURLFast(origin.Scheme, u.conf.GetResponse(), brief)
-	if err != nil {
-		http.Error(res, "Error parse URL", http.StatusInternalServerError)
-		return
-	}
+	// Get resDTO from service.
+	resDTO := u.serviceURL.AddURL(req.Context(), builders.AddRequestDTO{Origin: request.URL, CtxConfig: ctxConfig, Resp: u.conf.GetResponse()})
 
-	// find UserID in cookies
-	userID, err := req.Cookie("user_id")
-	if err != nil {
-		http.Error(res, "Can't find user in cookies", http.StatusUnauthorized)
-		return
-	}
+	response := Response{Brief: resDTO.AnwerURL}
 
-	// save map to storage
-	err = u.serviceURL.AddURL(req.Context(), userID.Value, brief, (*origin).String())
+	jsonURL, err := json.Marshal(response)
+	if err != nil {
+		zap.S().Errorln("Marshal URL error: ", err)
+		resDTO.Status.SetStatusREST(http.StatusInternalServerError)
+	}
+	zap.S().Infoln("Requset URL: ", request.URL, "Ans ULR: ", string(jsonURL), "  Status: ", resDTO.Status.GetStatusREST())
 
 	// set content type
 	res.Header().Add("Content-Type", "application/json")
 
-	if err != nil {
-
-		var tagErr *service.ErrDuplicatedURL
-		if errors.As(err, &tagErr) {
-			// get correct answer URL
-			var answer string
-			answer, err = url.JoinPath(mainURL, tagErr.Brief)
-			if err != nil {
-				http.Error(res, "Error during JoinPath", http.StatusInternalServerError)
-				return
-			}
-
-			// send existed string from error
-			response := Response{answer}
-			var jsonBrokenURL []byte
-			jsonBrokenURL, err = json.Marshal(response)
-			if err != nil {
-				http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
-			}
-			zap.S().Infoln("Server answer with short URL in JSON (duplicated request): ", string(jsonBrokenURL))
-
-			// set status code 409
-			res.WriteHeader(http.StatusConflict)
-			res.Write([]byte(jsonBrokenURL))
-			return
-		}
-
-		zap.S().Errorln(err)
-		http.Error(res, "Error saving in Storage.", http.StatusInternalServerError)
-	}
-
-	response := Response{answerURL.String()}
-
-	jsonURL, err := json.Marshal(response)
-	if err != nil {
-		http.Error(res, "Error during Marshal answer URL", http.StatusInternalServerError)
-	}
-	zap.S().Infoln("Server answer with short URL in JSON: ", string(jsonURL))
-
-	// set status code 201
-	res.WriteHeader(http.StatusCreated)
-	res.Write(jsonURL)
+	// Set status code
+	res.WriteHeader(resDTO.Status.GetStatusREST())
+	// Send generate and saved string.
+	res.Write([]byte(jsonURL))
 }

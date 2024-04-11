@@ -9,7 +9,8 @@ import (
 type BatchRequestDTO struct {
 	Origins   []entities.BatchRequest
 	CtxConfig config.CtxConfig
-	Resp      string
+	// Responce server address.
+	Resp string
 }
 
 // DTO for batch responce.

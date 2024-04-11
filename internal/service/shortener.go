@@ -50,12 +50,36 @@ func NewService(storage StorageURL) *Shorten {
 }
 
 // Set user's URL to storage: original and short.
-func (s *Shorten) AddURL(ctx context.Context, userID, brief, origin string) (err error) {
-	err = s.storeURLs.Add(ctx, userID, brief, origin)
+func (s *Shorten) AddURL(ctx context.Context, reqb builders.AddRequestDTO) (resb builders.AddResponsehDTO) {
+	redirectURL, err := url.Parse(reqb.Origin)
 	if err != nil {
-		return err
+		return builders.AddResponsehDTO{AnwerURL: "", Status: builders.NewRespStatus(http.StatusInternalServerError), Err: errors.New("wrong URL in body, parse error")}
 	}
-	return nil
+
+	zap.S().Infoln("RedirectURL: ", redirectURL)
+	brief := GenerateShortLinkByte()
+	mainURL, answerURL, err := s.GetAnsURLFast(redirectURL.Scheme, reqb.Resp, brief)
+	if err != nil {
+		return builders.AddResponsehDTO{AnwerURL: "", Status: builders.NewRespStatus(http.StatusInternalServerError), Err: errors.New("Error parse URL")}
+	}
+
+	// Save map to storage.
+	zap.S().Infof("Save User %s, br %s, Orig: %s \n", reqb.CtxConfig.GetUserID(), brief, reqb.Origin)
+	err = s.storeURLs.Add(ctx, reqb.CtxConfig.GetUserID(), brief, reqb.Origin)
+	if err != nil {
+		var tagErr *ErrDuplicatedURL
+		if errors.As(err, &tagErr) {
+			// send existed string from error
+			var answer string
+			answer, err = url.JoinPath(mainURL, tagErr.Brief)
+			if err != nil {
+				zap.S().Errorln("Error during JoinPath", err)
+			}
+			return builders.AddResponsehDTO{AnwerURL: answer, Status: builders.NewRespStatus(http.StatusConflict), Err: errors.New("try to add duplicated URL")}
+		}
+		return builders.AddResponsehDTO{AnwerURL: "", Status: builders.NewRespStatus(http.StatusInternalServerError), Err: errors.New("error saving in Storage")}
+	}
+	return builders.AddResponsehDTO{AnwerURL: answerURL.String(), Status: builders.NewRespStatus(http.StatusCreated), Err: nil}
 }
 
 // Set user's URLs short object array.

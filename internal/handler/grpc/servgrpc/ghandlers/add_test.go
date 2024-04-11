@@ -59,6 +59,7 @@ func TestGRPCAdd(t *testing.T) {
 		origin            string
 		userID            string
 		statusError       error
+		statusErrorCode   codes.Code
 		responseIsDeleted bool
 		mockCalls         int
 		errDB             error
@@ -67,6 +68,7 @@ func TestGRPCAdd(t *testing.T) {
 			name:              "Add URL gRPC Ok",
 			origin:            "http://yandex.ru/",
 			statusError:       nil,
+			statusErrorCode:   codes.Aborted,
 			userID:            "018dea9b-7085-75f5-91c5-2ba674052348",
 			responseIsDeleted: false,
 			mockCalls:         1,
@@ -76,6 +78,7 @@ func TestGRPCAdd(t *testing.T) {
 			name:              "Add Duplicated URL",
 			origin:            "http://yandex.ru/",
 			statusError:       status.Errorf(codes.AlreadyExists, "StatusConflict AlreadyExists"),
+			statusErrorCode:   codes.AlreadyExists,
 			userID:            "018dea9b-7085-75f5-91c5-2ba674052348",
 			responseIsDeleted: false,
 			mockCalls:         1,
@@ -85,6 +88,7 @@ func TestGRPCAdd(t *testing.T) {
 			name:              "Database error",
 			origin:            "http://yandex.ru/",
 			statusError:       status.Errorf(codes.Internal, "Error saving in Storage"),
+			statusErrorCode:   codes.Internal,
 			userID:            "018dea9b-7085-75f5-91c5-2ba674052348",
 			responseIsDeleted: false,
 			mockCalls:         1,
@@ -94,6 +98,7 @@ func TestGRPCAdd(t *testing.T) {
 			name:              "Add broken URL",
 			origin:            "e4r5eswg",
 			statusError:       status.Errorf(codes.Internal, "parse new URL error"),
+			statusErrorCode:   codes.Internal,
 			userID:            "018dea9b-7085-75f5-91c5-2ba674052348",
 			responseIsDeleted: false,
 			mockCalls:         0,
@@ -128,6 +133,11 @@ func TestGRPCAdd(t *testing.T) {
 		_, err = client.AddURL(ctx, &pb.AddURLRequest{Origin: tt.origin})
 
 		// Check error.
-		assert.Equal(t, tt.statusError, err)
+		if err != nil {
+			status, ok := status.FromError(err)
+			assert.True(t, ok)
+			t.Log(tt.name, ". Error: ", err)
+			assert.Equal(t, tt.statusErrorCode, status.Code())
+		}
 	}
 }

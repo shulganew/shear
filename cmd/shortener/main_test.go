@@ -74,7 +74,11 @@ func TestMain(t *testing.T) {
 				t.Log("=============POTS===============")
 				t.Log("tt.request=", tt.request)
 				t.Log("strings.NewReader(tt.body)=", tt.body)
+				// add chi context
+				rctx := chi.NewRouteContext()
 				req := httptest.NewRequest(http.MethodPost, tt.request, strings.NewReader(tt.body))
+				ctx := context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID.String(), false))
+				req = req.WithContext(context.WithValue(ctx, chi.RouteCtxKey, rctx))
 				cookie := http.Cookie{Name: "user_id", Value: userID.String()}
 				req.AddCookie(&cookie)
 				//create status recorder
@@ -141,7 +145,8 @@ func TestMain(t *testing.T) {
 
 				//use context for chi router - add id
 				req := httptest.NewRequest(http.MethodGet, requestURL, nil)
-				req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+				ctx := context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID.String(), false))
+				req = req.WithContext(context.WithValue(ctx, chi.RouteCtxKey, rctx))
 
 				cookie := http.Cookie{Name: "user_id", Value: userID.String()}
 				req.AddCookie(&cookie)

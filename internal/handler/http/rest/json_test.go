@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/shulganew/shear.git/internal/app"
 	"github.com/shulganew/shear.git/internal/config"
 	"github.com/shulganew/shear.git/internal/service"
 	"github.com/shulganew/shear.git/internal/storage"
@@ -22,50 +23,36 @@ import (
 
 func TestAPI(t *testing.T) {
 	tests := []struct {
-		name       string
-		requestURL string
-		body       string
-		link       string
-		statusCode int
-		isCookie   bool
+		name        string
+		requestURL  string
+		body        string
+		link        string
+		statusCode  int
+		isCookie    bool
+		isBrokenURL bool
 		//want
 	}{
 		{
-			name:       "base test POTS",
-			requestURL: "http://localhost:8080/api/shorten",
-			body:       `{"url": "https://practicum.yandex.ru"}`,
-			link:       "https://practicum.yandex.ru",
-			statusCode: http.StatusCreated,
-			isCookie:   true,
+			name:        "base test POTS",
+			requestURL:  "http://localhost:8080/api/shorten",
+			body:        `{"url": "https://practicum.yandex.ru"}`,
+			link:        "https://practicum.yandex.ru",
+			statusCode:  http.StatusCreated,
+			isCookie:    true,
+			isBrokenURL: false,
 		},
 
 		{
-			name:       "base test No Cookie",
-			requestURL: "http://localhost:8080/api/shorten",
-			body:       `{"url": "https://practicum.yandex.ru"}`,
-			link:       "https://practicum.yandex.ru",
-			statusCode: http.StatusUnauthorized,
-			isCookie:   false,
-		},
-
-		{
-			name:       "base test Broken JSON",
-			requestURL: "http://localhost:8080/api/shorten",
-			body:       `{"ul": "https://practicum.yandex.ru"}`,
-			link:       "https://practicum.yandex.ru",
-			statusCode: http.StatusInternalServerError,
-			isCookie:   false,
-		},
-		{
-			name:       "base test Borken URL",
-			requestURL: "http://localhost:8080/api/shorten",
-			body:       `{"ul": "https://practicum.yandex.ru"}`,
-			link:       "https://practicum.yandex.ru",
-			statusCode: http.StatusInternalServerError,
-			isCookie:   false,
+			name:        "base test Broken JSON",
+			requestURL:  "http://localhost:8080/api/shorten",
+			body:        `{"ul": "https://practicum.yandex.ru"}`,
+			link:        "https://practicum.yandex.ru",
+			statusCode:  http.StatusInternalServerError,
+			isCookie:    true,
+			isBrokenURL: true,
 		},
 	}
-
+	app.InitLog()
 	// init configApp
 	configApp := config.DefaultConfig(false)
 
@@ -85,7 +72,8 @@ func TestAPI(t *testing.T) {
 			rctx := chi.NewRouteContext()
 
 			req := httptest.NewRequest(http.MethodPost, tt.requestURL, strings.NewReader(tt.body))
-			req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+			ctx := context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID.String(), !tt.isCookie))
+			req = req.WithContext(context.WithValue(ctx, chi.RouteCtxKey, rctx))
 			req.Header.Add("Content-Type", "application/json")
 			if tt.isCookie {
 				cookie := http.Cookie{Name: "user_id", Value: userID.String()}
@@ -111,22 +99,26 @@ func TestAPI(t *testing.T) {
 			// check answer code
 			t.Log("StatusCode test: ", tt.statusCode, " server: ", res.StatusCode)
 			assert.Equal(t, tt.statusCode, res.StatusCode)
-			// unmarshal body
-			var response Response
-			err := json.NewDecoder(res.Body).Decode(&response)
-			require.NoError(t, err)
 
-			// responseURL = hostname+brief
-			responseURL, err := url.Parse(response.Brief)
-			require.NoError(t, err)
-			t.Log(responseURL)
-			brief := strings.TrimLeft(responseURL.Path, "/")
+			if !tt.isBrokenURL {
+				// unmarshal body
+				var response Response
+				err := json.NewDecoder(res.Body).Decode(&response)
 
-			originDB, exist, _ := short.GetOrigin(req.Context(), brief)
-			require.True(t, exist)
+				require.NoError(t, err)
 
-			t.Log("brief url: ", originDB)
-			assert.Equal(t, originDB, tt.link)
+				// responseURL = hostname+brief
+				responseURL, err := url.Parse(response.Brief)
+				require.NoError(t, err)
+				t.Log(responseURL)
+				brief := strings.TrimLeft(responseURL.Path, "/")
+
+				originDB, exist, _ := short.GetOrigin(req.Context(), brief)
+				require.True(t, exist)
+
+				t.Log("brief url: ", originDB)
+				assert.Equal(t, originDB, tt.link)
+			}
 		})
 	}
 }

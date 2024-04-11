@@ -36,14 +36,14 @@ func Auth(h http.Handler) http.Handler {
 		} else {
 			// cookie not set or not decoded
 			// create new user uuid
-			userID, err := uuid.NewV7()
+			userIDUUID, err := uuid.NewV7()
 			if err != nil {
 				zap.S().Errorln("Error generate user uuid")
 				http.Error(res, err.Error(), http.StatusInternalServerError)
 			}
-
+			userID = userIDUUID.String()
 			// encode cookie for client
-			coded, err := service.EncodeCookie(userID.String(), pass)
+			coded, err := service.EncodeCookie(userID, pass)
 			if err != nil {
 				zap.S().Errorln("Error encode uuid")
 				http.Error(res, err.Error(), http.StatusInternalServerError)
@@ -53,7 +53,7 @@ func Auth(h http.Handler) http.Handler {
 			http.SetCookie(res, &codedCookie)
 
 			// set to request
-			cookie := http.Cookie{Name: "user_id", Value: userID.String()}
+			cookie := http.Cookie{Name: "user_id", Value: userID}
 			req.AddCookie(&cookie)
 
 			// mark new user for handlers
