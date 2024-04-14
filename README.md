@@ -1,5 +1,36 @@
 # Shortener with Yandex Practicum
 
+## gRPC interceptors
+https://github.com/grpc/grpc-go/blob/master/examples/features/interceptor/server/main.go
+
+## gRPC error codes
+[gRPC - HTTP error codes mapping: ](https://www.howico.de/2020/03/http-grpc-status-codes-guidelines/)
+HTTP: 200 / gRPC: OK
+HTTP: 400 / gRPC: OUT_OF_RANGE, FAILED_PRECONDITION
+HTTP: 401 / gRPC: UNAUTHENTICATED
+HTTP: 403 / gRPC: PERMISSION_DENIED
+HTTP: 404 / gRPC: NOT_FOUND
+HTTP: 409 / gRPC: AlreadyExists
+HTTP: 410 / gRPC: UNKNOWN 
+HTTP: 500 / gRPC: NTERNAL
+HTTP: 503 / gRPC: UNAVAILABLE
+HTTP: 504 / gRPC: DEADLINE_EXCEEDED
+
+
+## gRPC generate
+
+```
+protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative internal/grpc/proto/short.proto
+```
+
+В --go-out запишется файл с кодом для Protobuf-сериализации.  (short.pb.go)
+В --go-grpc_out сохранится файл с gRPC-интерфейсами и методами. (short_grpc.pb.go)
+Так как вы указали параметр paths=source_relative, сгенерированные файлы создадутся в поддиректории ./proto. Если бы указали параметр paths=import, то сгенерированные файлы создались бы в директории, указанной в директиве go_package.
+
+## X-Real-IP with curl
+```
+curl --header "X-Real-IP: 192.168.2.2" localhost:8080/api/internal/stats
+```
 ## Create sertificates
 
 Generate private key:
@@ -214,6 +245,10 @@ go build -o ./cmd/shortener/shortener ./cmd/shortener/main.go
 ## my links to useful sites
 
 ## Test cover
+```
+go test -v -coverpkg=./... -coverprofile=/tmp/profile.cov ./...;cat /tmp/profile.cov | grep -v "mock\|vegeta\|proto" > /tmp/nomocksmigrations.cov;go tool cover -func /tmp/nomocksmigrations.cov
+```
+
 ```
 go test -v -coverpkg=./... -coverprofile=profile.cov ./...
 go tool cover -func profile.cov

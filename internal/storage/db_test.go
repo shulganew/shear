@@ -8,6 +8,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
+	"github.com/shulganew/shear.git/internal/service"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,7 +46,7 @@ func TestDBGetAll(t *testing.T) {
 			shorts := db.GetAll(ctx)
 			for i, short := range shorts {
 				assert.Equal(t, tt.rows[i][0], short.ID)
-				assert.Equal(t, tt.rows[i][1], short.UUID.String)
+				assert.Equal(t, tt.rows[i][1], short.UserID.String)
 				assert.Equal(t, tt.rows[i][2], short.Brief)
 				assert.Equal(t, tt.rows[i][3], short.Origin)
 			}
@@ -93,7 +94,7 @@ func TestDBGetUserAll(t *testing.T) {
 			shorts := db.GetUserAll(ctx, tt.userID)
 			for i, short := range shorts {
 				assert.Equal(t, short.ID, tt.rows[i][0])
-				assert.Equal(t, short.UUID.String, tt.rows[i][1])
+				assert.Equal(t, short.UserID.String, tt.rows[i][1])
 				assert.Equal(t, short.Brief, tt.rows[i][2])
 				assert.Equal(t, short.Origin, tt.rows[i][3])
 			}
@@ -235,7 +236,6 @@ func TestDBGetBrief(t *testing.T) {
 				t.Errorf("Error '%s' was not expected while closing the database", err)
 			}
 		})
-
 	}
 }
 
@@ -284,13 +284,13 @@ func TestDBSet(t *testing.T) {
 					WillReturnRows(sqlmock.NewRows([]string{}))
 			} else {
 				sqlmock.ExpectQuery("INSERT INTO short \\(user_id, brief, origin, is_deleted\\) VALUES (.+)").
-					WillReturnError(NewErrDuplicatedURL(tt.brief, tt.origin, errors.New("Duplicated.")))
+					WillReturnError(service.NewErrDuplicatedURL(tt.brief, tt.origin, errors.New("Duplicated.")))
 			}
 			sqlmock.ExpectClose()
 
 			db, err := NewDB(ctx, sql)
 			assert.NoError(t, err)
-			err = db.Set(ctx, tt.userID, tt.brief, tt.origin)
+			err = db.Add(ctx, tt.userID, tt.brief, tt.origin)
 
 			// If rows duplicated.
 			if !tt.existed {
@@ -425,5 +425,113 @@ func TestDRRecover(t *testing.T) {
 				t.Errorf("Error '%s' was not expected while closing the database", err)
 			}
 		})
+	}
+}
+
+func TestDBGetNumShorts(t *testing.T) {
+	tests := []struct {
+		name   string
+		userID string
+		num    int
+		err    error
+	}{
+		{
+			name:   "Base SQL test: Get Number of user's shorts",
+			userID: "018dea9b-7085-75f5-91c5-2ba674052348",
+			num:    10,
+			err:    nil,
+		},
+		{
+			name:   "Base SQL test: Get Number of user's shorts",
+			userID: "018dea9b-7085-75f5-91c5-2ba674052348",
+			num:    0,
+			err:    errors.New("Db error"),
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			sql, sqlmock, err := sqlmock.New()
+			if err != nil {
+				t.Errorf("An error '%s' was not expected when opening a stub database connection", err)
+			}
+			if tt.err == nil {
+				sqlmock.ExpectQuery("SELECT COUNT\\(DISTINCT user_id\\) FROM short WHERE user_id IS NOT NULL").
+					WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(tt.num))
+			} else {
+				sqlmock.ExpectQuery("SELECT COUNT\\(DISTINCT user_id\\) FROM short WHERE user_id IS NOT NULL").
+					WillReturnError(tt.err)
+			}
+			sqlmock.ExpectClose()
+
+			db, err := NewDB(ctx, sql)
+			assert.NoError(t, err)
+			num, err := db.GetNumShorts(ctx)
+			assert.Equal(t, tt.err, err)
+			assert.Equal(t, tt.num, num)
+
+			// db.Close() ensures that all expectations have been met
+			if err = sql.Close(); err != nil {
+				t.Errorf("Error '%s' was not expected while closing the database", err)
+			}
+		})
+
+	}
+}
+
+func TestDBGetNumUsers(t *testing.T) {
+	tests := []struct {
+		name   string
+		userID string
+		num    int
+		err    error
+	}{
+		{
+			name:   "Base SQL test: Get Number of user's shorts",
+			userID: "018dea9b-7085-75f5-91c5-2ba674052348",
+			num:    10,
+			err:    nil,
+		},
+		{
+			name:   "Base SQL test: Get Number of user's shorts",
+			userID: "018dea9b-7085-75f5-91c5-2ba674052348",
+			num:    0,
+			err:    errors.New("Db error"),
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			sql, sqlmock, err := sqlmock.New()
+			if err != nil {
+				t.Errorf("An error '%s' was not expected when opening a stub database connection", err)
+			}
+			if tt.err == nil {
+				sqlmock.ExpectQuery("SELECT COUNT\\(origin\\) FROM short").
+					WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(tt.num))
+			} else {
+				sqlmock.ExpectQuery("SELECT COUNT\\(origin\\) FROM short").
+					WillReturnError(tt.err)
+			}
+			sqlmock.ExpectClose()
+
+			db, err := NewDB(ctx, sql)
+			assert.NoError(t, err)
+			num, err := db.GetNumUsers(ctx)
+			assert.Equal(t, tt.err, err)
+			assert.Equal(t, tt.num, num)
+
+			// db.Close() ensures that all expectations have been met
+			if err = sql.Close(); err != nil {
+				t.Errorf("Error '%s' was not expected while closing the database", err)
+			}
+		})
+
 	}
 }

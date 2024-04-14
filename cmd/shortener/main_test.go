@@ -12,8 +12,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/shulganew/shear.git/internal/config"
+	"github.com/shulganew/shear.git/internal/handler/http/rest"
 	"github.com/shulganew/shear.git/internal/service"
-	"github.com/shulganew/shear.git/internal/web/handlers"
+
 	"go.uber.org/zap"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -54,12 +55,12 @@ func TestMain(t *testing.T) {
 	}
 
 	// init configApp
-	configApp := config.DefaultConfig()
+	configApp := config.DefaultConfig(false)
 
 	short := service.NewService(storage.NewMemory())
 
 	//init storage
-	handler := handlers.NewHandlerGetURL(&configApp, short)
+	handler := rest.NewHandlerGetURL(&configApp, short)
 
 	userID, err := uuid.NewV7()
 	if err != nil {
@@ -73,13 +74,17 @@ func TestMain(t *testing.T) {
 				t.Log("=============POTS===============")
 				t.Log("tt.request=", tt.request)
 				t.Log("strings.NewReader(tt.body)=", tt.body)
+				// add chi context
+				rctx := chi.NewRouteContext()
 				req := httptest.NewRequest(http.MethodPost, tt.request, strings.NewReader(tt.body))
+				ctx := context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID.String(), false))
+				req = req.WithContext(context.WithValue(ctx, chi.RouteCtxKey, rctx))
 				cookie := http.Cookie{Name: "user_id", Value: userID.String()}
 				req.AddCookie(&cookie)
 				//create status recorder
 				resRecord := httptest.NewRecorder()
 
-				handler.SetURL(resRecord, req)
+				handler.AddURL(resRecord, req)
 
 				//get result
 				res := resRecord.Result()
@@ -140,7 +145,8 @@ func TestMain(t *testing.T) {
 
 				//use context for chi router - add id
 				req := httptest.NewRequest(http.MethodGet, requestURL, nil)
-				req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+				ctx := context.WithValue(req.Context(), config.CtxConfig{}, config.NewCtxConfig(userID.String(), false))
+				req = req.WithContext(context.WithValue(ctx, chi.RouteCtxKey, rctx))
 
 				cookie := http.Cookie{Name: "user_id", Value: userID.String()}
 				req.AddCookie(&cookie)

@@ -17,7 +17,7 @@ type Short struct {
 	Brief     string         `json:"short_url"`    // short URL (cache)
 	Origin    string         `json:"original_url"` // Long full URL
 	SessionID string         `json:"-"`            // for Batch require use: Unique Session ID for each request in URL Batch
-	UUID      sql.NullString `json:"-"`            // unique user id string
+	UserID    sql.NullString `json:"-"`            // unique user id string
 	IsDeleted bool           `json:"-"`            // mark deleted URL by user
 	ID        int            `json:"uuid"`
 }
@@ -28,5 +28,5 @@ func NewShort(ID int, UUID string, brief string, origin string, sessionID string
 	if UUID == "" {
 		nullUUID.Valid = false
 	}
-	return &Short{ID: ID, IsDeleted: false, UUID: nullUUID, Brief: brief, Origin: origin, SessionID: sessionID}
+	return &Short{ID: ID, IsDeleted: false, UserID: nullUUID, Brief: brief, Origin: origin, SessionID: sessionID}
 }

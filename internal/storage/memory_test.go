@@ -11,8 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMem(t *testing.T) {
+const NumShorts = 30
+const NumUsers = 3
 
+func TestMem(t *testing.T) {
 	mem := NewMemory()
 	ctx := context.Background()
 
@@ -26,7 +28,7 @@ func TestMem(t *testing.T) {
 			URLstr, err := url.JoinPath("http://", "yandex"+strconv.Itoa(i*10+j), ".ru")
 			require.NoError(t, err)
 			brief := service.GenerateShortLinkByte()
-			mem.Set(ctx, userID.String(), brief, URLstr)
+			mem.Add(ctx, userID.String(), brief, URLstr)
 		}
 	}
 
@@ -53,7 +55,15 @@ func TestMem(t *testing.T) {
 				total++
 			}
 		}
+		require.Equal(t, 30, len(shorts))
 		require.Equal(t, 21, total)
+
+		num, err := mem.GetNumShorts(context.Background())
+		require.NoError(t, err)
+		require.Equal(t, num, NumShorts)
+		users, err := mem.GetNumUsers(context.Background())
+		require.NoError(t, err)
+		require.Equal(t, users, NumUsers)
 
 	})
 }

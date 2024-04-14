@@ -7,19 +7,24 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
+	"errors"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/shulganew/shear.git/internal/builders"
 	"github.com/shulganew/shear.git/internal/entities"
+
 	"go.uber.org/zap"
 )
 
 // Length of short URL random sequence length.
 const ShortLength = 8
+
+// Prefix with protocol chema for URLs constractors.
+const SchemaHTTP = "http"
 
 // Base service shortener struct for manipulating with URLs.
 type Shorten struct {
@@ -28,13 +33,15 @@ type Shorten struct {
 
 // Interface for universal data storage, witch contain short and full URL.
 type StorageURL interface {
-	Set(ctx context.Context, userID string, brief, origin string) error
-	SetAll(ctx context.Context, short []entities.Short) error
+	Add(ctx context.Context, userID string, brief, origin string) error
+	AddAll(ctx context.Context, short []entities.Short) error
 	GetOrigin(ctx context.Context, brief string) (string, bool, bool)
 	GetBrief(ctx context.Context, origin string) (string, bool, bool)
 	GetAll(ctx context.Context) []entities.Short
 	GetUserAll(ctx context.Context, userID string) []entities.Short
 	DeleteBatch(ctx context.Context, userID string, briefs []string) error
+	GetNumShorts(ctx context.Context) (num int, err error)
+	GetNumUsers(ctx context.Context) (num int, err error)
 }
 
 // Service constructor.
@@ -43,21 +50,74 @@ func NewService(storage StorageURL) *Shorten {
 }
 
 // Set user's URL to storage: original and short.
-func (s *Shorten) SetURL(ctx context.Context, userID, brief, origin string) (err error) {
-	err = s.storeURLs.Set(ctx, userID, brief, origin)
+func (s *Shorten) AddURL(ctx context.Context, reqb builders.AddRequestDTO) (resb builders.AddResponsehDTO) {
+	redirectURL, err := url.Parse(reqb.Origin)
 	if err != nil {
-		return err
+		return builders.AddResponsehDTO{AnwerURL: "", Status: builders.NewRespStatus(http.StatusInternalServerError), Err: errors.New("wrong URL in body, parse error")}
 	}
-	return nil
+
+	zap.S().Infoln("RedirectURL: ", redirectURL)
+	brief := GenerateShortLinkByte()
+	mainURL, answerURL, err := s.GetAnsURLFast(redirectURL.Scheme, reqb.Resp, brief)
+	if err != nil {
+		return builders.AddResponsehDTO{AnwerURL: "", Status: builders.NewRespStatus(http.StatusInternalServerError), Err: errors.New("Error parse URL")}
+	}
+
+	// Save map to storage.
+	zap.S().Infof("Save User %s, br %s, Orig: %s \n", reqb.CtxConfig.GetUserID(), brief, reqb.Origin)
+	err = s.storeURLs.Add(ctx, reqb.CtxConfig.GetUserID(), brief, reqb.Origin)
+	if err != nil {
+		var tagErr *ErrDuplicatedURL
+		if errors.As(err, &tagErr) {
+			// send existed string from error
+			var answer string
+			answer, err = url.JoinPath(mainURL, tagErr.Brief)
+			if err != nil {
+				zap.S().Errorln("Error during JoinPath", err)
+			}
+			return builders.AddResponsehDTO{AnwerURL: answer, Status: builders.NewRespStatus(http.StatusConflict), Err: errors.New("try to add duplicated URL")}
+		}
+		return builders.AddResponsehDTO{AnwerURL: "", Status: builders.NewRespStatus(http.StatusInternalServerError), Err: errors.New("error saving in Storage")}
+	}
+	return builders.AddResponsehDTO{AnwerURL: answerURL.String(), Status: builders.NewRespStatus(http.StatusCreated), Err: nil}
 }
 
 // Set user's URLs short object array.
-func (s *Shorten) SetAll(ctx context.Context, short []entities.Short) (err error) {
-	err = s.storeURLs.SetAll(ctx, short)
-	if err != nil {
-		return fmt.Errorf("error during save URL to Store: %w", err)
+func (s *Shorten) AddBatch(ctx context.Context, reqb builders.BatchRequestDTO) (resb builders.BatchResponsehDTO) {
+	shorts := []entities.Short{}
+	response := []entities.BatchResponse{}
+	for i, r := range reqb.Origins {
+		var origin *url.URL
+		origin, err := url.Parse(r.Origin)
+		if err != nil {
+			return builders.BatchResponsehDTO{AnwerURLs: nil, Status: builders.NewRespStatus(http.StatusInternalServerError), Err: errors.New("wrong URL in origins, parse URL error")}
+		}
+		// get short brief and full answer URL
+		brief := GenerateShortLinkByte()
+		var answerURL *url.URL
+		_, answerURL, err = s.GetAnsURLFast(origin.Scheme, reqb.Resp, brief)
+		if err != nil {
+			return builders.BatchResponsehDTO{AnwerURLs: nil, Status: builders.NewRespStatus(http.StatusInternalServerError), Err: errors.New("error parse URL after construct")}
+		}
+		response = append(response, entities.BatchResponse{SessionID: r.SessionID, Answer: answerURL.String()})
+		shortSession := entities.NewShort(i, reqb.CtxConfig.GetUserID(), brief, (*origin).String(), r.SessionID)
+		shorts = append(shorts, *shortSession)
 	}
-	return nil
+	// Add to database.
+	err := s.storeURLs.AddAll(ctx, shorts)
+
+	// check duplicated strings
+	var tagErr *ErrDuplicatedShort
+	if err != nil {
+		if errors.As(err, &tagErr) {
+			// send existed URL to response
+			broken := []entities.BatchResponse{}
+			batch := entities.BatchResponse{SessionID: tagErr.Short.SessionID, Answer: tagErr.Short.Brief}
+			broken = append(broken, batch)
+			return builders.BatchResponsehDTO{AnwerURLs: broken, Status: builders.NewRespStatus(http.StatusConflict), Err: err}
+		}
+	}
+	return builders.BatchResponsehDTO{AnwerURLs: response, Status: builders.NewRespStatus(http.StatusCreated), Err: err}
 }
 
 // Return original URL by short URL.
@@ -90,6 +150,18 @@ func (s *Shorten) DeleteBatchArray(ctx context.Context, delBatchs []DelBatch) {
 // Batch delete by user's short URLs.
 func (s *Shorten) DeleteBatch(ctx context.Context, delBatch DelBatch) (err error) {
 	err = s.storeURLs.DeleteBatch(ctx, delBatch.UserID, delBatch.Briefs)
+	return
+}
+
+// Get totoal number of shorts.
+func (s *Shorten) GetNumShorts(ctx context.Context) (num int, err error) {
+	num, err = s.storeURLs.GetNumShorts(ctx)
+	return
+}
+
+// Get totoal number of users.
+func (s *Shorten) GetNumUsers(ctx context.Context) (num int, err error) {
+	num, err = s.storeURLs.GetNumUsers(ctx)
 	return
 }
 

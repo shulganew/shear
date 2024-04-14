@@ -6,5 +6,6 @@
     "pass": "mypass",
     "enable_backup": true, 
     "enable_pprof": true, 
-    "enable_https": true
+    "enable_https": true,
+    "trusted_subnet": "0.0.0.0/0"
 }

@@ -3,6 +3,12 @@ package config
 // Type for sending passowd key to midleware through context.
 type CtxPassKey struct{}
 
+// Type for sending trusted ip/mask subnet.
+type CtxIP struct{}
+
+// Type for sending bool is allow ip.
+type CtxAllow struct{}
+
 // Send values through middleware in context.
 type CtxConfig struct {
 	userID    string

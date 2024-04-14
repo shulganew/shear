@@ -60,7 +60,7 @@ func InitApp(ctx context.Context, conf config.Config, db *sql.DB, delCh chan ser
 		}
 
 		// upload shorts to Storage
-		stor.SetAll(ctx, shorts)
+		stor.AddAll(ctx, shorts)
 	}
 
 	del := service.NewDelete(delCh, &conf)
@@ -113,7 +113,7 @@ func InitDB(ctx context.Context, conf config.Config) (db *sql.DB) {
 	return
 }
 
-// Activate backup
+// Activate backup.
 func InitBackup(ctx context.Context, short *service.Shorten, file string) *service.Backup {
 	backup := &service.Backup{File: file}
 	// Time machine.

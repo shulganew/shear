@@ -5,12 +5,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/shulganew/shear.git/internal/entities"
+	"github.com/shulganew/shear.git/internal/service"
+
 	"go.uber.org/zap"
 )
 
@@ -26,8 +27,8 @@ func NewDB(ctx context.Context, master *sql.DB) (*DB, error) {
 	return &db, err
 }
 
-// Set short and original URL to storage.
-func (base *DB) Set(ctx context.Context, userID, brief, origin string) error {
+// Add short and original URL to storage.
+func (base *DB) Add(ctx context.Context, userID, brief, origin string) error {
 	err := base.master.QueryRowContext(ctx, "INSERT INTO short (user_id, brief, origin, is_deleted) VALUES ($1, $2, $3, $4) ", userID, brief, origin, false).Scan()
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -42,7 +43,7 @@ func (base *DB) Set(ctx context.Context, userID, brief, origin string) error {
 					return nil
 				}
 				zap.S().Infoln("Found duplicated URL: ", origin)
-				return NewErrDuplicatedURL(brief, origin, pgErr)
+				return service.NewErrDuplicatedURL(brief, origin, pgErr)
 			}
 		}
 
@@ -57,7 +58,7 @@ func (base *DB) Set(ctx context.Context, userID, brief, origin string) error {
 }
 
 // Set all user's short and original URLs from Short slice.
-func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
+func (base *DB) AddAll(ctx context.Context, shorts []entities.Short) error {
 	tx, err := base.master.Begin()
 	if err != nil {
 		zap.S().Errorln(err)
@@ -69,21 +70,19 @@ func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
 	}
 
 	for _, short := range shorts {
-		_, err = prep.ExecContext(ctx, short.UUID, short.Brief, short.Origin)
+		_, err = prep.ExecContext(ctx, short.UserID, short.Brief, short.Origin)
 		if err != nil {
 			var pgErr *pgconn.PgError
 			// if URL exist in DataBase
 			if errors.As(err, &pgErr) && pgerrcode.UniqueViolation == pgErr.Code {
 				// get brief string
 				if brief, ok, _ := base.GetBrief(ctx, short.Origin); ok {
-
-					return NewErrDuplicatedShort(short.SessionID, brief, short.Origin, pgErr)
+					return service.NewErrDuplicatedShort(short.SessionID, brief, short.Origin, pgErr)
 				}
 			}
 			tx.Rollback()
 			return err
 		}
-
 	}
 	err = tx.Commit()
 	if err != nil {
@@ -96,7 +95,7 @@ func (base *DB) SetAll(ctx context.Context, shorts []entities.Short) error {
 func (base *DB) GetOrigin(ctx context.Context, brief string) (origin string, existed bool, isDeleted bool) {
 	row := base.master.QueryRowContext(ctx, "SELECT id, user_id, brief, origin, is_deleted FROM short WHERE brief=$1", brief)
 	var short entities.Short
-	err := row.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin, &short.IsDeleted)
+	err := row.Scan(&short.ID, &short.UserID, &short.Brief, &short.Origin, &short.IsDeleted)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", false, false
@@ -110,7 +109,7 @@ func (base *DB) GetOrigin(ctx context.Context, brief string) (origin string, exi
 func (base *DB) GetBrief(ctx context.Context, origin string) (brief string, existed bool, isDeleted bool) {
 	row := base.master.QueryRowContext(ctx, "SELECT id, user_id, brief, origin, is_deleted FROM short WHERE origin=$1", origin)
 	var short entities.Short
-	err := row.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin, &short.IsDeleted)
+	err := row.Scan(&short.ID, &short.UserID, &short.Brief, &short.Origin, &short.IsDeleted)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -134,7 +133,7 @@ func (base *DB) GetAll(ctx context.Context) []entities.Short {
 	shorts := []entities.Short{}
 	for rows.Next() {
 		var short entities.Short
-		err = rows.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin)
+		err = rows.Scan(&short.ID, &short.UserID, &short.Brief, &short.Origin)
 		if err != nil {
 			zap.S().Errorln(err)
 		}
@@ -161,7 +160,7 @@ func (base *DB) GetUserAll(ctx context.Context, userID string) []entities.Short 
 	shorts := []entities.Short{}
 	for rows.Next() {
 		var short entities.Short
-		err = rows.Scan(&short.ID, &short.UUID, &short.Brief, &short.Origin)
+		err = rows.Scan(&short.ID, &short.UserID, &short.Brief, &short.Origin)
 		if err != nil {
 			zap.S().Errorln(err)
 		}
@@ -177,8 +176,7 @@ func (base *DB) GetUserAll(ctx context.Context, userID string) []entities.Short 
 
 // Mark all user's URLs by short URL in briefs slice.
 func (base *DB) DeleteBatch(ctx context.Context, userID string, briefs []string) (err error) {
-	// prepare bulk request to database
-	fmt.Println(briefs)
+	// Prepare bulk request to database.
 	userIDs := make([]string, len(briefs))
 	for i := range briefs {
 		userIDs[i] = userID
@@ -202,7 +200,6 @@ func (base *DB) isDeleted(ctx context.Context, brief string) bool {
 
 	var isDeleted bool
 	err := row.Scan(&isDeleted)
-
 	if err != nil {
 		zap.S().Errorln(err)
 	}
@@ -226,4 +223,28 @@ func (base *DB) Start(ctx context.Context) error {
 	err := base.master.PingContext(ctx)
 	defer cancel()
 	return err
+}
+
+// Get totoal number of shorts.
+func (base *DB) GetNumShorts(ctx context.Context) (num int, err error) {
+	row := base.master.QueryRowContext(ctx, "SELECT COUNT(DISTINCT user_id) FROM short WHERE user_id IS NOT NULL")
+
+	err = row.Scan(&num)
+	if err != nil {
+		return 0, err
+	}
+	zap.S().Infoln("Stat num of users: ", num)
+	return num, nil
+}
+
+// Get totoal number of users.
+func (base *DB) GetNumUsers(ctx context.Context) (num int, err error) {
+	row := base.master.QueryRowContext(ctx, "SELECT COUNT(origin) FROM short")
+
+	err = row.Scan(&num)
+	if err != nil {
+		return 0, err
+	}
+	zap.S().Infoln("Stat num of users: ", num)
+	return num, nil
 }

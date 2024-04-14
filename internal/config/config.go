@@ -8,17 +8,19 @@ import (
 	"os"
 	"strings"
 
-	"github.com/shulganew/shear.git/internal/web/validators"
+	"github.com/shulganew/shear.git/internal/handler/http/validators"
 	"go.uber.org/zap"
 )
 
 // Struct for store main app config.
 type Config struct {
-	Address    *string `json:"server_address,omitempty"`    // flag -a
+	AddrREST   *string `json:"server_address,omitempty"`    // flag -a
 	Response   *string `json:"response_address,omitempty"`  //env var, or flag -b if env not exist
 	BackupPath *string `json:"file_storage_path,omitempty"` // file location Path for backup
 	DSN        *string `json:"database_dsn,omitempty"`      // dsn connection string
 	Pass       *string `json:"pass,omitempty"`              // user identity encryption with cookie
+	IPtrust    *string `json:"trusted_subnet,omitempty"`    // trusted network IP
+	AddrGRPC   *string `json:"grpc_address,omitempty"`      // trusted network IP
 	Backup     *bool   `json:"enable_backup,omitempty"`     // is backup enable
 	DB         *bool   // is db enable
 	JSONPath   *string // path to JSON config file
@@ -44,21 +46,24 @@ func NewConfig() *Config {
 
 	// Read JSON config if existed.
 	if config.JSONPath != nil {
-		jconf := readJSONConf(*econf.JSONPath)
+		jconf := readJSONConf(*config.JSONPath)
 		loadConfig(&config, *jconf)
-
 	}
 
 	// Set defaults values on empty (nil) config values.
-	loadConfig(&config, DefaultConfig())
+	if config.IsSeq != nil && *config.IsSeq {
+		loadConfig(&config, DefaultConfig(true))
+	} else {
+		loadConfig(&config, DefaultConfig(false))
+	}
 
 	// Check and parse URL.
-	startaddr, startport := validators.CheckURL(config.GetAddress(), config.IsSecure())
-	answaddr, answport := validators.CheckURL(config.GetAddress(), config.IsSecure())
+	startaddr, startport := validators.CheckURL(config.GetAddrREST(), config.IsSecure())
+	answaddr, answport := validators.CheckURL(config.GetAddrREST(), config.IsSecure())
 	config.SetAddress(startaddr + ":" + startport)
 	config.SetResponse(answaddr + ":" + answport)
-	zap.S().Infoln("Server address: ", config.GetAddress())
-
+	zap.S().Infoln("Server REST address: ", config.GetAddrREST())
+	zap.S().Infoln("Server gRPC address: ", config.GetAddrGRPC())
 	// Init storage DB from env variable.
 	if config.DSN != nil {
 		zap.S().Infoln("Use Data Base storage: ", config.GetDSN())
@@ -90,13 +95,13 @@ func (c Config) GetProtocol() string {
 }
 
 // Address from config.
-func (c Config) GetAddress() string {
-	return *c.Address
+func (c Config) GetAddrREST() string {
+	return *c.AddrREST
 }
 
 // Set address to config.
 func (c *Config) SetAddress(a string) {
-	c.Address = &a
+	c.AddrREST = &a
 }
 
 // Get response address from config.
@@ -154,10 +159,21 @@ func (c Config) IsSecure() bool {
 	return *c.IsSeq
 }
 
+// IP/mask trusted network.
+func (c Config) GetIP() string {
+	return *c.IPtrust
+}
+
+// IP/mask trusted network.
+func (c Config) GetAddrGRPC() string {
+	return *c.AddrGRPC
+}
+
 // Stringer interface.
 func (c Config) String() string {
 	var con strings.Builder
-	con.WriteString(fmt.Sprintf("\nAddress: %s \n", c.GetAddress()))
+	con.WriteString(fmt.Sprintf("\nAddress REST: %s \n", c.GetAddrREST()))
+	con.WriteString(fmt.Sprintf("\nAddress gRPC: %s \n", c.GetAddrGRPC()))
 	con.WriteString(fmt.Sprintf("Response: %s \n", c.GetResponse()))
 	con.WriteString(fmt.Sprintf("BackupPath: %s \n", c.GetBackupPath()))
 	con.WriteString(fmt.Sprintf("DSN: %s \n", c.GetDSN()))
@@ -166,6 +182,7 @@ func (c Config) String() string {
 	con.WriteString(fmt.Sprintf("Use DB: %t \n", c.IsDB()))
 	con.WriteString(fmt.Sprintf("Pprof: %t \n", c.IsPprof()))
 	con.WriteString(fmt.Sprintf("IsSecure: %t \n", c.IsSecure()))
+	con.WriteString(fmt.Sprintf("Trusted Network: %s \n", c.GetIP()))
 	return con.String()
 }
 
@@ -198,20 +215,22 @@ func isFlagPassed(name string) bool {
 // Read flags to Config object.
 func readFlags() Config {
 	fconf := Config{}
-	startAddress := flag.String("a", "", "start server address and port")
-	resultAddress := flag.String("b", "", "answer address and port")
+	startAddrREST := flag.String("a", "", "Start REST server address and port")
+	startAddrGRPC := flag.String("g", "", "Start gRPC server address and port")
+	resultAddress := flag.String("b", "", "Answer address and port")
 	userAuth := flag.String("x", "mysecret", "User identity encryption with cookie (user_id)")
-	tempf := flag.String("f", "", "Location of dump file")
+	bp := flag.String("f", "", "Location of dump file")
 	dsnf := flag.String("d", "", "Data Source Name for DataBase connection")
 	pprof := flag.Bool("p", false, "Visualization tool")
 	seq := flag.Bool("s", false, "Use secure connection TLS")
-	// Read JSON config
+	ipR := flag.String("t", "", "Trusted network ip/mask in CIDR")
+	// Read JSON config.
 	jsonS := flag.String("c", "", "Path to JSON file with configuration")
 	jsonL := flag.String("config", "", "Path to JSON file with configuration")
 	flag.Parse()
 
 	if isFlagPassed("a") {
-		fconf.Address = startAddress
+		fconf.AddrREST = startAddrREST
 	}
 	if isFlagPassed("b") {
 		fconf.Response = resultAddress
@@ -220,7 +239,7 @@ func readFlags() Config {
 		fconf.Pass = userAuth
 	}
 	if isFlagPassed("f") {
-		fconf.BackupPath = tempf
+		fconf.BackupPath = bp
 	}
 	if isFlagPassed("d") {
 		fconf.DSN = dsnf
@@ -231,14 +250,18 @@ func readFlags() Config {
 	if isFlagPassed("s") {
 		fconf.IsSeq = seq
 	}
+	if isFlagPassed("t") {
+		fconf.IPtrust = ipR
+	}
+	if isFlagPassed("g") {
+		fconf.AddrGRPC = startAddrGRPC
+	}
 	if isFlagPassed("c") {
 		fconf.JSONPath = jsonS
 	} else if isFlagPassed("config") {
 		fconf.JSONPath = jsonL
 	}
-
 	return fconf
-
 }
 
 // Read ENV to Config object.
@@ -247,7 +270,7 @@ func readENV() Config {
 
 	sa, exist := os.LookupEnv(("SERVER_ADDRESS"))
 	if exist {
-		econf.Address = &sa
+		econf.AddrREST = &sa
 	}
 
 	bu, exist := os.LookupEnv(("BASE_URL"))
@@ -275,14 +298,32 @@ func readENV() Config {
 		econf.JSONPath = &jconf
 	}
 
+	ip, exist := os.LookupEnv(("TRUSTED_SUBNET"))
+	if exist {
+		econf.IPtrust = &ip
+	}
+
+	ga, exist := os.LookupEnv(("GRPC_ADDRESS"))
+	if exist {
+		econf.AddrGRPC = &ga
+	}
+
 	return econf
 }
 
 // Return config object with preset defaults values.
-func DefaultConfig() Config {
+func DefaultConfig(isSec bool) Config {
 	dconf := Config{}
 	// Set defaults values.
-	dconf.Address = ptStr("localhost:8080")
+	if !isSec {
+		dconf.AddrREST = ptStr("localhost:8080")
+		dconf.AddrGRPC = ptStr("localhost:9090")
+	} else {
+
+		dconf.AddrREST = ptStr("localhost:8443")
+		dconf.AddrGRPC = ptStr("localhost:9443")
+	}
+
 	dconf.Response = ptStr("localhost:8080")
 	dconf.Pass = ptStr("mypass")
 	dconf.DB = ptBool(false)
@@ -291,6 +332,7 @@ func DefaultConfig() Config {
 	dconf.DSN = ptStr("postgresql://short:1@localhost/short")
 	dconf.Pprof = ptBool(false)
 	dconf.IsSeq = ptBool(false)
+	dconf.IPtrust = ptStr("0.0.0.0/32") // 32 mask - not allow to any
 	return dconf
 }
 
@@ -304,8 +346,8 @@ func ptStr(s string) *string {
 
 // Assing field from loaded config to main config if values not set in main and existed in loaded.
 func loadConfig(main *Config, loaded Config) {
-	if main.Address == nil && loaded.Address != nil {
-		main.Address = loaded.Address
+	if main.AddrREST == nil && loaded.AddrREST != nil {
+		main.AddrREST = loaded.AddrREST
 	}
 	if main.Response == nil && loaded.Response != nil {
 		main.Response = loaded.Response
@@ -333,5 +375,11 @@ func loadConfig(main *Config, loaded Config) {
 	}
 	if main.IsSeq == nil && loaded.IsSeq != nil {
 		main.IsSeq = loaded.IsSeq
+	}
+	if main.IPtrust == nil && loaded.IPtrust != nil {
+		main.IPtrust = loaded.IPtrust
+	}
+	if main.AddrGRPC == nil && loaded.AddrGRPC != nil {
+		main.AddrGRPC = loaded.AddrGRPC
 	}
 }

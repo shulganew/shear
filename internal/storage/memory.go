@@ -17,8 +17,8 @@ func NewMemory() *Memory {
 	return &Memory{StoreURLs: make([]entities.Short, 0)}
 }
 
-// Set short and original URL to storage.
-func (m *Memory) Set(ctx context.Context, userID, brief, origin string) (err error) {
+// Add short and original URL to storage.
+func (m *Memory) Add(ctx context.Context, userID, brief, origin string) (err error) {
 	// init storage
 	short := entities.NewShort(len(m.StoreURLs), userID, brief, origin, "")
 	m.StoreURLs = append(m.StoreURLs, *short)
@@ -26,7 +26,7 @@ func (m *Memory) Set(ctx context.Context, userID, brief, origin string) (err err
 }
 
 // Set all user's short and original URLs from Short slice.
-func (m *Memory) SetAll(ctx context.Context, shotrs []entities.Short) error {
+func (m *Memory) AddAll(ctx context.Context, shotrs []entities.Short) error {
 	m.StoreURLs = append(m.StoreURLs, shotrs...)
 	return nil
 }
@@ -63,7 +63,7 @@ func (m *Memory) GetAll(ctx context.Context) []entities.Short {
 func (m *Memory) GetUserAll(ctx context.Context, userID string) []entities.Short {
 	shorts := make([]entities.Short, 0)
 	for _, short := range m.StoreURLs {
-		id, err := short.UUID.Value()
+		id, err := short.UserID.Value()
 		if err == nil {
 			if id == userID {
 				shorts = append(shorts, short)
@@ -76,10 +76,28 @@ func (m *Memory) GetUserAll(ctx context.Context, userID string) []entities.Short
 // Mark all user's URLs by short URL in briefs slice.
 func (m *Memory) DeleteBatch(ctx context.Context, userID string, briefs []string) error {
 	for _, brief := range briefs {
-		id := slices.IndexFunc(m.StoreURLs, func(s entities.Short) bool { return s.Brief == brief && s.UUID.String == userID })
+		id := slices.IndexFunc(m.StoreURLs, func(s entities.Short) bool { return s.Brief == brief && s.UserID.String == userID })
 		if id != -1 {
 			m.StoreURLs[id].IsDeleted = true
 		}
 	}
 	return nil
+}
+
+// Get totoal number of shorts.
+func (m *Memory) GetNumShorts(ctx context.Context) (num int, err error) {
+	return len(m.StoreURLs), nil
+}
+
+// Get totoal number of Users.
+func (m *Memory) GetNumUsers(ctx context.Context) (num int, err error) {
+	// Number of users.
+	users := make(map[string]struct{})
+	for _, short := range m.StoreURLs {
+		user := short.UserID.String
+		if len(user) != 0 {
+			users[user] = struct{}{}
+		}
+	}
+	return len(users), nil
 }

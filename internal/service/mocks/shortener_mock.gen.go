@@ -35,6 +35,34 @@ func (m *MockStorageURL) EXPECT() *MockStorageURLMockRecorder {
 	return m.recorder
 }
 
+// Add mocks base method.
+func (m *MockStorageURL) Add(ctx context.Context, userID, brief, origin string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Add", ctx, userID, brief, origin)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Add indicates an expected call of Add.
+func (mr *MockStorageURLMockRecorder) Add(ctx, userID, brief, origin interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Add", reflect.TypeOf((*MockStorageURL)(nil).Add), ctx, userID, brief, origin)
+}
+
+// AddAll mocks base method.
+func (m *MockStorageURL) AddAll(ctx context.Context, short []entities.Short) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddAll", ctx, short)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddAll indicates an expected call of AddAll.
+func (mr *MockStorageURLMockRecorder) AddAll(ctx, short interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAll", reflect.TypeOf((*MockStorageURL)(nil).AddAll), ctx, short)
+}
+
 // DeleteBatch mocks base method.
 func (m *MockStorageURL) DeleteBatch(ctx context.Context, userID string, briefs []string) error {
 	m.ctrl.T.Helper()
@@ -79,6 +107,36 @@ func (mr *MockStorageURLMockRecorder) GetBrief(ctx, origin interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBrief", reflect.TypeOf((*MockStorageURL)(nil).GetBrief), ctx, origin)
 }
 
+// GetNumShorts mocks base method.
+func (m *MockStorageURL) GetNumShorts(ctx context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNumShorts", ctx)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNumShorts indicates an expected call of GetNumShorts.
+func (mr *MockStorageURLMockRecorder) GetNumShorts(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNumShorts", reflect.TypeOf((*MockStorageURL)(nil).GetNumShorts), ctx)
+}
+
+// GetNumUsers mocks base method.
+func (m *MockStorageURL) GetNumUsers(ctx context.Context) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetNumUsers", ctx)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetNumUsers indicates an expected call of GetNumUsers.
+func (mr *MockStorageURLMockRecorder) GetNumUsers(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNumUsers", reflect.TypeOf((*MockStorageURL)(nil).GetNumUsers), ctx)
+}
+
 // GetOrigin mocks base method.
 func (m *MockStorageURL) GetOrigin(ctx context.Context, brief string) (string, bool, bool) {
 	m.ctrl.T.Helper()
@@ -107,32 +165,4 @@ func (m *MockStorageURL) GetUserAll(ctx context.Context, userID string) []entiti
 func (mr *MockStorageURLMockRecorder) GetUserAll(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserAll", reflect.TypeOf((*MockStorageURL)(nil).GetUserAll), ctx, userID)
-}
-
-// Set mocks base method.
-func (m *MockStorageURL) Set(ctx context.Context, userID, brief, origin string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Set", ctx, userID, brief, origin)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Set indicates an expected call of Set.
-func (mr *MockStorageURLMockRecorder) Set(ctx, userID, brief, origin interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockStorageURL)(nil).Set), ctx, userID, brief, origin)
-}
-
-// SetAll mocks base method.
-func (m *MockStorageURL) SetAll(ctx context.Context, short []entities.Short) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetAll", ctx, short)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SetAll indicates an expected call of SetAll.
-func (mr *MockStorageURLMockRecorder) SetAll(ctx, short interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetAll", reflect.TypeOf((*MockStorageURL)(nil).SetAll), ctx, short)
 }
