@@ -5,7 +5,6 @@ import (
 
 	"github.com/shulganew/shear.git/internal/config"
 	pb "github.com/shulganew/shear.git/internal/handler/grpc/proto"
-	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -19,16 +18,11 @@ import (
 func (u *UsersServer) DelUserURLs(ctx context.Context, in *pb.DelRequest) (*pb.DelResponse, error) {
 	// Get UserID from cxt values.
 	ctxConfig := ctx.Value(config.CtxConfig{}).(config.CtxConfig)
-	userID := ctxConfig.GetUserID()
-
-	zap.S().Infoln("UserID: ", userID, "Is new: ", ctxConfig.IsNewUser())
-	// Check user is new.
 	if ctxConfig.IsNewUser() {
 		return nil, status.Errorf(codes.PermissionDenied, "User not athorized")
 	}
 
 	// Async delete Shorts from body
-	u.servDelete.AsyncDelete(userID, in.Briefs)
-
+	u.servDelete.AsyncDelete(ctxConfig.GetUserID(), in.Briefs)
 	return &pb.DelResponse{Ok: true}, nil
 }

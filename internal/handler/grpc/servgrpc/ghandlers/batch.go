@@ -29,7 +29,7 @@ func (u *UsersServer) Batch(ctx context.Context, in *pb.BatchRequest) (*pb.Batch
 		requests = append(requests, entities.BatchRequest{SessionID: strconv.Itoa(i), Origin: r})
 	}
 
-	// Convert to string array of origins.
+	// Convert service DTO object.
 	resDTO := u.serviceURL.AddBatch(ctx, builders.BatchRequestDTO{Origins: requests, CtxConfig: ctxConfig, Resp: u.conf.GetResponse()})
 
 	// Check errors in service.

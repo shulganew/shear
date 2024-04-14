@@ -42,7 +42,6 @@ func (u *HandlerURL) GetURL(res http.ResponseWriter, req *http.Request) {
 
 	// set content type
 	res.Header().Add("Content-Type", "text/plain")
-
 	if exist {
 		if isDeleted {
 			// set status code 410
