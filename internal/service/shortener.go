@@ -265,6 +265,7 @@ func DecodeCookie(secret string, password string) (uuid string, err error) {
 		zap.S().Errorln("Encryption Error: Open seal")
 		return
 	}
+	
 	return string(decrypted), nil
 }
 
